@@ -97,17 +97,39 @@ export type Order = {
   user: any;
   shop: any;
   orderItems: Array<{
+    _id?: string;
     menuItem: any;
     name: string;
     price: number;
     quantity: number;
     specialInstructions?: string;
   }>;
+  deliveryAddress?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+    campus?: string;
+    building?: string;
+    room?: string;
+  };
+  paymentMethod: 'card' | 'cash' | 'campus_card' | 'online';
+  paymentStatus?: string;
   itemsPrice: number;
   deliveryFee: number;
   taxPrice: number;
   totalPrice: number;
   status: string;
+  deliveryPerson?: {
+    _id: string;
+    name: string;
+    phone?: string;
+    email?: string;
+  };
+  estimatedDeliveryTime?: string;
+  deliveredAt?: string;
+  specialInstructions?: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
