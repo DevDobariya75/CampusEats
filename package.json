@@ -1,0 +1,24 @@
+{
+  "name": "campuseats",
+  "version": "1.0.0",
+  "description": "Building a Food delivery System for Campus",
+  "homepage": "https://github.com/DevDobariya75/CampusEats#readme",
+  "bugs": {
+    "url": "https://github.com/DevDobariya75/CampusEats/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DevDobariya75/CampusEats.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "start",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3"
+  }
+}
