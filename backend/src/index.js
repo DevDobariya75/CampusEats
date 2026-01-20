@@ -10,6 +10,9 @@ import shopRoutes from '../routes/shopRoutes.js';
 import menuItemRoutes from '../routes/menuItemRoutes.js';
 import orderRoutes from '../routes/orderRoutes.js';
 import reviewRoutes from '../routes/reviewRoutes.js';
+import adminRoutes from '../routes/adminRoutes.js';
+import shopkeeperRoutes from '../routes/shopkeeperRoutes.js';
+import deliveryRoutes from '../routes/deliveryRoutes.js';
 
 // Load env vars
 dotenv.config();
@@ -28,6 +31,9 @@ app.use(cors({
 
 // Mount routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/shopkeeper', shopkeeperRoutes);
+app.use('/api/delivery', deliveryRoutes);
 app.use('/api/shops', shopRoutes);
 app.use('/api/menu-items', menuItemRoutes);
 app.use('/api/orders', orderRoutes);

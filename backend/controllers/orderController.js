@@ -126,8 +126,16 @@ export const getOrders = asyncHandler(async (req, res) => {
 
     const orders = await Order.find(query)
         .populate('user', 'name email phone')
-        .populate('shop', 'name image')
+        .populate({
+            path: 'shop',
+            select: 'name image owner',
+            populate: {
+                path: 'owner',
+                select: 'name email phone'
+            }
+        })
         .populate('orderItems.menuItem', 'name image')
+        .populate('deliveryPerson', 'name phone email')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limitNum);
@@ -150,9 +158,16 @@ export const getOrders = asyncHandler(async (req, res) => {
 export const getOrder = asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id)
         .populate('user', 'name email phone address')
-        .populate('shop', 'name image address contact')
+        .populate({
+            path: 'shop',
+            select: 'name image address contact owner',
+            populate: {
+                path: 'owner',
+                select: 'name email phone'
+            }
+        })
         .populate('orderItems.menuItem')
-        .populate('deliveryPerson', 'name phone');
+        .populate('deliveryPerson', 'name phone email');
 
     if (!order) {
         return res.status(404).json({

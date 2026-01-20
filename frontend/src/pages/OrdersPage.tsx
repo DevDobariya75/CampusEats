@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../api/endpoints';
 import type { Order } from '../types/api';
 import { formatMoney } from '../utils/money';
+import { ChevronRight, Loader } from 'lucide-react';
 
 export function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -47,9 +49,13 @@ export function OrdersPage() {
       ) : (
         <div className="space-y-3">
           {orders.map((o) => (
-            <div key={o._id} className="card p-5">
+            <Link
+              key={o._id}
+              to={`/orders/${o._id}`}
+              className="card p-5 hover:bg-slate-800/50 transition-colors cursor-pointer group"
+            >
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
+                <div className="flex-1">
                   <div className="text-sm text-slate-400">Order</div>
                   <div className="text-base font-extrabold text-white">
                     #{o._id.slice(-8).toUpperCase()}
@@ -59,13 +65,14 @@ export function OrdersPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="rounded-xl bg-white/5 px-3 py-1 text-xs font-bold text-slate-200">
+                  <div className="rounded-xl bg-white/5 px-3 py-1 text-xs font-bold text-slate-200 group-hover:bg-white/10 transition-colors">
                     {o.status.toUpperCase()}
                   </div>
                   <div className="mt-2 text-sm font-extrabold text-white">
                     {formatMoney(o.totalPrice)}
                   </div>
                 </div>
+                <ChevronRight size={20} className="text-slate-500 group-hover:text-slate-400 transition-colors" />
               </div>
               <div className="mt-4 border-t border-white/10 pt-4 text-sm text-slate-300">
                 {o.orderItems.slice(0, 3).map((i) => (
@@ -84,7 +91,7 @@ export function OrdersPage() {
                   </div>
                 ) : null}
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}

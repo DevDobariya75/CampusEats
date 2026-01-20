@@ -46,6 +46,10 @@ export const api = {
     list: async () => {
       const { data } = await http.get<ApiListSuccess<Order>>('/api/orders');
       return data;
+    },
+    getDetails: async (orderId: string) => {
+      const { data } = await http.get<ApiSuccess<Order>>(`/api/orders/${orderId}`);
+      return data;
     }
   }
 };

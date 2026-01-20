@@ -16,6 +16,13 @@ export function CheckoutPage() {
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Delivery location fields
+  const [deliveryLocation, setDeliveryLocation] = useState<'hostel' | 'building' | 'custom'>('hostel');
+  const [hostelName, setHostelName] = useState('');
+  const [buildingName, setBuildingName] = useState('');
+  const [roomNumber, setRoomNumber] = useState('');
+  const [customLocation, setCustomLocation] = useState('');
 
   const subtotal = useMemo(
     () => items.reduce((acc, i) => acc + i.menuItem.price * i.quantity, 0),
@@ -33,6 +40,40 @@ export function CheckoutPage() {
   const placeOrder = async () => {
     setLoading(true);
     setError(null);
+    
+    // Build delivery address based on selection
+    let deliveryAddress: any = {};
+    if (deliveryLocation === 'hostel') {
+      if (!hostelName || !roomNumber) {
+        setError('Please enter hostel name and room number');
+        setLoading(false);
+        return;
+      }
+      deliveryAddress = {
+        campus: hostelName,
+        room: roomNumber
+      };
+    } else if (deliveryLocation === 'building') {
+      if (!buildingName || !roomNumber) {
+        setError('Please enter building name and room number');
+        setLoading(false);
+        return;
+      }
+      deliveryAddress = {
+        building: buildingName,
+        room: roomNumber
+      };
+    } else {
+      if (!customLocation.trim()) {
+        setError('Please enter delivery location');
+        setLoading(false);
+        return;
+      }
+      deliveryAddress = {
+        street: customLocation
+      };
+    }
+    
     try {
       await api.orders.create({
         shop: shop._id,
@@ -41,7 +82,8 @@ export function CheckoutPage() {
           quantity: i.quantity
         })),
         paymentMethod,
-        specialInstructions: notes || undefined
+        specialInstructions: notes || undefined,
+        deliveryAddress
       });
       clear();
       navigate('/orders');
@@ -68,6 +110,85 @@ export function CheckoutPage() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
+          <div className="card p-5">
+            <div className="text-base font-extrabold text-white">Delivery Location</div>
+            <div className="mt-3 space-y-3">
+              {/* Location Type Selection */}
+              <div className="grid gap-2 sm:grid-cols-3">
+                <button
+                  type="button"
+                  onClick={() => setDeliveryLocation('hostel')}
+                  className={deliveryLocation === 'hostel' ? 'btn-primary' : 'btn-ghost'}
+                >
+                  🏨 Hostel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryLocation('building')}
+                  className={deliveryLocation === 'building' ? 'btn-primary' : 'btn-ghost'}
+                >
+                  🏢 Building
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeliveryLocation('custom')}
+                  className={deliveryLocation === 'custom' ? 'btn-primary' : 'btn-ghost'}
+                >
+                  📍 Custom
+                </button>
+              </div>
+
+              {/* Location Specific Fields */}
+              {deliveryLocation === 'hostel' && (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Hostel Name (e.g., Boys Hostel A, Girls Hostel 5)"
+                    value={hostelName}
+                    onChange={(e) => setHostelName(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Room Number (e.g., 201, A305)"
+                    value={roomNumber}
+                    onChange={(e) => setRoomNumber(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {deliveryLocation === 'building' && (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Building Name (e.g., CSE Block, Admin Building)"
+                    value={buildingName}
+                    onChange={(e) => setBuildingName(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    className="input"
+                    placeholder="Room/Desk Number"
+                    value={roomNumber}
+                    onChange={(e) => setRoomNumber(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {deliveryLocation === 'custom' && (
+                <textarea
+                  className="input resize-none"
+                  placeholder="Enter detailed delivery location (e.g., Near library, sports complex, cafeteria)"
+                  rows={3}
+                  value={customLocation}
+                  onChange={(e) => setCustomLocation(e.target.value)}
+                />
+              )}
+            </div>
+          </div>
+
           <div className="card p-5">
             <div className="text-base font-extrabold text-white">Payment</div>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
