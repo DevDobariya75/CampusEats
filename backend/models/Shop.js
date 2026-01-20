@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
-const restaurantSchema = mongoose.Schema({
+const shopSchema = mongoose.Schema({
     name: {
         type: String,
-        required: [true, 'Please provide a restaurant name'],
+        required: [true, 'Please provide a shop name'],
         trim: true,
         maxlength: [100, 'Name cannot be more than 100 characters']
     },
@@ -82,4 +82,4 @@ const restaurantSchema = mongoose.Schema({
     timestamps: true
 });
 
-export default mongoose.model('Restaurant', restaurantSchema);
+export default mongoose.model('Shop', shopSchema);

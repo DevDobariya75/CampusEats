@@ -5,7 +5,7 @@ import {
     createMenuItem,
     updateMenuItem,
     deleteMenuItem,
-    getMenuItemsByRestaurant
+    getMenuItemsByShop
 } from '../controllers/menuItemController.js';
 import { protect, authorize } from '../middleware/auth.js';
 import {
@@ -16,11 +16,11 @@ import {
 const router = express.Router();
 
 router.get('/', getMenuItems);
-router.get('/restaurant/:restaurantId', getMenuItemsByRestaurant);
+router.get('/shop/:shopId', getMenuItemsByShop);
 router.get('/:id', getMenuItem);
 
-router.post('/', protect, authorize('restaurant_owner', 'admin'), menuItemValidation, validate, createMenuItem);
-router.put('/:id', protect, authorize('restaurant_owner', 'admin'), menuItemValidation, validate, updateMenuItem);
-router.delete('/:id', protect, authorize('restaurant_owner', 'admin'), deleteMenuItem);
+router.post('/', protect, authorize('shop_owner', 'admin'), menuItemValidation, validate, createMenuItem);
+router.put('/:id', protect, authorize('shop_owner', 'admin'), menuItemValidation, validate, updateMenuItem);
+router.delete('/:id', protect, authorize('shop_owner', 'admin'), deleteMenuItem);
 
 export default router;

@@ -1,5 +1,5 @@
 import Review from '../models/Review.js';
-import Restaurant from '../models/Restaurant.js';
+import Shop from '../models/Shop.js';
 import MenuItem from '../models/MenuItem.js';
 import Order from '../models/Order.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
@@ -8,12 +8,12 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 // @route   GET /api/reviews
 // @access  Public
 export const getReviews = asyncHandler(async (req, res) => {
-    const { restaurant, menuItem, page = 1, limit = 10 } = req.query;
+    const { shop, menuItem, page = 1, limit = 10 } = req.query;
 
     const query = {};
 
-    if (restaurant) {
-        query.restaurant = restaurant;
+    if (shop) {
+        query.shop = shop;
     }
 
     if (menuItem) {
@@ -26,7 +26,7 @@ export const getReviews = asyncHandler(async (req, res) => {
 
     const reviews = await Review.find(query)
         .populate('user', 'name avatar')
-        .populate('restaurant', 'name')
+        .populate('shop', 'name')
         .populate('menuItem', 'name')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -50,7 +50,7 @@ export const getReviews = asyncHandler(async (req, res) => {
 export const getReview = asyncHandler(async (req, res) => {
     const review = await Review.findById(req.params.id)
         .populate('user', 'name avatar')
-        .populate('restaurant', 'name')
+        .populate('shop', 'name')
         .populate('menuItem', 'name');
 
     if (!review) {
@@ -70,9 +70,9 @@ export const getReview = asyncHandler(async (req, res) => {
 // @route   POST /api/reviews
 // @access  Private
 export const createReview = asyncHandler(async (req, res) => {
-    const { restaurant, menuItem, order, rating, comment, images } = req.body;
+    const { shop, menuItem, order, rating, comment, images } = req.body;
 
-    // Verify user has ordered from this restaurant/menu item
+    // Verify user has ordered from this shop/menu item
     if (order) {
         const orderData = await Order.findById(order);
         if (!orderData || orderData.user.toString() !== req.user.id) {
@@ -89,8 +89,8 @@ export const createReview = asyncHandler(async (req, res) => {
         user: req.user.id
     };
 
-    if (restaurant) {
-        existingReviewQuery.restaurant = restaurant;
+    if (shop) {
+        existingReviewQuery.shop = shop;
         if (order) {
             existingReviewQuery.order = order;
         }
@@ -112,9 +112,9 @@ export const createReview = asyncHandler(async (req, res) => {
     req.body.user = req.user.id;
     const review = await Review.create(req.body);
 
-    // Update restaurant rating if restaurant review
-    if (restaurant) {
-        await updateRestaurantRating(restaurant);
+    // Update shop rating if shop review
+    if (shop) {
+        await updateShopRating(shop);
     }
 
     // Update menu item rating if menu item review
@@ -124,7 +124,7 @@ export const createReview = asyncHandler(async (req, res) => {
 
     const populatedReview = await Review.findById(review._id)
         .populate('user', 'name avatar')
-        .populate('restaurant', 'name')
+        .populate('shop', 'name')
         .populate('menuItem', 'name');
 
     res.status(201).json({
@@ -160,8 +160,8 @@ export const updateReview = asyncHandler(async (req, res) => {
     }).populate('user', 'name avatar');
 
     // Update ratings
-    if (review.restaurant) {
-        await updateRestaurantRating(review.restaurant);
+    if (review.shop) {
+        await updateShopRating(review.shop);
     }
 
     if (review.menuItem) {
@@ -195,14 +195,14 @@ export const deleteReview = asyncHandler(async (req, res) => {
         });
     }
 
-    const restaurantId = review.restaurant;
+    const shopId = review.shop;
     const menuItemId = review.menuItem;
 
     await review.deleteOne();
 
     // Update ratings
-    if (restaurantId) {
-        await updateRestaurantRating(restaurantId);
+    if (shopId) {
+        await updateShopRating(shopId);
     }
 
     if (menuItemId) {
@@ -215,13 +215,13 @@ export const deleteReview = asyncHandler(async (req, res) => {
     });
 });
 
-// Helper function to update restaurant rating
-const updateRestaurantRating = async (restaurantId) => {
-    const reviews = await Review.find({ restaurant: restaurantId });
+// Helper function to update shop rating
+const updateShopRating = async (shopId) => {
+    const reviews = await Review.find({ shop: shopId });
     
     if (reviews.length > 0) {
         const avgRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
-        await Restaurant.findByIdAndUpdate(restaurantId, {
+        await Shop.findByIdAndUpdate(shopId, {
             rating: parseFloat(avgRating.toFixed(2)),
             numReviews: reviews.length
         });

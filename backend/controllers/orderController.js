@@ -1,13 +1,13 @@
 import Order from '../models/Order.js';
 import MenuItem from '../models/MenuItem.js';
-import Restaurant from '../models/Restaurant.js';
+import Shop from '../models/Shop.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 // @desc    Create new order
 // @route   POST /api/orders
 // @access  Private
 export const createOrder = asyncHandler(async (req, res) => {
-    const { orderItems, restaurant, deliveryAddress, paymentMethod, specialInstructions } = req.body;
+    const { orderItems, shop, deliveryAddress, paymentMethod, specialInstructions } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
         return res.status(400).json({
@@ -16,19 +16,19 @@ export const createOrder = asyncHandler(async (req, res) => {
         });
     }
 
-    // Verify restaurant exists
-    const restaurantData = await Restaurant.findById(restaurant);
-    if (!restaurantData || !restaurantData.isActive) {
+    // Verify shop exists
+    const shopData = await Shop.findById(shop);
+    if (!shopData || !shopData.isActive) {
         return res.status(404).json({
             success: false,
-            message: 'Restaurant not found'
+            message: 'Shop not found'
         });
     }
 
-    if (!restaurantData.isOpen) {
+    if (!shopData.isOpen) {
         return res.status(400).json({
             success: false,
-            message: 'Restaurant is currently closed'
+            message: 'Shop is currently closed'
         });
     }
 
@@ -59,7 +59,7 @@ export const createOrder = asyncHandler(async (req, res) => {
     }
 
     // Calculate delivery fee
-    const deliveryFee = restaurantData.deliveryFee || 0;
+    const deliveryFee = shopData.deliveryFee || 0;
 
     // Calculate tax (assuming 10% tax)
     const taxPrice = (itemsPrice + deliveryFee) * 0.1;
@@ -68,17 +68,17 @@ export const createOrder = asyncHandler(async (req, res) => {
     const totalPrice = itemsPrice + deliveryFee + taxPrice;
 
     // Check minimum order
-    if (itemsPrice < restaurantData.minOrder) {
+    if (itemsPrice < shopData.minOrder) {
         return res.status(400).json({
             success: false,
-            message: `Minimum order amount is $${restaurantData.minOrder}`
+            message: `Minimum order amount is $${shopData.minOrder}`
         });
     }
 
     // Create order
     const order = await Order.create({
         user: req.user.id,
-        restaurant,
+        shop,
         orderItems: orderItemsWithDetails,
         deliveryAddress: deliveryAddress || req.user.address,
         paymentMethod,
@@ -87,12 +87,12 @@ export const createOrder = asyncHandler(async (req, res) => {
         taxPrice,
         totalPrice,
         specialInstructions,
-        estimatedDeliveryTime: new Date(Date.now() + restaurantData.deliveryTime * 60000)
+        estimatedDeliveryTime: new Date(Date.now() + shopData.deliveryTime * 60000)
     });
 
     const populatedOrder = await Order.findById(order._id)
         .populate('user', 'name email phone')
-        .populate('restaurant', 'name image');
+        .populate('shop', 'name image');
 
     res.status(201).json({
         success: true,
@@ -111,9 +111,9 @@ export const getOrders = asyncHandler(async (req, res) => {
     // Filter by user role
     if (req.user.role === 'student') {
         query.user = req.user.id;
-    } else if (req.user.role === 'restaurant_owner') {
-        const restaurants = await Restaurant.find({ owner: req.user.id });
-        query.restaurant = { $in: restaurants.map(r => r._id) };
+    } else if (req.user.role === 'shop_owner') {
+        const shops = await Shop.find({ owner: req.user.id });
+        query.shop = { $in: shops.map(s => s._id) };
     }
 
     if (status) {
@@ -126,7 +126,7 @@ export const getOrders = asyncHandler(async (req, res) => {
 
     const orders = await Order.find(query)
         .populate('user', 'name email phone')
-        .populate('restaurant', 'name image')
+        .populate('shop', 'name image')
         .populate('orderItems.menuItem', 'name image')
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -150,7 +150,7 @@ export const getOrders = asyncHandler(async (req, res) => {
 export const getOrder = asyncHandler(async (req, res) => {
     const order = await Order.findById(req.params.id)
         .populate('user', 'name email phone address')
-        .populate('restaurant', 'name image address contact')
+        .populate('shop', 'name image address contact')
         .populate('orderItems.menuItem')
         .populate('deliveryPerson', 'name phone');
 
@@ -171,9 +171,9 @@ export const getOrder = asyncHandler(async (req, res) => {
         });
     }
 
-    if (req.user.role === 'restaurant_owner') {
-        const restaurant = await Restaurant.findById(order.restaurant._id);
-        if (restaurant.owner.toString() !== req.user.id) {
+    if (req.user.role === 'shop_owner') {
+        const shop = await Shop.findById(order.shop._id);
+        if (shop.owner.toString() !== req.user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to access this order'
@@ -189,7 +189,7 @@ export const getOrder = asyncHandler(async (req, res) => {
 
 // @desc    Update order status
 // @route   PUT /api/orders/:id/status
-// @access  Private (Restaurant Owner/Admin/Delivery Person)
+// @access  Private (Shop Owner/Admin/Delivery Person)
 export const updateOrderStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
     const allowedStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
@@ -201,7 +201,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         });
     }
 
-    const order = await Order.findById(req.params.id).populate('restaurant');
+    const order = await Order.findById(req.params.id).populate('shop');
 
     if (!order) {
         return res.status(404).json({
@@ -211,9 +211,9 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     // Authorization checks
-    if (req.user.role === 'restaurant_owner') {
-        const restaurant = await Restaurant.findById(order.restaurant._id);
-        if (restaurant.owner.toString() !== req.user.id) {
+    if (req.user.role === 'shop_owner') {
+        const shop = await Shop.findById(order.shop._id);
+        if (shop.owner.toString() !== req.user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to update this order'

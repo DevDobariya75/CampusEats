@@ -7,9 +7,9 @@ const menuItemSchema = mongoose.Schema({
         trim: true,
         maxlength: [100, 'Name cannot be more than 100 characters']
     },
-    restaurant: {
+    shop: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Restaurant',
+        ref: 'Shop',
         required: true
     },
     description: {
@@ -74,6 +74,6 @@ const menuItemSchema = mongoose.Schema({
 });
 
 // Index for faster queries
-menuItemSchema.index({ restaurant: 1, category: 1 });
+menuItemSchema.index({ shop: 1, category: 1 });
 
 export default mongoose.model('MenuItem', menuItemSchema);

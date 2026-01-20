@@ -27,7 +27,7 @@ export const registerValidation = [
         .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
     body('role')
         .optional()
-        .isIn(['student', 'restaurant_owner', 'admin', 'delivery_person']).withMessage('Invalid role')
+        .isIn(['student', 'shop_owner', 'admin', 'delivery_person']).withMessage('Invalid role')
 ];
 
 // User login validation
@@ -40,11 +40,11 @@ export const loginValidation = [
         .notEmpty().withMessage('Password is required')
 ];
 
-// Restaurant validation
-export const restaurantValidation = [
+// Shop validation
+export const shopValidation = [
     body('name')
         .trim()
-        .notEmpty().withMessage('Restaurant name is required')
+        .notEmpty().withMessage('Shop name is required')
         .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
     body('description')
         .optional()
@@ -66,9 +66,9 @@ export const menuItemValidation = [
         .trim()
         .notEmpty().withMessage('Menu item name is required')
         .isLength({ max: 100 }).withMessage('Name cannot be more than 100 characters'),
-    body('restaurant')
-        .notEmpty().withMessage('Restaurant ID is required')
-        .isMongoId().withMessage('Invalid restaurant ID'),
+    body('shop')
+        .notEmpty().withMessage('Shop ID is required')
+        .isMongoId().withMessage('Invalid shop ID'),
     body('price')
         .isFloat({ min: 0 }).withMessage('Price must be a positive number'),
     body('category')
@@ -80,9 +80,9 @@ export const menuItemValidation = [
 
 // Order validation
 export const orderValidation = [
-    body('restaurant')
-        .notEmpty().withMessage('Restaurant ID is required')
-        .isMongoId().withMessage('Invalid restaurant ID'),
+    body('shop')
+        .notEmpty().withMessage('Shop ID is required')
+        .isMongoId().withMessage('Invalid shop ID'),
     body('orderItems')
         .isArray({ min: 1 }).withMessage('Order must have at least one item'),
     body('orderItems.*.menuItem')
@@ -104,9 +104,9 @@ export const reviewValidation = [
     body('comment')
         .optional()
         .isLength({ max: 500 }).withMessage('Comment cannot be more than 500 characters'),
-    body('restaurant')
+    body('shop')
         .optional()
-        .isMongoId().withMessage('Invalid restaurant ID'),
+        .isMongoId().withMessage('Invalid shop ID'),
     body('menuItem')
         .optional()
         .isMongoId().withMessage('Invalid menu item ID')

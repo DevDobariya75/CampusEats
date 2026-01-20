@@ -6,7 +6,7 @@ import { errorHandler } from '../middleware/errorHandler.js';
 
 // Import routes
 import authRoutes from '../routes/authRoutes.js';
-import restaurantRoutes from '../routes/restaurantRoutes.js';
+import shopRoutes from '../routes/shopRoutes.js';
 import menuItemRoutes from '../routes/menuItemRoutes.js';
 import orderRoutes from '../routes/orderRoutes.js';
 import reviewRoutes from '../routes/reviewRoutes.js';
@@ -28,7 +28,7 @@ app.use(cors({
 
 // Mount routes
 app.use('/api/auth', authRoutes);
-app.use('/api/restaurants', restaurantRoutes);
+app.use('/api/shops', shopRoutes);
 app.use('/api/menu-items', menuItemRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/reviews', reviewRoutes);
@@ -49,7 +49,7 @@ app.get('/', (req, res) => {
         version: '1.0.0',
         endpoints: {
             auth: '/api/auth',
-            restaurants: '/api/restaurants',
+            shops: '/api/shops',
             menuItems: '/api/menu-items',
             orders: '/api/orders',
             reviews: '/api/reviews'

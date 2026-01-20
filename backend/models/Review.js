@@ -6,9 +6,9 @@ const reviewSchema = mongoose.Schema({
         ref: 'User',
         required: true
     },
-    restaurant: {
+    shop: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Restaurant'
+        ref: 'Shop'
     },
     menuItem: {
         type: mongoose.Schema.Types.ObjectId,
@@ -41,7 +41,7 @@ const reviewSchema = mongoose.Schema({
 });
 
 // Ensure user can only review if they have an order
-reviewSchema.index({ user: 1, restaurant: 1 });
+reviewSchema.index({ user: 1, shop: 1 });
 reviewSchema.index({ user: 1, menuItem: 1 });
 
 export default mongoose.model('Review', reviewSchema);

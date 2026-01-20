@@ -1,5 +1,5 @@
 import MenuItem from '../models/MenuItem.js';
-import Restaurant from '../models/Restaurant.js';
+import Shop from '../models/Shop.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
 
 // @desc    Get all menu items (with optional filters)
@@ -7,7 +7,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 // @access  Public
 export const getMenuItems = asyncHandler(async (req, res) => {
     const {
-        restaurant,
+        shop,
         category,
         search,
         isVegetarian,
@@ -22,8 +22,8 @@ export const getMenuItems = asyncHandler(async (req, res) => {
 
     const query = {};
 
-    if (restaurant) {
-        query.restaurant = restaurant;
+    if (shop) {
+        query.shop = shop;
     }
 
     if (category) {
@@ -61,7 +61,7 @@ export const getMenuItems = asyncHandler(async (req, res) => {
     sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
 
     const menuItems = await MenuItem.find(query)
-        .populate('restaurant', 'name image')
+        .populate('shop', 'name image')
         .sort(sortOptions)
         .skip(skip)
         .limit(limitNum);
@@ -83,7 +83,7 @@ export const getMenuItems = asyncHandler(async (req, res) => {
 // @access  Public
 export const getMenuItem = asyncHandler(async (req, res) => {
     const menuItem = await MenuItem.findById(req.params.id)
-        .populate('restaurant', 'name image address rating');
+        .populate('shop', 'name image address rating');
 
     if (!menuItem) {
         return res.status(404).json({
@@ -100,22 +100,22 @@ export const getMenuItem = asyncHandler(async (req, res) => {
 
 // @desc    Create menu item
 // @route   POST /api/menu-items
-// @access  Private (Restaurant Owner/Admin)
+// @access  Private (Shop Owner/Admin)
 export const createMenuItem = asyncHandler(async (req, res) => {
-    // Verify restaurant exists and user owns it
-    const restaurant = await Restaurant.findById(req.body.restaurant);
+    // Verify shop exists and user owns it
+    const shop = await Shop.findById(req.body.shop);
 
-    if (!restaurant) {
+    if (!shop) {
         return res.status(404).json({
             success: false,
-            message: 'Restaurant not found'
+            message: 'Shop not found'
         });
     }
 
-    if (restaurant.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (shop.owner.toString() !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
-            message: 'Not authorized to add menu items to this restaurant'
+            message: 'Not authorized to add menu items to this shop'
         });
     }
 
@@ -129,9 +129,9 @@ export const createMenuItem = asyncHandler(async (req, res) => {
 
 // @desc    Update menu item
 // @route   PUT /api/menu-items/:id
-// @access  Private (Restaurant Owner/Admin)
+// @access  Private (Shop Owner/Admin)
 export const updateMenuItem = asyncHandler(async (req, res) => {
-    let menuItem = await MenuItem.findById(req.params.id).populate('restaurant');
+    let menuItem = await MenuItem.findById(req.params.id).populate('shop');
 
     if (!menuItem) {
         return res.status(404).json({
@@ -141,7 +141,7 @@ export const updateMenuItem = asyncHandler(async (req, res) => {
     }
 
     // Verify ownership
-    if (menuItem.restaurant.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (menuItem.shop.owner.toString() !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
             message: 'Not authorized to update this menu item'
@@ -161,9 +161,9 @@ export const updateMenuItem = asyncHandler(async (req, res) => {
 
 // @desc    Delete menu item
 // @route   DELETE /api/menu-items/:id
-// @access  Private (Restaurant Owner/Admin)
+// @access  Private (Shop Owner/Admin)
 export const deleteMenuItem = asyncHandler(async (req, res) => {
-    const menuItem = await MenuItem.findById(req.params.id).populate('restaurant');
+    const menuItem = await MenuItem.findById(req.params.id).populate('shop');
 
     if (!menuItem) {
         return res.status(404).json({
@@ -173,7 +173,7 @@ export const deleteMenuItem = asyncHandler(async (req, res) => {
     }
 
     // Verify ownership
-    if (menuItem.restaurant.owner.toString() !== req.user.id && req.user.role !== 'admin') {
+    if (menuItem.shop.owner.toString() !== req.user.id && req.user.role !== 'admin') {
         return res.status(403).json({
             success: false,
             message: 'Not authorized to delete this menu item'
@@ -188,12 +188,12 @@ export const deleteMenuItem = asyncHandler(async (req, res) => {
     });
 });
 
-// @desc    Get menu items by restaurant
-// @route   GET /api/menu-items/restaurant/:restaurantId
+// @desc    Get menu items by shop
+// @route   GET /api/menu-items/shop/:shopId
 // @access  Public
-export const getMenuItemsByRestaurant = asyncHandler(async (req, res) => {
+export const getMenuItemsByShop = asyncHandler(async (req, res) => {
     const menuItems = await MenuItem.find({
-        restaurant: req.params.restaurantId,
+        shop: req.params.shopId,
         isAvailable: true
     }).sort({ category: 1, name: 1 });
 

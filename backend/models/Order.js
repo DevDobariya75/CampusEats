@@ -22,9 +22,9 @@ const orderSchema = mongoose.Schema({
         ref: 'User',
         required: true
     },
-    restaurant: {
+    shop: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Restaurant',
+        ref: 'Shop',
         required: true
     },
     orderItems: [orderItemSchema],
@@ -95,6 +95,6 @@ const orderSchema = mongoose.Schema({
 
 // Index for faster queries
 orderSchema.index({ user: 1, createdAt: -1 });
-orderSchema.index({ restaurant: 1, status: 1 });
+orderSchema.index({ shop: 1, status: 1 });
 
 export default mongoose.model('Order', orderSchema);
