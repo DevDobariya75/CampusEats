@@ -19,8 +19,8 @@ router.get('/', getMenuItems);
 router.get('/shop/:shopId', getMenuItemsByShop);
 router.get('/:id', getMenuItem);
 
-router.post('/', protect, authorize('shop_owner', 'admin'), menuItemValidation, validate, createMenuItem);
-router.put('/:id', protect, authorize('shop_owner', 'admin'), menuItemValidation, validate, updateMenuItem);
-router.delete('/:id', protect, authorize('shop_owner', 'admin'), deleteMenuItem);
+router.post('/', protect, authorize('shopkeeper', 'admin'), menuItemValidation, validate, createMenuItem);
+router.put('/:id', protect, authorize('shopkeeper', 'admin'), menuItemValidation, validate, updateMenuItem);
+router.delete('/:id', protect, authorize('shopkeeper', 'admin'), deleteMenuItem);
 
 export default router;

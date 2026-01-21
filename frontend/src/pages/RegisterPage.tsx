@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/endpoints';
 import { useAuthStore } from '../store/authStore';
-import type { Role } from '../types/api';
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -11,7 +10,6 @@ export function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<Role>('student');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,7 +18,7 @@ export function RegisterPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await api.auth.register({ name, email, password, role });
+      const res = await api.auth.register({ name, email, password });
       setSession(res.token, {
         id: res.user.id,
         name: res.user.name,
@@ -40,15 +38,15 @@ export function RegisterPage() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div className="card p-6">
-        <h1 className="text-2xl font-black text-white">Create account</h1>
-        <p className="mt-2 text-sm text-slate-300">
-          Join CampusEats and start ordering instantly.
+        <h1 className="text-2xl font-black text-slate-900">Create account</h1>
+        <p className="mt-2 text-sm text-slate-600">
+          Join CampusEats and start ordering instantly. (Shopkeepers and delivery partners are created by admin.)
         </p>
       </div>
 
       <form className="card space-y-4 p-6" onSubmit={submit}>
         <div>
-          <div className="mb-2 text-xs font-bold text-slate-400">NAME</div>
+          <div className="mb-2 text-xs font-bold text-slate-500">NAME</div>
           <input
             className="input"
             value={name}
@@ -58,7 +56,7 @@ export function RegisterPage() {
           />
         </div>
         <div>
-          <div className="mb-2 text-xs font-bold text-slate-400">EMAIL</div>
+          <div className="mb-2 text-xs font-bold text-slate-500">EMAIL</div>
           <input
             className="input"
             value={email}
@@ -69,7 +67,7 @@ export function RegisterPage() {
           />
         </div>
         <div>
-          <div className="mb-2 text-xs font-bold text-slate-400">PASSWORD</div>
+          <div className="mb-2 text-xs font-bold text-slate-500">PASSWORD</div>
           <input
             className="input"
             value={password}
@@ -79,20 +77,9 @@ export function RegisterPage() {
             required
           />
         </div>
-        <div>
-          <div className="mb-2 text-xs font-bold text-slate-400">ROLE</div>
-          <select
-            className="input"
-            value={role}
-            onChange={(e) => setRole(e.target.value as Role)}
-          >
-            <option value="student">Student</option>
-            <option value="shop_owner">Shop Owner</option>
-          </select>
-        </div>
 
         {error ? (
-          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         ) : null}
@@ -101,9 +88,9 @@ export function RegisterPage() {
           {loading ? 'Creating…' : 'Create account'}
         </button>
 
-        <div className="text-center text-sm text-slate-400">
+        <div className="text-center text-sm text-slate-600">
           Already have an account?{' '}
-          <Link className="text-brand-200 underline" to="/login">
+          <Link className="text-brand-600 underline" to="/login">
             Login
           </Link>
         </div>

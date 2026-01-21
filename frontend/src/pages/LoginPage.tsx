@@ -40,15 +40,15 @@ export function LoginPage() {
   return (
     <div className="mx-auto max-w-md space-y-6">
       <div className="card p-6">
-        <h1 className="text-2xl font-black text-white">Welcome back</h1>
-        <p className="mt-2 text-sm text-slate-300">
+        <h1 className="text-2xl font-black text-slate-900">Welcome back</h1>
+        <p className="mt-2 text-sm text-slate-600">
           Login to place orders and track deliveries.
         </p>
       </div>
 
       <form className="card space-y-4 p-6" onSubmit={submit}>
         <div>
-          <div className="mb-2 text-xs font-bold text-slate-400">EMAIL</div>
+          <div className="mb-2 text-xs font-bold text-slate-500">EMAIL</div>
           <input
             className="input"
             value={email}
@@ -59,7 +59,7 @@ export function LoginPage() {
           />
         </div>
         <div>
-          <div className="mb-2 text-xs font-bold text-slate-400">PASSWORD</div>
+          <div className="mb-2 text-xs font-bold text-slate-500">PASSWORD</div>
           <input
             className="input"
             value={password}
@@ -71,7 +71,7 @@ export function LoginPage() {
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
           </div>
         ) : null}
@@ -80,9 +80,9 @@ export function LoginPage() {
           {loading ? 'Logging in…' : 'Login'}
         </button>
 
-        <div className="text-center text-sm text-slate-400">
+        <div className="text-center text-sm text-slate-600">
           New here?{' '}
-          <Link className="text-brand-200 underline" to="/register">
+          <Link className="text-brand-600 underline" to="/register">
             Create an account
           </Link>
         </div>

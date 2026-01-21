@@ -6,7 +6,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 // @route   POST /api/auth/register
 // @access  Public
 export const register = asyncHandler(async (req, res) => {
-    const { name, email, password, role, phone, address } = req.body;
+    const { name, email, password, phone, address } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -22,7 +22,7 @@ export const register = asyncHandler(async (req, res) => {
         name,
         email,
         password,
-        role: role || 'student',
+        role: 'customer', // public self-signup is always customer
         phone,
         address
     });
@@ -151,5 +151,32 @@ export const updatePassword = asyncHandler(async (req, res) => {
         success: true,
         token,
         message: 'Password updated successfully'
+    });
+});
+
+// @desc    Admin creates a user with a specific role (shopkeeper/delivery_partner/admin/customer)
+// @route   POST /api/auth/admin/create-user
+// @access  Private (Admin)
+export const adminCreateUser = asyncHandler(async (req, res) => {
+    const { name, email, password, role, phone, address } = req.body;
+
+    if (!['customer', 'shopkeeper', 'admin', 'delivery_partner'].includes(role)) {
+        return res.status(400).json({ success: false, message: 'Invalid role' });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) {
+        return res.status(400).json({ success: false, message: 'User already exists' });
+    }
+
+    const user = await User.create({ name, email, password, role, phone, address });
+    res.status(201).json({
+        success: true,
+        data: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        }
     });
 });

@@ -86,6 +86,7 @@ export const createOrder = asyncHandler(async (req, res) => {
         deliveryFee,
         taxPrice,
         totalPrice,
+        status: 'ordered',
         specialInstructions,
         estimatedDeliveryTime: new Date(Date.now() + shopData.deliveryTime * 60000)
     });
@@ -109,11 +110,13 @@ export const getOrders = asyncHandler(async (req, res) => {
     let query = {};
 
     // Filter by user role
-    if (req.user.role === 'student') {
+    if (req.user.role === 'customer') {
         query.user = req.user.id;
-    } else if (req.user.role === 'shop_owner') {
+    } else if (req.user.role === 'shopkeeper') {
         const shops = await Shop.find({ owner: req.user.id });
         query.shop = { $in: shops.map(s => s._id) };
+    } else if (req.user.role === 'delivery_partner') {
+        query.deliveryPerson = req.user.id;
     }
 
     if (status) {
@@ -178,7 +181,7 @@ export const getOrder = asyncHandler(async (req, res) => {
 
     // Make sure user has access to this order
     if (
-        req.user.role === 'student' && order.user._id.toString() !== req.user.id
+        req.user.role === 'customer' && order.user._id.toString() !== req.user.id
     ) {
         return res.status(403).json({
             success: false,
@@ -186,13 +189,19 @@ export const getOrder = asyncHandler(async (req, res) => {
         });
     }
 
-    if (req.user.role === 'shop_owner') {
+    if (req.user.role === 'shopkeeper') {
         const shop = await Shop.findById(order.shop._id);
         if (shop.owner.toString() !== req.user.id) {
             return res.status(403).json({
                 success: false,
                 message: 'Not authorized to access this order'
             });
+        }
+    }
+
+    if (req.user.role === 'delivery_partner') {
+        if (order.deliveryPerson && order.deliveryPerson.toString() !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Not authorized to access this order' });
         }
     }
 
@@ -207,7 +216,7 @@ export const getOrder = asyncHandler(async (req, res) => {
 // @access  Private (Shop Owner/Admin/Delivery Person)
 export const updateOrderStatus = asyncHandler(async (req, res) => {
     const { status } = req.body;
-    const allowedStatuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered', 'cancelled'];
+    const allowedStatuses = ['ordered', 'preparing', 'ready_for_delivery', 'out_for_delivery', 'delivered', 'cancelled'];
 
     if (!allowedStatuses.includes(status)) {
         return res.status(400).json({
@@ -226,7 +235,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     // Authorization checks
-    if (req.user.role === 'shop_owner') {
+    if (req.user.role === 'shopkeeper') {
         const shop = await Shop.findById(order.shop._id);
         if (shop.owner.toString() !== req.user.id) {
             return res.status(403).json({
@@ -237,11 +246,16 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     // Cancel order - only allowed before preparation
-    if (status === 'cancelled' && !['pending', 'confirmed'].includes(order.status)) {
+    if (status === 'cancelled' && !['ordered', 'preparing'].includes(order.status)) {
         return res.status(400).json({
             success: false,
             message: 'Order cannot be cancelled at this stage'
         });
+    }
+
+    // Delivery assignment handled in accept endpoint; block delivery_partner here
+    if (req.user.role === 'delivery_partner' && status !== 'delivered') {
+        return res.status(403).json({ success: false, message: 'Delivery partner can only mark delivered via /deliver' });
     }
 
     order.status = status;
@@ -250,16 +264,74 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         order.deliveredAt = new Date();
     }
 
-    if (status === 'out_for_delivery' && req.user.role === 'delivery_person') {
-        order.deliveryPerson = req.user.id;
-    }
-
     await order.save();
 
     res.status(200).json({
         success: true,
         data: order
     });
+});
+
+// @desc    List available orders for delivery partners
+// @route   GET /api/orders/delivery/available
+// @access  Private (Delivery Partner)
+export const getAvailableOrders = asyncHandler(async (req, res) => {
+    const orders = await Order.find({
+        status: 'ready_for_delivery',
+        deliveryPerson: { $exists: false }
+    })
+        .populate('shop', 'name address')
+        .populate('user', 'name phone')
+        .sort({ createdAt: -1 });
+
+    res.status(200).json({ success: true, count: orders.length, data: orders });
+});
+
+// @desc    Delivery partner accepts an order
+// @route   PUT /api/orders/:id/accept
+// @access  Private (Delivery Partner)
+export const acceptOrderForDelivery = asyncHandler(async (req, res) => {
+    const activeCount = await Order.countDocuments({
+        deliveryPerson: req.user.id,
+        status: { $in: ['out_for_delivery', 'ready_for_delivery'] }
+    });
+    if (activeCount >= 3) {
+        return res.status(400).json({ success: false, message: 'Limit reached: complete existing deliveries before accepting more.' });
+    }
+
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (order.status !== 'ready_for_delivery') {
+        return res.status(400).json({ success: false, message: 'Order is not ready for delivery' });
+    }
+    if (order.deliveryPerson) {
+        return res.status(400).json({ success: false, message: 'Order already accepted' });
+    }
+
+    order.deliveryPerson = req.user.id;
+    order.status = 'out_for_delivery';
+    await order.save();
+
+    res.status(200).json({ success: true, data: order });
+});
+
+// @desc    Delivery partner marks delivered
+// @route   PUT /api/orders/:id/deliver
+// @access  Private (Delivery Partner)
+export const markOrderDelivered = asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+    if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    if (!order.deliveryPerson || order.deliveryPerson.toString() !== req.user.id) {
+        return res.status(403).json({ success: false, message: 'Not authorized to mark this order' });
+    }
+    order.status = 'delivered';
+    order.deliveredAt = new Date();
+    await order.save();
+    res.status(200).json({ success: true, data: order });
 });
 
 // @desc    Cancel order
@@ -282,7 +354,7 @@ export const cancelOrder = asyncHandler(async (req, res) => {
         });
     }
 
-    if (!['pending', 'confirmed'].includes(order.status)) {
+    if (!['ordered', 'preparing'].includes(order.status)) {
         return res.status(400).json({
             success: false,
             message: 'Order cannot be cancelled at this stage'

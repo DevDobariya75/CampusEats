@@ -121,7 +121,7 @@ function OverviewSection() {
 function MenuSection() {
   const { menuItems, loading, fetchMenuItems, deleteMenuItem } = useShopkeeperStore();
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [_editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMenuItems();

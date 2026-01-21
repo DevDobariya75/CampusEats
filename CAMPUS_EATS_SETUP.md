@@ -101,6 +101,13 @@ See:
 - `frontend/src/api/http.ts` (injects the token header)
 - `frontend/src/components/auth/RequireAuth.tsx` (protects routes)
 
+#### Roles
+
+- `admin` — can create shopkeepers/delivery partners via `/api/auth/admin/create-user`
+- `shopkeeper` — manages shops/menu items, updates order status to `preparing` / `ready_for_delivery`
+- `delivery_partner` — sees ready orders, accepts up to 3, marks delivered
+- `customer` — browses shops, places orders
+
 #### Backend endpoints used by frontend
 
 - **Auth**

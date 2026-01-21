@@ -1,4 +1,4 @@
-export type Role = 'student' | 'shop_owner' | 'admin' | 'delivery_person';
+export type Role = 'customer' | 'shopkeeper' | 'admin' | 'delivery_partner';
 
 export type ApiSuccess<T> = {
   success: true;

@@ -36,7 +36,7 @@ export const api = {
     create: async (payload: {
       shop: string;
       orderItems: Array<{ menuItem: string; quantity: number; specialInstructions?: string }>;
-      paymentMethod: 'card' | 'cash' | 'campus_card' | 'online';
+      paymentMethod: 'card' | 'cash' | 'campus_card' | 'online' | 'upi';
       deliveryAddress?: any;
       specialInstructions?: string;
     }) => {

@@ -4,9 +4,10 @@ import {
     login,
     getMe,
     updateDetails,
-    updatePassword
+    updatePassword,
+    adminCreateUser
 } from '../controllers/authController.js';
-import { protect } from '../middleware/auth.js';
+import { protect, authorize } from '../middleware/auth.js';
 import {
     registerValidation,
     loginValidation,
@@ -20,5 +21,6 @@ router.post('/login', loginValidation, validate, login);
 router.get('/me', protect, getMe);
 router.put('/updatedetails', protect, updateDetails);
 router.put('/updatepassword', protect, updatePassword);
+router.post('/admin/create-user', protect, authorize('admin'), registerValidation, validate, adminCreateUser);
 
 export default router;

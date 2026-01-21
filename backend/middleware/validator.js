@@ -27,7 +27,7 @@ export const registerValidation = [
         .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/).withMessage('Password must contain at least one uppercase letter, one lowercase letter, and one number'),
     body('role')
         .optional()
-        .isIn(['student', 'shop_owner', 'admin', 'delivery_person']).withMessage('Invalid role')
+        .isIn(['customer', 'shopkeeper', 'admin', 'delivery_partner']).withMessage('Invalid role')
 ];
 
 // User login validation
@@ -91,7 +91,7 @@ export const orderValidation = [
     body('orderItems.*.quantity')
         .isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
     body('paymentMethod')
-        .isIn(['card', 'cash', 'campus_card', 'online']).withMessage('Invalid payment method'),
+        .isIn(['card', 'cash', 'campus_card', 'online', 'upi']).withMessage('Invalid payment method'),
     body('deliveryAddress')
         .optional()
         .isObject().withMessage('Delivery address must be an object')

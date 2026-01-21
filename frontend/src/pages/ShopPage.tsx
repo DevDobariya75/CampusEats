@@ -43,8 +43,8 @@ export function ShopPage() {
     return cartItems.reduce((acc, i) => acc + i.menuItem.price * i.quantity, 0);
   }, [cartItems]);
 
-  if (loading) return <div className="text-sm text-slate-400">Loading…</div>;
-  if (!shop) return <div className="text-sm text-slate-400">Shop not found.</div>;
+  if (loading) return <div className="text-sm text-slate-500">Loading…</div>;
+  if (!shop) return <div className="text-sm text-slate-500">Shop not found.</div>;
 
   const cartIsDifferentShop = !!(
     cartShop && cartShop._id !== shop._id && cartItems.length > 0
@@ -55,20 +55,20 @@ export function ShopPage() {
       <div className="card p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-white">{shop.name}</h1>
-            <p className="mt-2 text-sm text-slate-300">
+            <h1 className="text-2xl font-black text-slate-900">{shop.name}</h1>
+            <p className="mt-2 text-sm text-slate-600">
               {shop.description || 'Order your favorites in minutes.'}
             </p>
             <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-300">
               {shop.address?.campus ? (
-                <span className="rounded-xl bg-white/5 px-3 py-1">
+                <span className="rounded-xl bg-slate-100 px-3 py-1 text-slate-700">
                   {shop.address.campus}
                 </span>
               ) : null}
-              <span className="rounded-xl bg-white/5 px-3 py-1">
+              <span className="rounded-xl bg-slate-100 px-3 py-1 text-slate-700">
                 Delivery ~ {shop.deliveryTime ?? 30} min
               </span>
-              <span className="rounded-xl bg-white/5 px-3 py-1">
+              <span className="rounded-xl bg-slate-100 px-3 py-1 text-slate-700">
                 Fee {formatMoney(shop.deliveryFee ?? 0)}
               </span>
             </div>
@@ -83,14 +83,14 @@ export function ShopPage() {
               }}
               title="Start cart for this shop"
             >
-              <ShoppingBag size={18} />
+              <ShoppingBag size={18} className="text-brand-600" />
               Use this shop
             </button>
           </div>
         </div>
 
         {cartIsDifferentShop ? (
-          <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+          <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
             Your cart has items from another shop. Click <b>Use this shop</b> to
             start a new cart.
           </div>
@@ -109,13 +109,13 @@ export function ShopPage() {
                 <div key={item._id} className="card p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <div className="text-base font-extrabold text-white">
+                      <div className="text-base font-extrabold text-slate-900">
                         {item.name}
                       </div>
-                      <div className="mt-1 text-sm text-slate-400">
+                      <div className="mt-1 text-sm text-slate-600">
                         {item.description || item.category}
                       </div>
-                      <div className="mt-3 text-sm font-bold text-brand-200">
+                      <div className="mt-3 text-sm font-bold text-brand-600">
                         {formatMoney(item.price)}
                       </div>
                     </div>
@@ -130,7 +130,7 @@ export function ShopPage() {
                           >
                             <Minus size={16} />
                           </button>
-                          <div className="min-w-8 text-center text-sm font-bold text-white">
+                          <div className="min-w-8 text-center text-sm font-bold text-slate-900">
                             {qty}
                           </div>
                           <button
@@ -164,8 +164,8 @@ export function ShopPage() {
         </div>
 
         <div className="card p-5">
-          <div className="text-lg font-black text-white">Cart</div>
-          <div className="mt-1 text-sm text-slate-400">
+            <div className="text-lg font-black text-slate-900">Cart</div>
+            <div className="mt-1 text-sm text-slate-600">
             {cartItems.length === 0 ? 'Your cart is empty.' : 'Ready to checkout.'}
           </div>
 
@@ -174,19 +174,19 @@ export function ShopPage() {
               <div className="mt-4 space-y-2">
                 {cartItems.map((ci) => (
                   <div key={ci.menuItem._id} className="flex items-center justify-between gap-3 text-sm">
-                    <div className="text-slate-200">
+                    <div className="text-slate-700">
                       {ci.menuItem.name} <span className="text-slate-500">×</span>{' '}
                       {ci.quantity}
                     </div>
-                    <div className="font-bold text-white">
+                    <div className="font-bold text-slate-900">
                       {formatMoney(ci.menuItem.price * ci.quantity)}
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
-                <div className="text-sm text-slate-300">Subtotal</div>
-                <div className="text-sm font-extrabold text-white">
+              <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
+                <div className="text-sm text-slate-600">Subtotal</div>
+                <div className="text-sm font-extrabold text-slate-900">
                   {formatMoney(cartTotal)}
                 </div>
               </div>

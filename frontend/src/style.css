@@ -13,7 +13,7 @@
   }
 
   body {
-    @apply bg-slate-950 text-slate-100 antialiased;
+    @apply bg-[#f9fafb] text-slate-900 antialiased;
   }
 }
 
@@ -23,7 +23,7 @@
   }
 
   .card {
-    @apply rounded-2xl border border-white/10 bg-slate-900/60 shadow-soft backdrop-blur;
+    @apply rounded-2xl border border-slate-200 bg-white shadow-soft;
   }
 
   .btn {
@@ -31,15 +31,15 @@
   }
 
   .btn-primary {
-    @apply btn bg-brand-500 text-white hover:bg-brand-400 active:bg-brand-600;
+    @apply btn bg-brand-500 text-white hover:bg-brand-400 active:bg-brand-600 shadow;
   }
 
   .btn-ghost {
-    @apply btn bg-white/5 text-slate-100 hover:bg-white/10 active:bg-white/20;
+    @apply btn bg-white text-slate-700 border border-slate-200 hover:border-brand-200 hover:text-brand-700;
   }
 
   .input {
-    @apply w-full rounded-xl border border-white/10 bg-slate-950/40 px-4 py-2 text-sm text-slate-100 outline-none placeholder:text-slate-400 focus:border-brand-400;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-brand-400 focus:ring-2 focus:ring-brand-100;
   }
 }
 

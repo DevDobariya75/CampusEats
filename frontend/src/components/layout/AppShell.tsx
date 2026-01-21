@@ -16,7 +16,7 @@ function NavItem({
       className={({ isActive }) =>
         clsx(
           'rounded-xl px-3 py-2 text-sm font-semibold transition',
-          isActive ? 'bg-white/10 text-white' : 'text-slate-200 hover:bg-white/5'
+          isActive ? 'bg-brand-50 text-brand-700' : 'text-slate-700 hover:bg-slate-100'
         )
       }
     >
@@ -36,15 +36,15 @@ export function AppShell() {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-950/70 backdrop-blur">
+      <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur">
         <div className="container-page flex items-center justify-between py-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-500 font-black text-white">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand-500 font-black text-white shadow">
               CE
             </div>
             <div>
-              <div className="text-sm font-bold text-white">CampusEats</div>
-              <div className="text-xs text-slate-400">Fast food, on-campus</div>
+              <div className="text-sm font-bold text-slate-900">CampusEats</div>
+              <div className="text-xs text-slate-500">Fast food, on-campus</div>
             </div>
           </Link>
 
@@ -64,7 +64,7 @@ export function AppShell() {
               <ShoppingBag size={18} />
               <span>Cart</span>
               {cartCount > 0 ? (
-                <span className="rounded-lg bg-white/10 px-2 py-0.5 text-xs">
+                <span className="rounded-lg bg-brand-50 px-2 py-0.5 text-xs text-brand-700">
                   {cartCount}
                 </span>
               ) : null}
@@ -92,17 +92,17 @@ export function AppShell() {
 
       <main className="container-page py-8">
         {user ? (
-          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
-            <User size={18} className="text-brand-300" />
-            <span className="font-semibold text-white">{user.name}</span>
-            <span className="text-slate-400">({user.role})</span>
+          <div className="mb-6 flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700">
+            <User size={18} className="text-brand-500" />
+            <span className="font-semibold text-slate-900">{user.name}</span>
+            <span className="text-slate-500">({user.role})</span>
           </div>
         ) : null}
         <Outlet />
       </main>
 
-      <footer className="border-t border-white/10 py-10">
-        <div className="container-page text-sm text-slate-400">
+      <footer className="border-t border-slate-200 py-10">
+        <div className="container-page text-sm text-slate-500">
           © {new Date().getFullYear()} CampusEats. Built with MERN.
         </div>
       </footer>
