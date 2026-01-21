@@ -1,4 +1,12 @@
-export type Role = 'customer' | 'shopkeeper' | 'admin' | 'delivery_partner';
+export type Role =
+  | 'customer'
+  | 'admin'
+  // Shopkeeper role variants used across backend/frontend
+  | 'shopkeeper'
+  | 'shop_owner'
+  // Delivery role variants used across backend/frontend
+  | 'delivery_partner'
+  | 'delivery_person';
 
 export type ApiSuccess<T> = {
   success: true;

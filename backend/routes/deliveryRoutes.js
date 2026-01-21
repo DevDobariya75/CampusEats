@@ -13,7 +13,8 @@ const router = express.Router();
 
 // Protect all delivery routes
 router.use(protect);
-router.use(authorize('delivery_person'));
+// Accept both legacy 'delivery_person' and current 'delivery_partner' role names
+router.use(authorize('delivery_person', 'delivery_partner'));
 
 // Dashboard
 router.get('/dashboard', getDeliveryDashboard);

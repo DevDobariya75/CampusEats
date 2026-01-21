@@ -6,7 +6,7 @@ import { asyncHandler } from '../middleware/errorHandler.js';
 // @route   POST /api/auth/register
 // @access  Public
 export const register = asyncHandler(async (req, res) => {
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone, address, role: requestedRole } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -17,12 +17,16 @@ export const register = asyncHandler(async (req, res) => {
         });
     }
 
+    // Allow all roles for self-registration
+    const allowedRoles = ['customer', 'shopkeeper', 'admin', 'delivery_partner'];
+    const role = allowedRoles.includes(requestedRole) ? requestedRole : 'customer';
+
     // Create user
     const user = await User.create({
         name,
         email,
         password,
-        role: 'customer', // public self-signup is always customer
+        role,
         phone,
         address
     });

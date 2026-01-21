@@ -86,7 +86,7 @@ export function App() {
           path="/shopkeeper/dashboard"
           element={
             <RequireAuth>
-              <RoleBasedRoute allowedRoles={['shop_owner']}>
+              <RoleBasedRoute allowedRoles={['shopkeeper', 'shop_owner']}>
                 <ShopkeeperDashboard />
               </RoleBasedRoute>
             </RequireAuth>
@@ -98,7 +98,7 @@ export function App() {
           path="/delivery/dashboard"
           element={
             <RequireAuth>
-              <RoleBasedRoute allowedRoles={['delivery_person']}>
+              <RoleBasedRoute allowedRoles={['delivery_partner', 'delivery_person']}>
                 <DeliveryPartnerDashboard />
               </RoleBasedRoute>
             </RequireAuth>

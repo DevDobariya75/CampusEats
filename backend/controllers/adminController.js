@@ -9,7 +9,7 @@ import crypto from 'crypto';
 // @route   POST /api/admin/create-shopkeeper
 // @access  Private/Admin
 export const createShopkeeper = asyncHandler(async (req, res) => {
-    const { name, email, phone, shopName, address } = req.body;
+    const { name, email, phone, shopName, address, password } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -20,15 +20,18 @@ export const createShopkeeper = asyncHandler(async (req, res) => {
         });
     }
 
-    // Generate temporary password
-    const tempPassword = crypto.randomBytes(6).toString('hex');
+    // Use provided password or generate a temporary one
+    const tempPassword = password && password.trim().length >= 6
+        ? password
+        : crypto.randomBytes(6).toString('hex');
 
     // Create shopkeeper account
+    // Use 'shopkeeper' to match the user schema enum; routes accept both names
     const user = await User.create({
         name,
         email,
         password: tempPassword,
-        role: 'shop_owner',
+        role: 'shopkeeper',
         phone,
         address: { campus: address?.campus || 'Main Campus' },
         isActive: true
@@ -60,7 +63,7 @@ export const createShopkeeper = asyncHandler(async (req, res) => {
                 name: user.name,
                 email: user.email,
                 role: user.role,
-                temporaryPassword: tempPassword
+                password: tempPassword
             },
             shop: {
                 id: shop._id,
@@ -74,7 +77,7 @@ export const createShopkeeper = asyncHandler(async (req, res) => {
 // @route   POST /api/admin/create-delivery-partner
 // @access  Private/Admin
 export const createDeliveryPartner = asyncHandler(async (req, res) => {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, password } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -85,15 +88,18 @@ export const createDeliveryPartner = asyncHandler(async (req, res) => {
         });
     }
 
-    // Generate temporary password
-    const tempPassword = crypto.randomBytes(6).toString('hex');
+    // Use provided password or generate a temporary one
+    const tempPassword = password && password.trim().length >= 6
+        ? password
+        : crypto.randomBytes(6).toString('hex');
 
     // Create delivery partner account
+    // Use 'delivery_partner' to match the user schema enum; routes accept both names
     const user = await User.create({
         name,
         email,
         password: tempPassword,
-        role: 'delivery_person',
+        role: 'delivery_partner',
         phone,
         address: { campus: address?.campus || 'Main Campus' },
         isActive: true
@@ -107,7 +113,7 @@ export const createDeliveryPartner = asyncHandler(async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
-            temporaryPassword: tempPassword
+            password: tempPassword
         }
     });
 });

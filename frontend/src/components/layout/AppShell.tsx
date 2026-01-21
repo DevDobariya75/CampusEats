@@ -34,6 +34,14 @@ export function AppShell() {
     s.items.reduce((acc, i) => acc + i.quantity, 0)
   );
 
+  const roleDashboard: Record<string, string> = {
+    admin: '/admin/dashboard',
+    shopkeeper: '/shopkeeper/dashboard',
+    shop_owner: '/shopkeeper/dashboard',
+    delivery_partner: '/delivery/dashboard',
+    delivery_person: '/delivery/dashboard'
+  };
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/80 backdrop-blur">
@@ -52,6 +60,9 @@ export function AppShell() {
             <NavItem to="/">Shops</NavItem>
             <NavItem to="/orders">Orders</NavItem>
             <NavItem to="/profile">Profile</NavItem>
+            {user && roleDashboard[user.role] ? (
+              <NavItem to={roleDashboard[user.role]}>Dashboard</NavItem>
+            ) : null}
           </nav>
 
           <div className="flex items-center gap-2">

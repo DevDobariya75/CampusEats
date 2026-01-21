@@ -15,7 +15,8 @@ const router = express.Router();
 
 // Protect all shopkeeper routes
 router.use(protect);
-router.use(authorize('shop_owner'));
+// Accept both legacy 'shop_owner' and current 'shopkeeper' role names
+router.use(authorize('shop_owner', 'shopkeeper'));
 
 // Dashboard
 router.get('/dashboard', getShopkeeperDashboard);

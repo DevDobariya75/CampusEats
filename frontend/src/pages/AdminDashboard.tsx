@@ -220,6 +220,7 @@ function UsersManagement({ onCreateShopkeeper, onCreateDelivery }: any) {
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Status</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Password</th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -236,6 +237,9 @@ function UsersManagement({ onCreateShopkeeper, onCreateDelivery }: any) {
                     <span className={`px-2 py-1 rounded ${user.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                       {user.isActive ? 'Active' : 'Inactive'}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-xs text-gray-500">
+                    Passwords are not stored in plain text. Use reset to set a new one.
                   </td>
                 </tr>
               ))}
@@ -326,7 +330,8 @@ function CreateShopkeeperModal({ onClose, onSuccess }: any) {
     email: '',
     phone: '',
     shopName: '',
-    address: { campus: 'Main Campus' }
+    address: { campus: 'Main Campus' },
+    password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -334,7 +339,8 @@ function CreateShopkeeperModal({ onClose, onSuccess }: any) {
     setLoading(true);
     try {
       const result = await createShopkeeper(formData);
-      alert(`Shopkeeper created!\nTemporary Password: ${result.data.user.temporaryPassword}`);
+      const pw = result.data.user.password;
+      alert(`Shopkeeper created!\nPassword: ${pw}`);
       onSuccess();
     } catch (error: any) {
       alert('Error creating shopkeeper: ' + (error.message || 'Unknown error'));
@@ -380,6 +386,14 @@ function CreateShopkeeperModal({ onClose, onSuccess }: any) {
             className="w-full border rounded-lg px-4 py-2"
             required
           />
+          <input
+            type="text"
+            placeholder="Password (leave blank to auto-generate)"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className="w-full border rounded-lg px-4 py-2"
+            minLength={6}
+          />
           <div className="flex gap-2 pt-4">
             <button
               type="button"
@@ -409,7 +423,8 @@ function CreateDeliveryPartnerModal({ onClose, onSuccess }: any) {
     name: '',
     email: '',
     phone: '',
-    address: { campus: 'Main Campus' }
+    address: { campus: 'Main Campus' },
+    password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -417,7 +432,8 @@ function CreateDeliveryPartnerModal({ onClose, onSuccess }: any) {
     setLoading(true);
     try {
       const result = await createDeliveryPartner(formData);
-      alert(`Delivery Partner created!\nTemporary Password: ${result.data.temporaryPassword}`);
+      const pw = result.data.password;
+      alert(`Delivery Partner created!\nPassword: ${pw}`);
       onSuccess();
     } catch (error: any) {
       alert('Error creating delivery partner: ' + (error.message || 'Unknown error'));
@@ -454,6 +470,14 @@ function CreateDeliveryPartnerModal({ onClose, onSuccess }: any) {
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             className="w-full border rounded-lg px-4 py-2"
             required
+          />
+          <input
+            type="text"
+            placeholder="Password (leave blank to auto-generate)"
+            value={formData.password}
+            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+            className="w-full border rounded-lg px-4 py-2"
+            minLength={6}
           />
           <div className="flex gap-2 pt-4">
             <button
