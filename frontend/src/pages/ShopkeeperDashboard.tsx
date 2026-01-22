@@ -119,12 +119,21 @@ function OverviewSection() {
 }
 
 function MenuSection() {
-  const { menuItems, loading, fetchMenuItems, deleteMenuItem } = useShopkeeperStore();
+  const { menuItems, fetchMenuItems, deleteMenuItem } = useShopkeeperStore();
   const [showAddForm, setShowAddForm] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [_editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchMenuItems();
+    const loadMenuItems = async () => {
+      setLoading(true);
+      try {
+        await fetchMenuItems();
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadMenuItems();
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -203,11 +212,20 @@ function MenuSection() {
 }
 
 function OrdersSection() {
-  const { orders, loading, fetchOrders, updateOrderStatus } = useShopkeeperStore();
+  const { orders, fetchOrders, updateOrderStatus } = useShopkeeperStore();
   const [statusFilter, setStatusFilter] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchOrders(statusFilter || undefined);
+    const loadOrders = async () => {
+      setLoading(true);
+      try {
+        await fetchOrders(statusFilter || undefined);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadOrders();
   }, [statusFilter]);
 
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
@@ -295,10 +313,19 @@ function OrdersSection() {
 }
 
 function SalesSection() {
-  const { sales, loading, fetchSales } = useShopkeeperStore();
+  const { sales, fetchSales } = useShopkeeperStore();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchSales();
+    const loadSales = async () => {
+      setLoading(true);
+      try {
+        await fetchSales();
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadSales();
   }, []);
 
   if (loading) {

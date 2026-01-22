@@ -3,10 +3,8 @@ export type Role =
   | 'admin'
   // Shopkeeper role variants used across backend/frontend
   | 'shopkeeper'
-  | 'shop_owner'
   // Delivery role variants used across backend/frontend
-  | 'delivery_partner'
-  | 'delivery_person';
+  | 'delivery_partner';
 
 export type ApiSuccess<T> = {
   success: true;

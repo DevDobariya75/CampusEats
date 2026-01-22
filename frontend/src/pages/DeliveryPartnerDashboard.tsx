@@ -117,10 +117,10 @@ export function DeliveryPartnerDashboard() {
         {/* Stats */}
         {stats && activeTab === 'dashboard' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <StatCard title="Available Orders" value={stats.availableOrders} color="bg-blue-500" />
-            <StatCard title="Active Deliveries" value={stats.myActiveOrders} color="bg-green-500" />
-            <StatCard title="Completed" value={stats.myCompletedOrders} color="bg-purple-500" />
-            <StatCard title="Total Earnings" value={`₹${stats.totalEarnings.toFixed(2)}`} color="bg-green-600" />
+            <StatCard title="Available Orders" value={stats.availableOrders || 0} color="bg-blue-500" />
+            <StatCard title="Active Deliveries" value={stats.myActiveOrders || 0} color="bg-green-500" />
+            <StatCard title="Completed" value={stats.myCompletedOrders || 0} color="bg-purple-500" />
+            <StatCard title="Total Earnings" value={`₹${(stats.totalEarnings || 0).toFixed(2)}`} color="bg-green-600" />
           </div>
         )}
 
@@ -152,6 +152,14 @@ function StatCard({ title, value, color }: any) {
 }
 
 function DashboardContent({ stats }: any) {
+  if (!stats) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Today's Summary</h2>
@@ -161,21 +169,21 @@ function DashboardContent({ stats }: any) {
           <ul className="space-y-3">
             <li className="flex justify-between">
               <span>Available Orders Nearby</span>
-              <span className="font-bold text-blue-600">{stats.availableOrders}</span>
+              <span className="font-bold text-blue-600">{stats.availableOrders || 0}</span>
             </li>
             <li className="flex justify-between">
               <span>My Active Deliveries</span>
-              <span className="font-bold text-green-600">{stats.myActiveOrders}</span>
+              <span className="font-bold text-green-600">{stats.myActiveOrders || 0}</span>
             </li>
             <li className="flex justify-between">
               <span>Completed Today</span>
-              <span className="font-bold text-purple-600">{stats.myCompletedOrders}</span>
+              <span className="font-bold text-purple-600">{stats.myCompletedOrders || 0}</span>
             </li>
           </ul>
         </div>
         <div className="border rounded-lg p-6">
           <h3 className="font-semibold text-lg mb-4">Earnings</h3>
-          <p className="text-4xl font-bold text-green-600">₹{stats.totalEarnings.toFixed(2)}</p>
+          <p className="text-4xl font-bold text-green-600">₹{(stats.totalEarnings || 0).toFixed(2)}</p>
           <p className="text-gray-600 mt-2">Total earnings from completed deliveries</p>
         </div>
       </div>

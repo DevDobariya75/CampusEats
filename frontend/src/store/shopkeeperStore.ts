@@ -38,32 +38,29 @@ export const useShopkeeperStore = create<ShopkeeperStore>((set) => ({
   },
 
   fetchMenuItems: async () => {
-    set({ loading: true, error: null });
     try {
       const response = await http.get('/api/shopkeeper/menu-items');
-      set({ menuItems: response.data.data, loading: false });
+      set({ menuItems: response.data.data, error: null });
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
     }
   },
 
   fetchOrders: async (status?: string) => {
-    set({ loading: true, error: null });
     try {
       const response = await http.get('/api/shopkeeper/orders', { params: { status } });
-      set({ orders: response.data.data, loading: false });
+      set({ orders: response.data.data, error: null });
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
     }
   },
 
   fetchSales: async () => {
-    set({ loading: true, error: null });
     try {
       const response = await http.get('/api/shopkeeper/sales');
-      set({ sales: response.data.data, loading: false });
+      set({ sales: response.data.data, error: null });
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      set({ error: error.message });
     }
   },
 
