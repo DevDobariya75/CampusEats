@@ -61,7 +61,7 @@ export const errorHandler = (err, req, res, next) => {
     }
 
     // Default error
-    res.status(err.statusCode || 500).json({
+    return res.status(err.statusCode || 500).json({
         statusCode: err.statusCode || 500,
         message: err.message || "Internal Server Error",
         errors: [],

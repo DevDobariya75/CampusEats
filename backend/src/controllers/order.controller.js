@@ -30,7 +30,7 @@ const createOrder = asyncHandler(async (req, res) => {
     }
 
     // Verify delivery address belongs to user
-    const DeliveryAddress = require("../models/deliveryaddresses.model.js").default
+    const DeliveryAddress = require("../models/deliveryAddresses.model.js").default
     const address = await DeliveryAddress.findOne({
         _id: deliveryAddressId,
         customer: customerId,

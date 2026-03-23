@@ -4,7 +4,7 @@
   "description": "Food Delivery System,",
   "license": "ISC",
   "author": "Dev Dobariya",
-  "type": "commonjs",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"

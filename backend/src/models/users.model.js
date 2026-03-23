@@ -38,11 +38,10 @@ const userSchema = new mongoose.Schema({
     }
 },{timestamps: true});
 
-userSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
+userSchema.pre('save', async function() {
+    if (!this.isModified('password')) return;
     // Hash the password before saving
     this.password = await bcrypt.hash(this.password, 10); //10 is the salt rounds
-    next();
 })
 
 userSchema.methods.isPasswordCorrect = async function(password) {
@@ -58,9 +57,9 @@ userSchema.methods.generateAccessToken = function() {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1d',
-    },
-)
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN || '1d',
+    }
+);
 }
 userSchema.methods.generateRefreshToken = function() {
     return jwt.sign(
@@ -69,9 +68,9 @@ userSchema.methods.generateRefreshToken = function() {
         },
         process.env.REFRESH_TOKEN_SECRET,
         {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d',
-        },
-    );  
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
+        }
+    );
 }
 
 const User = mongoose.model('User', userSchema);
