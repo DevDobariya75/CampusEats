@@ -50,6 +50,15 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new ApiError(409, "Email already registered")
     }
 
+    // Handle profile picture upload
+    let profilePicture = null
+    if (req.file) {
+        const uploadedImage = await uploadOnCloudinary(req.file.path)
+        if (uploadedImage) {
+            profilePicture = uploadedImage.url
+        }
+    }
+
     // Create user
     const user = await User.create({
         name,
@@ -57,6 +66,7 @@ const registerUser = asyncHandler(async (req, res) => {
         password, // Schema will hash this
         role,
         phone,
+        profilePicture,
         isActive: true,
         isDeleted: false
     })
@@ -207,7 +217,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
 
     // Validation
-    if (!name && !phone) {
+    if (!name && !phone && !req.file) {
         throw new ApiError(400, "At least one field is required for update")
     }
 
@@ -217,6 +227,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     }
     if (phone) {
         updateData.phone = phone
+    }
+
+    // Handle profile picture upload
+    if (req.file) {
+        const uploadedImage = await uploadOnCloudinary(req.file.path)
+        if (uploadedImage) {
+            updateData.profilePicture = uploadedImage.url
+        }
     }
 
     const user = await User.findByIdAndUpdate(

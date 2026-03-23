@@ -2,11 +2,12 @@ import MenuItem from "../models/menuItems.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 // Add Menu Item
 const addMenuItem = asyncHandler(async (req, res) => {
     const { shopId } = req.params
-    const { name, description, price, imageUrl, category, stock } = req.body
+    const { name, description, price, category, stock } = req.body
     const userId = req.user?._id
 
     if (!userId) {
@@ -42,12 +43,21 @@ const addMenuItem = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You don't have permission to add items to this shop")
     }
 
+    // Handle image upload
+    let imageUrl = null
+    if (req.file) {
+        const uploadedImage = await uploadOnCloudinary(req.file.path)
+        if (uploadedImage) {
+            imageUrl = uploadedImage.url
+        }
+    }
+
     const menuItem = await MenuItem.create({
         shop: shopId,
         name,
         description: description || "",
         price: parseFloat(price),
-        imageUrl: imageUrl || null,
+        imageUrl: imageUrl,
         category: category || "General",
         isAvailable: true,
         isDeleted: false,
@@ -121,7 +131,7 @@ const getMenuItemById = asyncHandler(async (req, res) => {
 // Update Menu Item
 const updateMenuItem = asyncHandler(async (req, res) => {
     const { shopId, itemId } = req.params
-    const { name, description, price, imageUrl, category, stock, isAvailable } = req.body
+    const { name, description, price, category, stock, isAvailable } = req.body
     const userId = req.user?._id
 
     if (!userId) {
@@ -133,7 +143,7 @@ const updateMenuItem = asyncHandler(async (req, res) => {
     }
 
     // Validation - at least one field is required
-    if (!name && !description && !price && !imageUrl && !category && stock === undefined && isAvailable === undefined) {
+    if (!name && !description && !price && !category && stock === undefined && isAvailable === undefined && !req.file) {
         throw new ApiError(400, "At least one field is required for update")
     }
 
@@ -183,10 +193,6 @@ const updateMenuItem = asyncHandler(async (req, res) => {
         updateData.price = parseFloat(price)
     }
 
-    if (imageUrl !== undefined) {
-        updateData.imageUrl = imageUrl
-    }
-
     if (category) {
         updateData.category = category
     }
@@ -197,6 +203,14 @@ const updateMenuItem = asyncHandler(async (req, res) => {
 
     if (isAvailable !== undefined) {
         updateData.isAvailable = isAvailable
+    }
+
+    // Handle image upload
+    if (req.file) {
+        const uploadedImage = await uploadOnCloudinary(req.file.path)
+        if (uploadedImage) {
+            updateData.imageUrl = uploadedImage.url
+        }
     }
 
     const updatedItem = await MenuItem.findByIdAndUpdate(

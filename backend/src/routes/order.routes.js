@@ -1,0 +1,43 @@
+import { Router } from 'express'
+import {
+    createOrder,
+    getCustomerOrders,
+    getShopOrders,
+    getOrderById,
+    updateOrderStatus,
+    updatePayment,
+    cancelOrder,
+    deleteOrder
+} from '../controllers/order.controller.js'
+import { verifyJWT } from '../middlewares/auth.middleware.js'
+
+const router = Router()
+
+// All order routes require authentication
+router.use(verifyJWT)
+
+// Create a new order
+router.post('/', createOrder)
+
+// Get customer's orders
+router.get('/', getCustomerOrders)
+
+// Get shop's orders
+router.get('/shop', getShopOrders)
+
+// Get order by ID
+router.get('/:orderId', getOrderById)
+
+// Update order status
+router.patch('/:orderId/status', updateOrderStatus)
+
+// Update payment reference
+router.patch('/:orderId/payment', updatePayment)
+
+// Cancel order
+router.patch('/:orderId/cancel', cancelOrder)
+
+// Delete order (soft delete - admin only)
+router.delete('/:orderId', deleteOrder)
+
+export default router

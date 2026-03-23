@@ -2,10 +2,11 @@ import Shop from "../models/shops.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { uploadOnCloudinary } from "../utils/cloudinary.js"
 
 // Create Shop (only shopkeeper role)
 const createShop = asyncHandler(async (req, res) => {
-    const { name, description, imageUrl } = req.body
+    const { name, description } = req.body
     const ownerId = req.user?._id
     const userRole = req.user?.role
 
@@ -28,10 +29,19 @@ const createShop = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Shop name is required")
     }
 
+    // Handle image upload
+    let imageUrl = null
+    if (req.file) {
+        const uploadedImage = await uploadOnCloudinary(req.file.path)
+        if (uploadedImage) {
+            imageUrl = uploadedImage.url
+        }
+    }
+
     const shop = await Shop.create({
         name,
         description: description || "",
-        imageUrl: imageUrl || null,
+        imageUrl: imageUrl,
         owner: ownerId,
         isOpen: true,
         isActive: true,
@@ -119,7 +129,7 @@ const getMyShop = asyncHandler(async (req, res) => {
 // Update Shop (only owner)
 const updateShop = asyncHandler(async (req, res) => {
     const { shopId } = req.params
-    const { name, description, imageUrl, isOpen } = req.body
+    const { name, description, isOpen } = req.body
     const userId = req.user?._id
 
     if (!userId) {
@@ -131,7 +141,7 @@ const updateShop = asyncHandler(async (req, res) => {
     }
 
     // Validation - at least one field is required
-    if (!name && !description && !imageUrl && isOpen === undefined) {
+    if (!name && !description && isOpen === undefined && !req.file) {
         throw new ApiError(400, "At least one field is required for update")
     }
 
@@ -159,12 +169,16 @@ const updateShop = asyncHandler(async (req, res) => {
         updateData.description = description
     }
 
-    if (imageUrl !== undefined) {
-        updateData.imageUrl = imageUrl
-    }
-
     if (isOpen !== undefined) {
         updateData.isOpen = isOpen
+    }
+
+    // Handle image upload
+    if (req.file) {
+        const uploadedImage = await uploadOnCloudinary(req.file.path)
+        if (uploadedImage) {
+            updateData.imageUrl = uploadedImage.url
+        }
     }
 
     const updatedShop = await Shop.findByIdAndUpdate(
