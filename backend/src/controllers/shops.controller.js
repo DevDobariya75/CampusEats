@@ -132,7 +132,7 @@ const updateShop = asyncHandler(async (req, res) => {
     const { name, description, isOpen } = req.body
     const userId = req.user?._id
 
-    if (!userId) {
+    if (!userId) {  
         throw new ApiError(401, "User not authenticated")
     }
 

@@ -1,4 +1,5 @@
 import MenuItem from "../models/menuItems.model.js"
+import Shop from "../models/shops.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -32,7 +33,6 @@ const addMenuItem = asyncHandler(async (req, res) => {
     }
 
     // Verify shop belongs to user
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: shopId,
         owner: userId,
@@ -168,7 +168,6 @@ const updateMenuItem = asyncHandler(async (req, res) => {
     }
 
     // Verify shop belongs to user
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: shopId,
         owner: userId,
@@ -248,7 +247,6 @@ const toggleItemAvailability = asyncHandler(async (req, res) => {
     }
 
     // Verify shop belongs to user
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: shopId,
         owner: userId,
@@ -291,7 +289,6 @@ const deleteMenuItem = asyncHandler(async (req, res) => {
     }
 
     // Verify shop belongs to user
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: shopId,
         owner: userId,
@@ -342,7 +339,6 @@ const updateStock = asyncHandler(async (req, res) => {
     }
 
     // Verify shop belongs to user
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: shopId,
         owner: userId,
