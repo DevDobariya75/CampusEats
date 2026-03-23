@@ -114,7 +114,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
     }
 
@@ -158,7 +157,6 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
     }
 
@@ -311,7 +309,6 @@ const deleteUser = asyncHandler(async (req, res) => {
     // Clear tokens
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict'
     }
 
@@ -350,7 +347,6 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         const options = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict'
         }
 
