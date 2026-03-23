@@ -17,6 +17,11 @@ const router = Router()
 
 // Public routes
 router.get('/', getAllShops)
+
+// Get my shop (protected - must come before /:shopId to take precedence)
+router.get('/my-shop', verifyJWT, getMyShop)
+
+// Get shop by ID (public - must come after /my-shop)
 router.get('/:shopId', getShopById)
 
 // Protected routes
@@ -24,9 +29,6 @@ router.use(verifyJWT)
 
 // Create shop with image upload
 router.post('/', upload.single('image'), createShop)
-
-// Get my shop
-router.get('/my-shop', getMyShop)
 
 // Update shop with optional image upload
 router.patch('/:shopId', upload.single('image'), updateShop)
