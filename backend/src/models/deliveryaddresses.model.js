@@ -28,3 +28,4 @@ const deliveryAddressSchema = new mongoose.Schema({
 },{timestamps: true});
 
 const DeliveryAddress = mongoose.model('DeliveryAddress', deliveryAddressSchema);
+export default DeliveryAddress;
