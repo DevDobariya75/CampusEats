@@ -11,12 +11,13 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    passwordHash:{
+    password:{
         type: String,
         required: true
     },
     role:{
         enum: ['customer', 'admin', 'shopkeeper', 'delivery'],
+        default: 'customer',
         type: String,
         required: true
     },

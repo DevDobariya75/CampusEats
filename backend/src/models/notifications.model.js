@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+// Notification Schema
+
 const notificationSchema = new mongoose.Schema({
     recipient:{
         type: mongoose.Schema.Types.ObjectId,
@@ -27,6 +29,10 @@ const notificationSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isDeleted:{
+        type: Boolean,
+        default: false
+    }
 },{timestamps: true});
 
 const Notification = mongoose.model('Notification', notificationSchema);
