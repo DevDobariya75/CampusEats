@@ -1,5 +1,6 @@
 import Delivery from "../models/deliveries.model.js"
 import Order from "../models/order.model.js"
+import User from "../models/users.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -28,7 +29,6 @@ const assignDelivery = asyncHandler(async (req, res) => {
     }
 
     // Verify delivery partner exists and has delivery role
-    const User = require("../models/users.model.js").default
     const deliveryPartner = await User.findOne({
         _id: deliveryPartnerId,
         role: 'delivery'

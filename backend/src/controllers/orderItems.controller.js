@@ -104,14 +104,20 @@ const getOrderItemById = asyncHandler(async (req, res) => {
 // Update Order Item Quantity
 const updateOrderItemQuantity = asyncHandler(async (req, res) => {
     const { orderId, itemId } = req.params
-    const { quantity } = req.body
 
     if (!orderId || !itemId) {
         throw new ApiError(400, "Order ID and Item ID are required")
     }
 
+    // Validate request body
+    if (!req.body || Object.keys(req.body).length === 0) {
+        throw new ApiError(400, "Request body is required. Send { quantity: number }")
+    }
+
+    const { quantity } = req.body
+
     if (!quantity || quantity < 1) {
-        throw new ApiError(400, "Valid quantity is required")
+        throw new ApiError(400, "Valid quantity is required. Send { quantity: number } where quantity >= 1")
     }
 
     const orderItem = await OrderItem.findOne({

@@ -14,7 +14,7 @@ const createPayment = asyncHandler(async (req, res) => {
     }
 
     if (!orderId) {
-        throw new ApiError(400, "Order ID is required")
+        throw new ApiError(400, "Order ID is required - create order first")
     }
 
     if (!amount || amount <= 0) {
@@ -30,7 +30,7 @@ const createPayment = asyncHandler(async (req, res) => {
         throw new ApiError(400, `Invalid payment method. Must be one of: ${validMethods.join(', ')}`)
     }
 
-    // Verify order belongs to customer
+    // Verify order exists, belongs to customer, and check amount
     const order = await Order.findOne({
         _id: orderId,
         customer: customerId
@@ -40,9 +40,14 @@ const createPayment = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found")
     }
 
+    // Security: Verify payment amount matches order total
+    if (parseFloat(amount) !== order.totalAmount) {
+        throw new ApiError(400, `Payment amount (${amount}) must match order total (${order.totalAmount})`)
+    }
+
     const payment = await Payment.create({
         customer: customerId,
-        order: orderId,
+        order: orderId || null,
         amount: parseFloat(amount),
         method,
         upiVpa: method === 'UPI' ? upiVpa : null,
@@ -175,6 +180,15 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
         if (upiTransactionId) {
             updateData.upiTransactionId = upiTransactionId
         }
+
+        // Update order status to Confirmed when payment is successful (industry standard)
+        if (payment.order) {
+            await Order.findByIdAndUpdate(
+                payment.order,
+                { $set: { status: 'Confirmed' } },
+                { new: true }
+            )
+        }
     }
 
     const updatedPayment = await Payment.findByIdAndUpdate(
@@ -221,6 +235,7 @@ const verifyUPIPayment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "This payment is not a UPI payment")
     }
 
+    // Update payment to Completed
     const updatedPayment = await Payment.findByIdAndUpdate(
         paymentId,
         {
@@ -235,6 +250,15 @@ const verifyUPIPayment = asyncHandler(async (req, res) => {
         .populate('customer', 'name email phone')
         .populate('order', 'totalAmount status')
 
+    // Update order status to Confirmed (industry standard)
+    if (payment.order) {
+        await Order.findByIdAndUpdate(
+            payment.order,
+            { $set: { status: 'Confirmed' } },
+            { new: true }
+        )
+    }
+
     return res
         .status(200)
         .json(new ApiResponse(200, updatedPayment, "UPI payment verified successfully"))
@@ -248,8 +272,9 @@ const getPaymentStats = asyncHandler(async (req, res) => {
         throw new ApiError(401, "User not authenticated")
     }
 
+    // Use customerId as string for queries - Mongoose will handle conversion
     const stats = await Payment.aggregate([
-        { $match: { customer: customerId } },
+        { $match: { customer: customerId.toString ? customerId.toString() : customerId } },
         {
             $group: {
                 _id: "$status",
@@ -261,7 +286,7 @@ const getPaymentStats = asyncHandler(async (req, res) => {
 
     const totalPayments = await Payment.countDocuments({ customer: customerId })
     const totalAmount = await Payment.aggregate([
-        { $match: { customer: customerId } },
+        { $match: { customer: customerId.toString ? customerId.toString() : customerId } },
         {
             $group: {
                 _id: null,

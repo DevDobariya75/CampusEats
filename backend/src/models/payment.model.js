@@ -9,7 +9,7 @@ const paymentSchema = new mongoose.Schema({
     order:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Order',
-        required: true
+        required: true  // Payment MUST be linked to an order (industry standard)
     },
     method:{
         type: String,
