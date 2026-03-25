@@ -138,6 +138,12 @@ const addItemToCart = asyncHandler(async (req, res) => {
             ImageUrl: menuItem.imageUrl,
             subTotal: menuItem.price * parseInt(quantity)
         })
+        
+        // Add cartItem to cart's cartItems array if not already present
+        if (!cart.cartItems.includes(cartItem._id)) {
+            cart.cartItems.push(cartItem._id)
+            await cart.save()
+        }
     }
 
     const populatedItem = await CartItem.findById(cartItem._id).populate('menuItem', 'name price imageUrl')
@@ -227,6 +233,10 @@ const removeCartItem = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Cart item not found")
     }
 
+    // Remove cartItem ID from cart's cartItems array
+    cart.cartItems = cart.cartItems.filter(item => item.toString() !== itemId)
+    await cart.save()
+
     return res
         .status(200)
         .json(new ApiResponse(200, {}, "Item removed from cart successfully"))
@@ -255,6 +265,10 @@ const clearCart = asyncHandler(async (req, res) => {
     }
 
     await CartItem.deleteMany({ cart: cart._id })
+
+    // Clear cartItems array from cart
+    cart.cartItems = []
+    await cart.save()
 
     return res
         .status(200)

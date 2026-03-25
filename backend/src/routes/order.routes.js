@@ -23,7 +23,7 @@ router.post('/', createOrder)
 router.get('/', getCustomerOrders)
 
 // Get shop's orders
-router.get('/shop', getShopOrders)
+router.get('/:shopId', getShopOrders)
 
 // Get order by ID
 router.get('/:orderId', getOrderById)

@@ -1,4 +1,7 @@
 import Order from "../models/order.model.js"
+import DeliveryAddress from "../models/deliveryAddresses.model.js"
+import Shop from "../models/shops.model.js"
+import Payment from "../models/payment.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -25,12 +28,7 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Valid total amount is required")
     }
 
-    if (!paymentId) {
-        throw new ApiError(400, "Payment ID is required")
-    }
-
     // Verify delivery address belongs to user
-    const DeliveryAddress = require("../models/deliveryAddresses.model.js").default
     const address = await DeliveryAddress.findOne({
         _id: deliveryAddressId,
         customer: customerId,
@@ -47,8 +45,8 @@ const createOrder = asyncHandler(async (req, res) => {
         deliveryAddress: deliveryAddressId,
         totalAmount: parseFloat(totalAmount),
         specialNotes: specialNotes || "",
-        status: 'Pending',
-        payment: paymentId,
+        status: 'Pending',  // Waiting for payment
+        payment: null,      // Payment will be linked after successful payment
         isDeleted: false
     })
 
@@ -115,7 +113,6 @@ const getShopOrders = asyncHandler(async (req, res) => {
     }
 
     // Verify shop belongs to user
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: shopId,
         owner: userId,
@@ -182,7 +179,6 @@ const getOrderById = asyncHandler(async (req, res) => {
 
     // Check if user is order customer or shop owner
     if (order.customer._id.toString() !== userId.toString()) {
-        const Shop = require("../models/shops.model.js").default
         const shop = await Shop.findOne({
             _id: order.shop._id,
             owner: userId
@@ -231,7 +227,6 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     // Verify shop owner
-    const Shop = require("../models/shops.model.js").default
     const shop = await Shop.findOne({
         _id: order.shop,
         owner: userId,
@@ -260,7 +255,6 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 // Update Payment Reference
 const updatePayment = asyncHandler(async (req, res) => {
     const { orderId } = req.params
-    const { paymentId } = req.body
     const userId = req.user?._id
 
     if (!userId) {
@@ -271,8 +265,15 @@ const updatePayment = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Order ID is required")
     }
 
+    // Validate request body
+    if (!req.body || Object.keys(req.body).length === 0) {
+        throw new ApiError(400, "Request body is required. Send { paymentId: 'value' }")
+    }
+
+    const { paymentId } = req.body
+
     if (!paymentId) {
-        throw new ApiError(400, "Payment ID is required")
+        throw new ApiError(400, "Payment ID is required. Send { paymentId: 'value' }")
     }
 
     const order = await Order.findOne({
