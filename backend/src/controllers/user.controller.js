@@ -5,7 +5,6 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken"
-
 // Helper function to generate tokens
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -166,11 +165,7 @@ const loginUser = asyncHandler(async (req, res) => {
         .json(
             new ApiResponse(
                 200,
-                {
-                    user: loggedInUser,
-                    accessToken,
-                    refreshToken
-                },
+                loggedInUser,
                 "User logged in successfully"
             )
         )
