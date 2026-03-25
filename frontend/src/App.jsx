@@ -3,7 +3,9 @@ import './App.css'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import AddressesPage from './pages/AddressesPage'
+import AdminPage from './pages/AdminPage'
 import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import DeliveryDashboardPage from './pages/DeliveryDashboardPage'
@@ -19,7 +21,6 @@ import ShopDashboardPage from './pages/ShopDashboardPage'
 import ShopDetailPage from './pages/ShopDetailPage'
 import ShopItemsPage from './pages/ShopItemsPage'
 import ShopsPage from './pages/ShopsPage'
-
 function RootRedirect() {
   const { user } = useAuth()
 
@@ -36,11 +37,12 @@ function RootRedirect() {
 
 function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route path="/" element={<Layout />}>
           <Route index element={<RootRedirect />} />
@@ -136,10 +138,20 @@ function App() {
             }
           />
 
+          <Route
+            path="admin"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <AdminPage />
+              </ProtectedRoute>
+            }
+          />
+
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   )
 }
 

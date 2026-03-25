@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
 	--font-base: 'Space Grotesk', sans-serif;
 	--font-display: 'Fraunces', serif;
@@ -10,6 +14,7 @@
 
 * {
 	box-sizing: border-box;
+	scroll-behavior: smooth;
 }
 
 html,
@@ -28,6 +33,27 @@ body {
 		radial-gradient(circle at 87% 3%, rgba(26, 149, 122, 0.23), transparent 34%),
 		linear-gradient(180deg, #f7fffb 0%, #f4fbff 60%, #f5f8ff 100%);
 	line-height: 1.5;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(to bottom, #f97316, #0ea5e9);
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(to bottom, #ea580c, #0284c7);
 }
 
 h1,
@@ -40,4 +66,100 @@ h4 {
 
 a {
 	color: inherit;
+	text-decoration: none;
+	transition: all 0.3s ease;
+}
+
+/* Custom components */
+@layer components {
+	.btn-primary {
+		@apply px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-300 transform hover:scale-105 active:scale-95;
+	}
+
+	.btn-secondary {
+		@apply px-6 py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl hover:from-sky-600 hover:to-sky-700 transition-all duration-300 transform hover:scale-105 active:scale-95;
+	}
+
+	.btn-outline {
+		@apply px-6 py-3 border-2 border-orange-500 text-orange-500 rounded-xl font-semibold hover:bg-orange-50 transition-all duration-300;
+	}
+
+	.btn-sm {
+		@apply px-3 py-1.5 text-sm;
+	}
+
+	.card {
+		@apply bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden;
+	}
+
+	.card-hover {
+		@apply card hover:scale-105 hover:shadow-2xl cursor-pointer hover:shadow-orange-500/20;
+	}
+
+	.card-interactive {
+		@apply card hover:-translate-y-2 transition-all duration-300;
+	}
+
+	.input-field {
+		@apply w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition-all duration-300 placeholder-slate-400;
+	}
+
+	.badge {
+		@apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium;
+	}
+
+	.badge-primary {
+		@apply badge bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700;
+	}
+
+	.badge-secondary {
+		@apply badge bg-gradient-to-r from-sky-100 to-sky-50 text-sky-700;
+	}
+
+	.section-title {
+		@apply text-4xl md:text-5xl font-bold bg-gradient-to-r from-orange-600 to-sky-600 bg-clip-text text-transparent;
+	}
+
+	.section-subtitle {
+		@apply text-lg md:text-xl text-slate-600;
+	}
+
+	.glass {
+		@apply backdrop-blur-md bg-white/30 border border-white/20;
+	}
+
+	.shimmer-effect {
+		background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+		background-size: 200% 100%;
+		animation: shimmer 2s infinite;
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: -1000px 0;
+	}
+	100% {
+		background-position: 1000px 0;
+	}
+}
+
+@keyframes float {
+	0%, 100% {
+		transform: translateY(0px);
+	}
+	50% {
+		transform: translateY(-20px);
+	}
+}
+
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }

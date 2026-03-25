@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { ThemeToggle } from './ThemeToggle'
 import NotificationBell from './NotificationBell'
 import ShopStatusToggle from './ShopStatusToggle'
 
@@ -63,6 +64,7 @@ export default function Layout() {
         </nav>
 
         <div className="top-actions">
+          <ThemeToggle />
           {isShopkeeper && <ShopStatusToggle />}
           {user && <NotificationBell />}
           {user ? (

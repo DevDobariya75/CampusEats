@@ -7,6 +7,8 @@ export const userApi = {
   logout: () => request('/users/logout', { method: 'POST' }),
   updateProfile: (formData) => request('/users/profile', { method: 'PATCH', body: formData }),
   changePassword: (body) => request('/users/change-password', { method: 'POST', body }),
+  forgotPassword: (body) => request('/users/forgot-password', { method: 'POST', body }),
+  resetPassword: (body) => request('/users/reset-password', { method: 'POST', body }),
 }
 
 export const shopsApi = {
