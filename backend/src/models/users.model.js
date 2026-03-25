@@ -25,6 +25,16 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    currentOrders:{
+        type: Number,
+        default: 0,
+        min: 0
+    },
+    maxOrders:{
+        type: Number,
+        default: 4,
+        min: 1
+    },
     isActive:{
         type: Boolean,
         default: true

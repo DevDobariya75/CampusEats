@@ -13,7 +13,7 @@ const deliverySchema = new mongoose.Schema({
     },
     status:{
         type: String,
-        enum: ['Assigned', 'Picked Up', 'Delivered', 'Cancelled'],
+        enum: ['Assigned', 'Accepted', 'Picked Up', 'Delivered', 'Cancelled'],
         default: 'Assigned'
     },
     acceptedAt:{

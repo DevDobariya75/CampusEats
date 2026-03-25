@@ -16,6 +16,12 @@ const orderSchema = new mongoose.Schema({
         ref: 'User',
         required: true
     },
+    deliveryPartnerId:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+        default: null
+    },
     status:{
         type: String,
         enum: ['Pending', 'Confirmed', 'Preparing', 'Out for Delivery', 'Delivered', 'Cancelled'],

@@ -2,9 +2,22 @@ import Order from "../models/order.model.js"
 import DeliveryAddress from "../models/deliveryAddresses.model.js"
 import Shop from "../models/shops.model.js"
 import Payment from "../models/payment.model.js"
+import Cart from "../models/carts.model.js"
+import CartItem from "../models/cartItems.model.js"
+import Delivery from "../models/deliveries.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { assignDeliveryPartner } from "../services/deliveryAssignment.service.js"
+import { createSystemNotification } from "../services/notification.service.js"
+
+const safeNotify = async (payload) => {
+    try {
+        await createSystemNotification(payload)
+    } catch {
+        // Notification failures should not fail order operations.
+    }
+}
 
 // Create Order
 const createOrder = asyncHandler(async (req, res) => {
@@ -26,6 +39,20 @@ const createOrder = asyncHandler(async (req, res) => {
 
     if (!totalAmount || totalAmount <= 0) {
         throw new ApiError(400, "Valid total amount is required")
+    }
+
+    const shop = await Shop.findOne({
+        _id: shopId,
+        isDeleted: false,
+        isActive: true
+    })
+
+    if (!shop) {
+        throw new ApiError(404, "Shop not found")
+    }
+
+    if (!shop.isOpen) {
+        throw new ApiError(400, "Shop is currently closed")
     }
 
     // Verify delivery address belongs to user
@@ -50,11 +77,41 @@ const createOrder = asyncHandler(async (req, res) => {
         isDeleted: false
     })
 
+    // Clear cart for this customer and shop after order creation.
+    const cart = await Cart.findOne({
+        shop: shopId,
+        customer: customerId
+    })
+
+    if (cart) {
+        await CartItem.deleteMany({ cart: cart._id })
+        cart.cartItems = []
+        await cart.save()
+    }
+
     const populatedOrder = await Order.findById(order._id)
         .populate('customer', 'name email phone')
         .populate('shop', 'name')
         .populate('deliveryAddress')
         .populate('payment')
+        .populate('deliveryPartnerId', 'name email phone')
+
+    const shortOrderId = order._id.toString().slice(-6)
+    await safeNotify({
+        recipientId: shop.owner,
+        title: 'You got a new order',
+        message: `${req.user?.name || 'A customer'} placed order #${shortOrderId} for Rs ${order.totalAmount}.`,
+        type: 'Order Update',
+        relatedOrder: order._id
+    })
+
+    await safeNotify({
+        recipientId: customerId,
+        title: 'Order placed successfully',
+        message: `Your order #${shortOrderId} has been placed. The shop is preparing it now.`,
+        type: 'Order Update',
+        relatedOrder: order._id
+    })
 
     return res
         .status(201)
@@ -84,6 +141,7 @@ const getCustomerOrders = asyncHandler(async (req, res) => {
         .populate('shop', 'name')
         .populate('deliveryAddress')
         .populate('payment')
+        .populate('deliveryPartnerId', 'name email phone')
 
     if (sortBy === 'oldest') {
         query = query.sort({ createdAt: 1 })
@@ -146,9 +204,30 @@ const getShopOrders = asyncHandler(async (req, res) => {
 
     const orders = await query
 
+    const orderIds = orders.map((item) => item._id)
+    const deliveryRows = await Delivery.find({
+        order: { $in: orderIds },
+        isDeleted: false
+    })
+        .select('order status acceptedAt deliveryPartner')
+        .populate('deliveryPartner', 'name phone')
+
+    const deliveryMap = new Map(deliveryRows.map((item) => [item.order.toString(), item]))
+    const ordersWithDeliveryInfo = orders.map((item) => {
+        const delivery = deliveryMap.get(item._id.toString())
+        const plain = item.toObject()
+        const assignedPartner = plain.deliveryPartnerId || delivery?.deliveryPartner || null
+        return {
+            ...plain,
+            assignedPartner,
+            deliveryStatus: delivery?.status || null,
+            deliveryAcceptedAt: delivery?.acceptedAt || null
+        }
+    })
+
     return res
         .status(200)
-        .json(new ApiResponse(200, orders, "Shop orders fetched successfully"))
+        .json(new ApiResponse(200, ordersWithDeliveryInfo, "Shop orders fetched successfully"))
 })
 
 // Get Order by ID
@@ -172,6 +251,7 @@ const getOrderById = asyncHandler(async (req, res) => {
         .populate('shop', 'name')
         .populate('deliveryAddress')
         .populate('payment')
+        .populate('deliveryPartnerId', 'name email phone')
 
     if (!order) {
         throw new ApiError(404, "Order not found")
@@ -237,6 +317,19 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         throw new ApiError(403, "You don't have permission to update this order")
     }
 
+    let assignmentMessage = ""
+    let assignmentResult = null
+    if (status === 'Out for Delivery' && !order.deliveryPartnerId) {
+        try {
+            assignmentResult = await assignDeliveryPartner(order._id)
+            if (!assignmentResult.assigned) {
+                assignmentMessage = ` ${assignmentResult.message}`
+            }
+        } catch (error) {
+            assignmentMessage = " Delivery assignment is pending"
+        }
+    }
+
     const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
         { $set: { status } },
@@ -246,10 +339,30 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         .populate('shop', 'name')
         .populate('deliveryAddress')
         .populate('payment')
+        .populate('deliveryPartnerId', 'name email phone')
+
+    const shortOrderId = updatedOrder._id.toString().slice(-6)
+    await safeNotify({
+        recipientId: updatedOrder.customer?._id,
+        title: 'Order status updated',
+        message: `Your order #${shortOrderId} is now ${status}.`,
+        type: 'Order Update',
+        relatedOrder: updatedOrder._id
+    })
+
+    if (status === 'Out for Delivery' && assignmentResult && !assignmentResult.assigned) {
+        await safeNotify({
+            recipientId: shop.owner,
+            title: 'Delivery partner unavailable',
+            message: `Order #${shortOrderId} is out for delivery, but no delivery partner is currently available.`,
+            type: 'General',
+            relatedOrder: updatedOrder._id
+        })
+    }
 
     return res
         .status(200)
-        .json(new ApiResponse(200, updatedOrder, "Order status updated successfully"))
+        .json(new ApiResponse(200, updatedOrder, `Order status updated successfully.${assignmentMessage}`))
 })
 
 // Update Payment Reference

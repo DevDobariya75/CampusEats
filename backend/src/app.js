@@ -5,8 +5,24 @@ import { errorHandler } from "./middlewares/errorHandler.middleware.js"
 
 const app = express()
 
+const allowedOrigins = (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: (origin, callback) => {
+        // Allow non-browser tools (Postman/cURL) and same-origin requests.
+        if (!origin) {
+            return callback(null, true)
+        }
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true)
+        }
+
+        return callback(new Error(`CORS blocked for origin: ${origin}`))
+    },
     credentials: true
 }))
 

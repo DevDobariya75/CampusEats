@@ -1,4 +1,5 @@
 import User from "../models/users.model.js"
+import Shop from "../models/shops.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -23,7 +24,7 @@ const generateAccessAndRefreshTokens = async (userId) => {
 
 // Register User
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role, phone } = req.body
+    const { name, email, password, role, phone, shopName, shopDescription } = req.body
 
     // Validation
     if (!name || !email || !password || !role || !phone) {
@@ -42,6 +43,12 @@ const registerUser = asyncHandler(async (req, res) => {
     const validRoles = ['customer', 'admin', 'shopkeeper', 'delivery']
     if (!validRoles.includes(role)) {
         throw new ApiError(400, `Invalid role. Must be one of: ${validRoles.join(', ')}`)
+    }
+
+    if (role === 'shopkeeper') {
+        if (!shopName || !shopName.trim() || !shopDescription || !shopDescription.trim()) {
+            throw new ApiError(400, "Shop name and shop description are required for shopkeeper registration")
+        }
     }
 
     // Check if user already exists
@@ -71,6 +78,24 @@ const registerUser = asyncHandler(async (req, res) => {
         isDeleted: false
     })
 
+    let createdShop = null
+    if (role === 'shopkeeper') {
+        try {
+            createdShop = await Shop.create({
+                name: shopName.trim(),
+                description: shopDescription.trim(),
+                owner: user._id,
+                isOpen: true,
+                isActive: true,
+                isDeleted: false,
+                totalSales: 0
+            })
+        } catch (error) {
+            await User.findByIdAndDelete(user._id)
+            throw new ApiError(500, "Failed to create shop during shopkeeper registration")
+        }
+    }
+
     const createdUser = await User.findById(user._id).select("-password -refreshToken")
 
     if (!createdUser) {
@@ -78,7 +103,14 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     return res.status(201).json(
-        new ApiResponse(201, createdUser, "User registered successfully")
+        new ApiResponse(
+            201,
+            {
+                user: createdUser,
+                shop: createdShop
+            },
+            "User registered successfully"
+        )
     )
 })
 

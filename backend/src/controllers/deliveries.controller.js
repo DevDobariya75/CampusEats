@@ -4,6 +4,30 @@ import User from "../models/users.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { assignPendingOutForDeliveryOrders, markOrderDelivered } from "../services/deliveryAssignment.service.js"
+import { createSystemNotification } from "../services/notification.service.js"
+
+const decrementPartnerLoad = async (partnerId) => {
+    if (!partnerId) {
+        return
+    }
+
+    const partner = await User.findById(partnerId).select('currentOrders')
+    if (!partner) {
+        return
+    }
+
+    const nextCurrentOrders = Math.max((partner.currentOrders || 0) - 1, 0)
+    await User.findByIdAndUpdate(partnerId, { $set: { currentOrders: nextCurrentOrders } }, { new: true })
+}
+
+const safeNotify = async (payload) => {
+    try {
+        await createSystemNotification(payload)
+    } catch {
+        // Notification failures should not block request handling.
+    }
+}
 
 // Assign Delivery to Partner
 const assignDelivery = asyncHandler(async (req, res) => {
@@ -28,14 +52,26 @@ const assignDelivery = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found")
     }
 
-    // Verify delivery partner exists and has delivery role
-    const deliveryPartner = await User.findOne({
-        _id: deliveryPartnerId,
-        role: 'delivery'
-    })
+    // Verify delivery partner exists and has delivery role with available capacity
+    const deliveryPartner = await User.findOneAndUpdate(
+        {
+            _id: deliveryPartnerId,
+            role: 'delivery',
+            isActive: true,
+            isDeleted: false,
+            $expr: {
+                $lt: [
+                    { $ifNull: ['$currentOrders', 0] },
+                    { $ifNull: ['$maxOrders', 4] }
+                ]
+            }
+        },
+        { $inc: { currentOrders: 1 } },
+        { new: true }
+    )
 
     if (!deliveryPartner) {
-        throw new ApiError(404, "Delivery partner not found")
+        throw new ApiError(400, "Delivery partner not available or at max capacity")
     }
 
     // Check if delivery already exists for this order
@@ -48,12 +84,20 @@ const assignDelivery = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Delivery is already assigned to this order")
     }
 
-    const delivery = await Delivery.create({
-        order: orderId,
-        deliveryPartner: deliveryPartnerId,
-        status: 'Assigned',
-        isDeleted: false
-    })
+    let delivery
+    try {
+        delivery = await Delivery.create({
+            order: orderId,
+            deliveryPartner: deliveryPartnerId,
+            status: 'Assigned',
+            isDeleted: false
+        })
+
+        await Order.findByIdAndUpdate(orderId, { $set: { deliveryPartnerId } })
+    } catch (error) {
+        await User.findByIdAndUpdate(deliveryPartnerId, { $inc: { currentOrders: -1 } })
+        throw error
+    }
 
     const populatedDelivery = await Delivery.findById(delivery._id)
         .populate('deliveryPartner', 'name email phone')
@@ -77,7 +121,15 @@ const getDeliveryByOrder = asyncHandler(async (req, res) => {
         isDeleted: false
     })
         .populate('deliveryPartner', 'name email phone')
-        .populate('order', 'totalAmount customer')
+        .populate({
+            path: 'order',
+            select: 'totalAmount customer deliveryAddress shop specialNotes status',
+            populate: [
+                { path: 'customer', select: 'name email phone' },
+                { path: 'deliveryAddress', select: 'addressLine city state pincode landmark phone' },
+                { path: 'shop', select: 'name phone address' }
+            ]
+        })
 
     if (!delivery) {
         throw new ApiError(404, "Delivery not found")
@@ -111,9 +163,19 @@ const getPartnerDeliveries = asyncHandler(async (req, res) => {
         filter.status = status
     }
 
+    await assignPendingOutForDeliveryOrders()
+
     const deliveries = await Delivery.find(filter)
         .populate('deliveryPartner', 'name email phone')
-        .populate('order', 'totalAmount customer deliveryAddress')
+        .populate({
+            path: 'order',
+            select: 'totalAmount customer deliveryAddress shop specialNotes status',
+            populate: [
+                { path: 'customer', select: 'name email phone' },
+                { path: 'deliveryAddress', select: 'addressLine city state pincode landmark phone' },
+                { path: 'shop', select: 'name phone address' }
+            ]
+        })
         .sort({ createdAt: -1 })
 
     return res
@@ -153,12 +215,38 @@ const acceptDelivery = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Delivery has already been accepted or processed")
     }
 
+    delivery.status = 'Accepted'
     delivery.acceptedAt = new Date()
     await delivery.save()
 
     const updatedDelivery = await Delivery.findById(deliveryId)
         .populate('deliveryPartner', 'name email phone')
         .populate('order', 'totalAmount customer')
+
+    const acceptedOrder = await Order.findById(delivery.order)
+        .populate('customer', 'name')
+        .populate('shop', 'name owner')
+
+    const shortOrderId = delivery.order.toString().slice(-6)
+    if (acceptedOrder?.customer?._id) {
+        await safeNotify({
+            recipientId: acceptedOrder.customer._id,
+            title: 'Delivery partner accepted your order',
+            message: `Your order #${shortOrderId} has been accepted by a delivery partner.`,
+            type: 'Order Update',
+            relatedOrder: delivery.order
+        })
+    }
+
+    if (acceptedOrder?.shop?.owner) {
+        await safeNotify({
+            recipientId: acceptedOrder.shop.owner,
+            title: 'Delivery accepted',
+            message: `A delivery partner accepted order #${shortOrderId}.`,
+            type: 'Order Update',
+            relatedOrder: delivery.order
+        })
+    }
 
     return res
         .status(200)
@@ -193,8 +281,8 @@ const markPickedUp = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Delivery not found")
     }
 
-    if (delivery.status !== 'Assigned') {
-        throw new ApiError(400, "Delivery must be assigned before marking as picked up")
+    if (!['Assigned', 'Accepted'].includes(delivery.status)) {
+        throw new ApiError(400, "Delivery must be assigned or accepted before marking as picked up")
     }
 
     delivery.status = 'Picked Up'
@@ -204,6 +292,19 @@ const markPickedUp = asyncHandler(async (req, res) => {
     const updatedDelivery = await Delivery.findById(deliveryId)
         .populate('deliveryPartner', 'name email phone')
         .populate('order', 'totalAmount customer')
+
+    const pickedOrder = await Order.findById(delivery.order)
+        .populate('customer', 'name')
+
+    if (pickedOrder?.customer?._id) {
+        await safeNotify({
+            recipientId: pickedOrder.customer._id,
+            title: 'Order picked up',
+            message: `Your order #${delivery.order.toString().slice(-6)} has been picked up and is on the way.`,
+            type: 'Order Update',
+            relatedOrder: delivery.order
+        })
+    }
 
     return res
         .status(200)
@@ -238,23 +339,59 @@ const markDelivered = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Delivery not found")
     }
 
-    if (delivery.status !== 'Picked Up') {
-        throw new ApiError(400, "Order must be picked up before delivery")
+    if (!['Accepted', 'Picked Up'].includes(delivery.status)) {
+        throw new ApiError(400, "Order must be accepted or picked up before delivery")
     }
 
-    delivery.status = 'Delivered'
-    delivery.deliveredAt = new Date()
-    await delivery.save()
+    try {
+        await markOrderDelivered(delivery.order)
+    } catch (error) {
+        // Final safety fallback: keep order/delivery status in sync even if service-level flow fails.
+        const latestOrder = await Order.findById(delivery.order)
+        if (latestOrder && latestOrder.status !== 'Delivered') {
+            if (latestOrder.deliveryPartnerId) {
+                await decrementPartnerLoad(latestOrder.deliveryPartnerId)
+            }
 
-    // Update order status to Delivered
-    await Order.findByIdAndUpdate(
-        delivery.order,
-        { $set: { status: 'Delivered' } }
-    )
+            await Order.findByIdAndUpdate(latestOrder._id, { $set: { status: 'Delivered' } })
+        }
+
+        const latestDelivery = await Delivery.findById(deliveryId)
+        if (latestDelivery && latestDelivery.status !== 'Delivered') {
+            latestDelivery.status = 'Delivered'
+            latestDelivery.deliveredAt = new Date()
+            await latestDelivery.save()
+        }
+    }
 
     const updatedDelivery = await Delivery.findById(deliveryId)
         .populate('deliveryPartner', 'name email phone')
         .populate('order', 'totalAmount customer')
+
+    const deliveredOrder = await Order.findById(delivery.order)
+        .populate('customer', 'name')
+        .populate('shop', 'name owner')
+
+    const shortDeliveredOrderId = delivery.order.toString().slice(-6)
+    if (deliveredOrder?.customer?._id) {
+        await safeNotify({
+            recipientId: deliveredOrder.customer._id,
+            title: 'Order delivered',
+            message: `Your order #${shortDeliveredOrderId} has been delivered successfully. Enjoy your meal!`,
+            type: 'Order Update',
+            relatedOrder: delivery.order
+        })
+    }
+
+    if (deliveredOrder?.shop?.owner) {
+        await safeNotify({
+            recipientId: deliveredOrder.shop.owner,
+            title: 'Order delivered to customer',
+            message: `Order #${shortDeliveredOrderId} was delivered to the customer.`,
+            type: 'Order Update',
+            relatedOrder: delivery.order
+        })
+    }
 
     return res
         .status(200)
@@ -298,8 +435,14 @@ const cancelDelivery = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Cannot cancel a delivered order")
     }
 
+    const shouldReleaseLoad = ['Assigned', 'Accepted', 'Picked Up'].includes(delivery.status)
+
     delivery.status = 'Cancelled'
     await delivery.save()
+
+    if (shouldReleaseLoad && delivery.deliveryPartner) {
+        await decrementPartnerLoad(delivery.deliveryPartner)
+    }
 
     // Update order status to Cancelled
     await Order.findByIdAndUpdate(
@@ -329,22 +472,24 @@ const getDeliveryStats = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Only delivery partners can access this endpoint")
     }
 
-    const stats = await Delivery.aggregate([
-        { $match: { deliveryPartner: partnerId, isDeleted: false } },
-        {
-            $group: {
-                _id: "$status",
-                count: { $sum: 1 }
-            }
-        }
-    ])
-
-    const totalDeliveries = await Delivery.countDocuments({
+    const totalAssigned = await Delivery.countDocuments({
         deliveryPartner: partnerId,
         isDeleted: false
     })
 
-    const completedDeliveries = await Delivery.countDocuments({
+    const accepted = await Delivery.countDocuments({
+        deliveryPartner: partnerId,
+        status: 'Accepted',
+        isDeleted: false
+    })
+
+    const pickedUp = await Delivery.countDocuments({
+        deliveryPartner: partnerId,
+        status: 'Picked Up',
+        isDeleted: false
+    })
+
+    const delivered = await Delivery.countDocuments({
         deliveryPartner: partnerId,
         status: 'Delivered',
         isDeleted: false
@@ -353,9 +498,12 @@ const getDeliveryStats = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(new ApiResponse(200, {
-            totalDeliveries,
-            completedDeliveries,
-            stats
+            totalAssigned,
+            accepted,
+            pickedUp,
+            delivered,
+            totalDeliveries: totalAssigned,
+            completedDeliveries: delivered
         }, "Delivery statistics fetched successfully"))
 })
 
