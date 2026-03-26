@@ -23,6 +23,10 @@ import ShopItemsPage from './pages/ShopItemsPage'
 import ShopsPage from './pages/ShopsPage'
 function RootRedirect() {
   const { user } = useAuth()
+  
+  if(user?.role === 'admin') {
+    return <Navigate to="/admin" replace />
+  }
 
   if (user?.role === 'shopkeeper') {
     return <Navigate to="/shop-dashboard" replace />
