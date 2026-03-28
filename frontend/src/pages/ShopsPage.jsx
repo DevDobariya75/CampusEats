@@ -80,18 +80,18 @@ export default function ShopsPage() {
                 <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-center md:text-left mt-[-40px] md:mt-0">
                   <p className="text-sm sm:text-lg font-bold tracking-[0.2em] uppercase mb-4 text-slate-800 dark:text-white font-serif italic">The</p>
                   <h1 className="text-6xl font-black leading-none sm:text-7xl lg:text-8xl text-slate-900 dark:text-white font-serif uppercase tracking-tight">
-                    MIDNIGHT <br className="hidden md:block" /> CRAVINGS
+                    MIDDAY <br className="hidden md:block" /> CRAVINGS
                   </h1>
                   <p className="mt-6 text-slate-600 dark:text-white/60 text-sm max-w-xs leading-relaxed mx-auto md:mx-0">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt.
+                    Discover amazing food from your favorite campus eateries. Fast delivery, endless choices, all within reach.
                   </p>
                 </motion.div>
 
                 {/* Right Text */}
                 <motion.div initial={{ x: 50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-center md:text-right hidden md:block mt-[-40px] md:mt-0">
-                  <p className="text-lg font-medium tracking-wide mb-4 text-slate-800 dark:text-white font-serif">Gourmet <br/>Campus Burger</p>
+                  <p className="text-lg font-medium tracking-wide mb-4 text-slate-800 dark:text-white font-serif">Campus <br/>Food Hub</p>
                   <h1 className="text-6xl font-black leading-none sm:text-7xl lg:text-8xl text-slate-900 dark:text-white font-serif uppercase tracking-tight">
-                    CAMPUS <br /> EAT
+                    CAMPUS <br /> EATS
                   </h1>
                 </motion.div>
               </div>
