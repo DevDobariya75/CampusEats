@@ -35,6 +35,19 @@ const menuItemSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    sizes: [
+        {
+            name: {
+                type: String,
+                enum: ['Small', 'Medium', 'Large', 'XL (Big Size)'],
+                default: 'Medium'
+            },
+            priceMultiplier: {
+                type: Number,
+                default: 1
+            }
+        }
+    ]
 },{timestamps: true});
 
 const MenuItem = mongoose.model('MenuItem', menuItemSchema);

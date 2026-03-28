@@ -74,7 +74,6 @@ export function AuthProvider({ children }) {
 
   const updateProfile = useCallback(async (formData) => {
     try {
-      setLoading(true)
       setError(null)
       const response = await userApi.updateProfile(formData)
       setUser(response.data)
@@ -83,14 +82,11 @@ export function AuthProvider({ children }) {
       const message = err.response?.data?.message || 'Profile update failed'
       setError(message)
       return { success: false, error: message }
-    } finally {
-      setLoading(false)
     }
   }, [])
 
   const changePassword = useCallback(async (passwordData) => {
     try {
-      setLoading(true)
       setError(null)
       await userApi.changePassword(passwordData)
       return { success: true }
@@ -98,8 +94,6 @@ export function AuthProvider({ children }) {
       const message = err.response?.data?.message || 'Password change failed'
       setError(message)
       return { success: false, error: message }
-    } finally {
-      setLoading(false)
     }
   }, [])
 

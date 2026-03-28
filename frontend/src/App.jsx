@@ -44,11 +44,11 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
         <Route path="/" element={<Layout />}>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
           <Route index element={<RootRedirect />} />
           <Route path="shops/:shopId" element={<ShopDetailPage />} />
 

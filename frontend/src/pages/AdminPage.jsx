@@ -74,15 +74,18 @@ export default function AdminPage() {
   ]
 
   return (
-    <section className="min-h-screen bg-white dark:bg-slate-950 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
+      {/* Background Gradients */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+
+      <div className="relative max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-10"
         >
-          <h1 className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">Admin Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage Campus Eats platform and monitor statistics</p>
+          <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white mb-2 uppercase tracking-widest">Admin Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wider uppercase">Manage Campus Eats platform and monitor statistics</p>
         </motion.div>
 
         {loading && (
@@ -92,8 +95,8 @@ export default function AdminPage() {
             className="flex justify-center items-center min-h-96"
           >
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className="text-slate-600 dark:text-slate-400">Loading dashboard...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
+              <p className="text-sky-400 font-bold uppercase tracking-widest text-sm">Loading dashboard...</p>
             </div>
           </motion.div>
         )}
@@ -102,49 +105,32 @@ export default function AdminPage() {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300 flex items-center gap-2"
+            className="mb-8 p-6 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center gap-4 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
           >
-            <AlertCircle className="w-5 h-5" />
-            {error}
+            <AlertCircle className="w-6 h-6 text-red-500" />
+            <p className="text-red-400 font-bold">{error}</p>
           </motion.div>
         )}
 
         {/* Stats Grid */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {statItems.map((stat, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-lg dark:shadow-2xl dark:border dark:border-slate-700"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] dark:hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all"
               >
-                <div className={`inline-block p-3 rounded-lg bg-gradient-to-br ${stat.color}`}>
+                <div className={`inline-block p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg mb-4`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 text-sm mt-4">{stat.title}</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{stat.value}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.title}</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 font-display">{stat.value}</p>
               </motion.div>
             ))}
           </div>
-        )}
-
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <div className="inline-block">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full"
-              />
-            </div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading admin statistics...</p>
-          </motion.div>
         )}
 
         {/* Recent Orders Section */}
@@ -153,59 +139,59 @@ export default function AdminPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-lg dark:shadow-2xl dark:border dark:border-slate-700"
+            className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none"
           >
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-widest">
               <ShoppingBag className="w-6 h-6 text-orange-500" />
               Recent Orders
             </h2>
 
             {recentOrders.length === 0 ? (
-              <p className="text-center text-slate-600 dark:text-slate-400 py-8">No orders found</p>
+              <p className="text-center text-slate-400 font-bold uppercase tracking-widest py-8">No orders found</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
+              <div className="overflow-x-auto custom-scrollbar">
+                <table className="w-full text-left">
                   <thead>
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                      <th className="text-left px-4 py-3 font-semibold text-slate-900 dark:text-white">Order ID</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-900 dark:text-white">Shop</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-900 dark:text-white">Customer</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-900 dark:text-white">Amount</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-900 dark:text-white">Status</th>
-                      <th className="text-left px-4 py-3 font-semibold text-slate-900 dark:text-white">Date</th>
+                    <tr className="border-b border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 text-xs uppercase tracking-widest">
+                      <th className="pb-4 font-bold">Order ID</th>
+                      <th className="pb-4 font-bold">Shop</th>
+                      <th className="pb-4 font-bold">Customer</th>
+                      <th className="pb-4 font-bold">Amount</th>
+                      <th className="pb-4 font-bold">Status</th>
+                      <th className="pb-4 font-bold">Date</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                     {recentOrders.map((order, idx) => (
                       <motion.tr
                         key={order._id}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        className="hover:bg-white/5 transition-colors"
                       >
-                        <td className="px-4 py-3 text-slate-900 dark:text-white font-mono text-sm">
-                          #{order._id?.slice(-6) || '-'}
+                        <td className="py-4 font-mono text-sm text-sky-400 font-bold truncate pr-4">
+                          #{order._id?.slice(-8) || '-'}
                         </td>
-                        <td className="px-4 py-3 text-slate-900 dark:text-white">{order.shop?.name || '-'}</td>
-                        <td className="px-4 py-3 text-slate-900 dark:text-white">{order.customer?.name || '-'}</td>
-                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
+                        <td className="py-4 text-slate-900 dark:text-white font-bold">{order.shop?.name || '-'}</td>
+                        <td className="py-4 text-slate-600 dark:text-slate-300 font-semibold">{order.customer?.name || '-'}</td>
+                        <td className="py-4 text-orange-400 font-black tracking-widest">
                           {formatPrice(order.totalAmount || 0)}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="py-4">
                           <span
-                            className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                            className={`px-3 py-1 rounded-full text-[10px] uppercase tracking-widest font-black border ${
                               order.status === 'Delivered'
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                                ? 'bg-green-500/10 text-green-400 border-green-500/20'
                                 : order.status === 'Cancelled'
-                                ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                                : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                                : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
                             }`}
                           >
                             {order.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400 text-sm">
+                        <td className="py-4 text-slate-500 dark:text-slate-400 text-xs font-bold tracking-widest">
                           {new Date(order.createdAt).toLocaleDateString()}
                         </td>
                       </motion.tr>
@@ -225,39 +211,45 @@ export default function AdminPage() {
             transition={{ delay: 0.5 }}
             className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6"
           >
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 rounded-2xl p-6 border border-blue-200 dark:border-blue-700">
+            <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-sky-200 dark:border-sky-500/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-600 dark:text-blue-300 text-sm font-semibold">Average Order Value</p>
-                  <p className="text-3xl font-bold text-blue-900 dark:text-blue-100 mt-2">
+                  <p className="text-sky-600 dark:text-sky-400 text-xs font-black uppercase tracking-widest">Avg Order Value</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white mt-2 font-display">
                     {formatPrice(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0)}
                   </p>
                 </div>
-                <DollarSign className="w-12 h-12 text-blue-300 dark:text-blue-700" />
+                <div className="p-4 bg-sky-50 dark:bg-sky-500/10 rounded-2xl shadow-inner border border-sky-100 dark:border-sky-500/20">
+                  <DollarSign className="w-10 h-10 text-sky-500 dark:text-sky-400" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/10 rounded-2xl p-6 border border-purple-200 dark:border-purple-700">
+            <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-purple-200 dark:border-purple-500/30 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-600 dark:text-purple-300 text-sm font-semibold">Orders Per Shop</p>
-                  <p className="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-2">
+                  <p className="text-purple-600 dark:text-purple-400 text-xs font-black uppercase tracking-widest">Orders Per Shop</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white mt-2 font-display">
                     {stats.totalShops > 0 ? (stats.totalOrders / stats.totalShops).toFixed(1) : 0}
                   </p>
                 </div>
-                <ShoppingBag className="w-12 h-12 text-purple-300 dark:text-purple-700" />
+                <div className="p-4 bg-purple-50 dark:bg-purple-500/10 rounded-2xl shadow-inner border border-purple-100 dark:border-purple-500/20">
+                  <ShoppingBag className="w-10 h-10 text-purple-500 dark:text-purple-400" />
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-2xl p-6 border border-green-200 dark:border-green-700">
+            <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-green-200 dark:border-green-500/30 hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-600 dark:text-green-300 text-sm font-semibold">Shop Success Rate</p>
-                  <p className="text-3xl font-bold text-green-900 dark:text-green-100 mt-2">
+                  <p className="text-green-600 dark:text-green-400 text-xs font-black uppercase tracking-widest">Shop Success Rate</p>
+                  <p className="text-3xl font-black text-slate-900 dark:text-white mt-2 font-display">
                     {stats.totalShops > 0 ? ((stats.activeShops / stats.totalShops) * 100).toFixed(1) : 0}%
                   </p>
                 </div>
-                <TrendingUp className="w-12 h-12 text-green-300 dark:text-green-700" />
+                <div className="p-4 bg-green-50 dark:bg-green-500/10 rounded-2xl shadow-inner border border-green-100 dark:border-green-500/20">
+                  <TrendingUp className="w-10 h-10 text-green-500 dark:text-green-400" />
+                </div>
               </div>
             </div>
           </motion.div>

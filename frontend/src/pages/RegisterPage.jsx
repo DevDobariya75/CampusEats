@@ -110,12 +110,12 @@ export default function RegisterPage() {
 
   return (
     <PageTransition>
-      <div className="fixed inset-0 overflow-hidden">
-        {/* Animated Background */}
-        <AnimatedGradientBg />
+      <div className="fixed inset-0 overflow-hidden bg-[#060B13] text-[#f8fafc]">
+        {/* Background Gradients */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)]" />
 
         {/* 3D Background */}
-        <div className="absolute inset-0 w-full h-full opacity-20">
+        <div className="absolute inset-0 w-full h-full opacity-30 mix-blend-screen">
           <FloatingShapes />
         </div>
 
@@ -128,7 +128,7 @@ export default function RegisterPage() {
             className="w-full max-w-md"
           >
             {/* Card */}
-            <div className="backdrop-blur-2xl bg-white/20 border border-white/30 rounded-3xl shadow-2xl p-8">
+            <div className="bento-card p-10 shadow-[0_8px_30px_rgb(0,0,0,0.6)] max-h-[90vh] overflow-y-auto custom-scrollbar">
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -136,18 +136,18 @@ export default function RegisterPage() {
                 transition={{ delay: 0.1 }}
                 className="mb-8 text-center"
               >
-                <div className="inline-block p-4 bg-gradient-to-br from-orange-500 to-sky-500 rounded-2xl mb-4 shadow-lg">
+                <div className="inline-block p-4 bg-sky-500/20 rounded-2xl mb-4 shadow-[0_0_15px_rgba(14,165,233,0.3)] border border-sky-500/30">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <User className="w-8 h-8 text-white" />
+                    <User className="w-8 h-8 text-sky-400" />
                   </motion.div>
                 </div>
-                <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-orange-600 to-sky-600 bg-clip-text text-transparent mb-2">
+                <h1 className="text-3xl font-black font-display text-white mb-2 uppercase tracking-widest">
                   Join CampusEats
                 </h1>
-                <p className="text-slate-600 font-medium">
+                <p className="text-slate-400 font-bold text-sm tracking-wider">
                   {step === 1 ? 'Create your account' : 'Complete your profile'}
                 </p>
               </motion.div>
@@ -157,9 +157,9 @@ export default function RegisterPage() {
                 <motion.div
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  className="flex-1 h-1 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full"
+                  className="flex-1 h-1 bg-sky-500 rounded-full shadow-[0_0_10px_rgba(14,165,233,0.5)]"
                 />
-                <div className={`flex-1 h-1 rounded-full transition-all ${step === 2 ? 'bg-gradient-to-r from-sky-500 to-sky-600' : 'bg-slate-300'}`} />
+                <div className={`flex-1 h-1 rounded-full transition-all ${step === 2 ? 'bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]' : 'bg-white/10'}`} />
               </div>
 
               {/* Error Alert */}
@@ -179,15 +179,15 @@ export default function RegisterPage() {
 
               {/* Step 1: Account Information */}
               {step === 1 && (
-                <form className="space-y-5">
+                <form className="space-y-6">
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Full Name</label>
                     <div className="relative">
-                      <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                      <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
                         type="text"
                         value={form.name}
@@ -196,15 +196,15 @@ export default function RegisterPage() {
                           if (errors.name) setErrors({ ...errors, name: '' })
                         }}
                         placeholder="John Doe"
-                        className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl font-base transition-all ${
+                        className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
                           errors.name
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                            : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                        } focus:outline-none`}
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                        } outline-none`}
                       />
                     </div>
                     {errors.name && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                         {errors.name}
                       </motion.p>
                     )}
@@ -215,9 +215,9 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.25 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Email</label>
                     <div className="relative">
-                      <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                      <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
                         type="email"
                         value={form.email}
@@ -226,15 +226,15 @@ export default function RegisterPage() {
                           if (errors.email) setErrors({ ...errors, email: '' })
                         }}
                         placeholder="your@email.com"
-                        className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl font-base transition-all ${
+                        className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
                           errors.email
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                            : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                        } focus:outline-none`}
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                        } outline-none`}
                       />
                     </div>
                     {errors.email && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                         {errors.email}
                       </motion.p>
                     )}
@@ -245,9 +245,9 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={form.password}
@@ -256,22 +256,22 @@ export default function RegisterPage() {
                           if (errors.password) setErrors({ ...errors, password: '' })
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl font-base transition-all ${
+                        className={`w-full pl-12 pr-12 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
                           errors.password
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                            : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                        } focus:outline-none`}
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                        } outline-none`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600"
+                        className="absolute right-4 top-3.5 text-slate-500 hover:text-sky-400 transition-colors"
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
                     {errors.password && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                         {errors.password}
                       </motion.p>
                     )}
@@ -282,9 +282,9 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.35 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Confirm Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={form.confirmPassword}
@@ -293,15 +293,15 @@ export default function RegisterPage() {
                           if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' })
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-12 pr-12 py-3 border-2 rounded-xl font-base transition-all ${
+                        className={`w-full pl-12 pr-12 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
                           errors.confirmPassword
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                            : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                        } focus:outline-none`}
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                        } outline-none`}
                       />
                     </div>
                     {errors.confirmPassword && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                         {errors.confirmPassword}
                       </motion.p>
                     )}
@@ -312,7 +312,7 @@ export default function RegisterPage() {
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={handleNext}
-                    className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                    className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all uppercase tracking-widest text-sm"
                   >
                     Next Step
                   </motion.button>
@@ -321,15 +321,15 @@ export default function RegisterPage() {
 
               {/* Step 2: Profile Information */}
               {step === 2 && (
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-6">
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">Phone Number</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Phone Number</label>
                     <div className="relative">
-                      <Phone className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                      <Phone className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
                         type="tel"
                         value={form.phone}
@@ -338,15 +338,15 @@ export default function RegisterPage() {
                           if (errors.phone) setErrors({ ...errors, phone: '' })
                         }}
                         placeholder="+91 98765 43210"
-                        className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl font-base transition-all ${
+                        className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
                           errors.phone
-                            ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                            : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                        } focus:outline-none`}
+                            ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                        } outline-none`}
                       />
                     </div>
                     {errors.phone && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                         {errors.phone}
                       </motion.p>
                     )}
@@ -357,18 +357,18 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.25 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">I am a...</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">I am a...</label>
                     <select
                       value={form.role}
                       onChange={(e) => {
                         setForm({ ...form, role: e.target.value, shopName: '', shopDescription: '' })
                         if (errors.role) setErrors({ ...errors, role: '' })
                       }}
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 font-base bg-white"
+                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-bold appearance-none transition-all"
                     >
-                      <option value="customer">Customer (Order Food)</option>
-                      <option value="shopkeeper">Shopkeeper (Sell Food)</option>
-                      <option value="delivery">Delivery Partner</option>
+                      <option value="customer" className="bg-[#060B13]">Customer (Order Food)</option>
+                      <option value="shopkeeper" className="bg-[#060B13]">Shopkeeper (Sell Food)</option>
+                      <option value="delivery" className="bg-[#060B13]">Delivery Partner</option>
                     </select>
                   </motion.div>
 
@@ -379,9 +379,9 @@ export default function RegisterPage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 }}
                       >
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Shop Name</label>
+                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Shop Name</label>
                         <div className="relative">
-                          <Store className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
+                          <Store className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                           <input
                             type="text"
                             value={form.shopName}
@@ -390,15 +390,15 @@ export default function RegisterPage() {
                               if (errors.shopName) setErrors({ ...errors, shopName: '' })
                             }}
                             placeholder="My Awesome Shop"
-                            className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl font-base transition-all ${
+                            className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
                               errors.shopName
-                                ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                                : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                            } focus:outline-none`}
+                                ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                                : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                            } outline-none`}
                           />
                         </div>
                         {errors.shopName && (
-                          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                             {errors.shopName}
                           </motion.p>
                         )}
@@ -409,7 +409,7 @@ export default function RegisterPage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.35 }}
                       >
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">Shop Description</label>
+                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Shop Description</label>
                         <textarea
                           value={form.shopDescription}
                           onChange={(e) => {
@@ -417,15 +417,15 @@ export default function RegisterPage() {
                             if (errors.shopDescription) setErrors({ ...errors, shopDescription: '' })
                           }}
                           placeholder="Tell customers about your shop..."
-                          className={`w-full px-4 py-3 border-2 rounded-xl font-base transition-all resize-none ${
+                          className={`w-full px-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest resize-none h-24 ${
                             errors.shopDescription
-                              ? 'border-red-500 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-                              : 'border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-100'
-                          } focus:outline-none`}
+                              ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                              : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                          } outline-none`}
                           rows={3}
                         />
                         {errors.shopDescription && (
-                          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm mt-1">
+                          <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-400 text-xs font-bold mt-2 tracking-wider">
                             {errors.shopDescription}
                           </motion.p>
                         )}
@@ -438,36 +438,36 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">Profile Picture (Optional)</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Profile Picture (Optional)</label>
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className={`w-full py-6 border-2 border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 ${
+                      className={`w-full py-6 bg-white/5 border border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 ${
                         previewUrl
-                          ? 'border-green-500 bg-green-50/50'
-                          : 'border-slate-300 hover:border-orange-500 hover:bg-orange-50/50'
+                          ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
+                          : 'border-white/20 hover:border-sky-400 transition-colors'
                       }`}
                     >
                       {previewUrl ? (
                         <>
                           <img src={previewUrl} alt="Preview" className="w-16 h-16 rounded-lg object-cover" />
-                          <span className="text-sm font-semibold text-green-600 flex items-center gap-1">
+                          <span className="text-xs font-black text-green-400 flex items-center gap-1 uppercase tracking-widest">
                             <CheckCircle className="w-4 h-4" /> Image selected
                           </span>
                         </>
                       ) : (
                         <>
-                          <Upload className="w-8 h-8 text-slate-400" />
-                          <span className="text-sm font-semibold text-slate-600">Click to upload photo</span>
+                          <Upload className="w-8 h-8 text-sky-400" />
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Click to upload photo</span>
                         </>
                       )}
                     </motion.button>
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                   </motion.div>
 
-                  <div className="flex gap-3 pt-4">
+                  <div className="flex gap-4 pt-4">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -476,7 +476,7 @@ export default function RegisterPage() {
                         setStep(1)
                         setErrors({})
                       }}
-                      className="flex-1 py-3 border-2 border-slate-300 text-slate-700 font-semibold rounded-xl hover:border-slate-400 transition-all"
+                      className="flex-1 py-4 border border-white/20 text-slate-300 font-bold rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
                     >
                       Back
                     </motion.button>
@@ -486,15 +486,11 @@ export default function RegisterPage() {
                       whileTap={{ scale: 0.98 }}
                       type="submit"
                       disabled={isSubmitting || authLoading}
-                      className="flex-1 py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex-1 py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs disabled:opacity-50"
                     >
                       {isSubmitting || authLoading ? (
                         <>
-                          <motion.div
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                            className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                          />
+                          <LoadingSpinner size="sm" />
                           Creating...
                         </>
                       ) : (
@@ -510,14 +506,14 @@ export default function RegisterPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="text-center text-slate-700 font-medium mt-6"
+                className="text-center text-slate-400 font-bold tracking-widest text-sm mt-6"
               >
                 Already have an account?{' '}
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="font-bold text-orange-600 hover:text-orange-700 transition-colors"
+                  className="font-black text-white hover:text-sky-400 uppercase tracking-widest ml-1 transition-colors"
                 >
                   Login here
                 </motion.button>

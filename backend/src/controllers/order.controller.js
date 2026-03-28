@@ -170,12 +170,13 @@ const getShopOrders = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Shop ID is required")
     }
 
-    // Verify shop belongs to user
-    const shop = await Shop.findOne({
-        _id: shopId,
-        owner: userId,
-        isDeleted: false
-    })
+    // Verify shop belongs to user or request is from admin
+    const shopQuery = { _id: shopId, isDeleted: false }
+    if (req.user?.role !== 'admin') {
+        shopQuery.owner = userId
+    }
+
+    const shop = await Shop.findOne(shopQuery)
 
     if (!shop) {
         throw new ApiError(403, "You don't have permission to view orders for this shop")

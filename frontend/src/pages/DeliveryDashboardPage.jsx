@@ -76,44 +76,47 @@ export default function DeliveryDashboardPage() {
   ]
 
   return (
-    <section className="min-h-screen bg-white dark:bg-slate-950 py-8 px-4">
-      <div className="max-w-7xl mx-auto">
+    <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
+      {/* Background Gradients */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+
+      <div className="relative max-w-7xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-10"
         >
-          <h1 className="text-4xl font-bold mb-2 text-slate-900 dark:text-white">Delivery Dashboard</h1>
-          <p className="text-slate-600 dark:text-slate-400">Manage your deliveries and earnings</p>
+          <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white mb-2 uppercase tracking-widest">Delivery Dashboard</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wider uppercase">Manage your deliveries and earnings</p>
         </motion.div>
 
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg text-red-700 dark:text-red-300 flex items-center gap-2"
+            className="mb-8 p-6 bg-red-500/10 border border-red-500/30 rounded-2xl flex items-center gap-4 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
           >
-            <AlertCircle className="w-5 h-5" />
-            {error}
+            <AlertCircle className="w-6 h-6 text-red-500" />
+            <p className="text-red-400 font-bold tracking-widest uppercase text-sm">{error}</p>
           </motion.div>
         )}
 
         {/* Stats Grid */}
         {!loading && stats && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             {statItems.map((stat, idx) => (
               <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-lg dark:shadow-2xl dark:border dark:border-slate-700"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] dark:hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all"
               >
-                <div className={`inline-block p-3 rounded-lg bg-gradient-to-br ${stat.color}`}>
+                <div className={`inline-block p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg mb-4`}>
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
-                <p className="text-slate-600 dark:text-slate-400 text-sm mt-4">{stat.title}</p>
-                <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">{stat.value}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.title}</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 font-display">{stat.value}</p>
               </motion.div>
             ))}
           </div>
@@ -126,28 +129,24 @@ export default function DeliveryDashboardPage() {
             className="text-center py-12"
           >
             <div className="inline-block">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                className="w-8 h-8 border-4 border-blue-200 border-t-blue-500 rounded-full"
-              />
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
             </div>
-            <p className="mt-4 text-slate-600 dark:text-slate-400">Loading deliveries...</p>
+            <p className="mt-4 text-sky-400 font-bold uppercase tracking-widest text-sm">Loading deliveries...</p>
           </motion.div>
         )}
 
         {/* Deliveries List */}
         {!loading && (
-          <div className="grid gap-4">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {deliveries.length === 0 && !error && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-8 text-center shadow-lg dark:shadow-2xl dark:border dark:border-slate-700"
+                className="bg-white dark:bg-white/5 rounded-3xl p-12 text-center border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none col-span-full"
               >
-                <Truck className="w-12 h-12 text-slate-300 dark:text-slate-700 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">No deliveries assigned yet</h3>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">New delivery requests will appear here.</p>
+                <Truck className="w-12 h-12 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-widest mb-2">No active deliveries</h3>
+                <p className="text-slate-500 dark:text-slate-400 font-semibold tracking-wider text-sm">Waiting for new orders to be assigned...</p>
               </motion.div>
             )}
             {deliveries.map((delivery, idx) => (
@@ -156,91 +155,83 @@ export default function DeliveryDashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-lg dark:shadow-2xl dark:border dark:border-slate-700"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(14,165,233,0.15)] transition-all"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Order #{delivery.order?._id?.slice(-6) || '-'}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                      Amount: <span className="font-semibold text-slate-900 dark:text-white">Rs {delivery.order?.totalAmount || 0}</span>
-                    </p>
+                <div>
+                  <div className="flex items-start justify-between mb-6">
+                    <div>
+                      <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-1">Order</p>
+                      <h3 className="text-xl font-black text-sky-500 dark:text-sky-400 font-mono">#{delivery.order?._id?.slice(-6) || '-'}</h3>
+                      <p className="text-xs text-orange-400 font-black tracking-widest mt-1">
+                        Rs {delivery.order?.totalAmount || 0}
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-[10px] uppercase font-black tracking-widest border ${
+                      delivery.status === 'Delivered'
+                        ? 'bg-green-500/10 text-green-400 border-green-500/20'
+                        : delivery.status === 'Accepted'
+                        ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                        : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
+                    }`}>{delivery.status}</span>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                    delivery.status === 'Delivered'
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                      : delivery.status === 'Accepted'
-                      ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
-                      : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
-                  }`}>{delivery.status}</span>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
-                  <div>
-                    <p className="text-slate-600 dark:text-slate-400">Shop</p>
-                    <p className="font-semibold text-slate-900 dark:text-white">{delivery.order?.shop?.name || '-'}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{delivery.order?.shop?.phone || 'Not available'}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-600 dark:text-slate-400">Delivery Address</p>
-                    <p className="font-semibold text-slate-900 dark:text-white flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {delivery.order?.deliveryAddress?.pincode || '-'}
-                    </p>
-                  </div>
-                </div>
-
-                {delivery.status !== 'Assigned' && (
-                  <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 mb-4 text-sm">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-slate-600 dark:text-slate-400">Customer</p>
-                        <p className="font-semibold text-slate-900 dark:text-white">{delivery.order?.customer?.name || '-'}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">{delivery.order?.customer?.phone || 'Not available'}</p>
+                  {delivery.status !== 'Assigned' && (
+                    <div className="space-y-4 mb-6">
+                      <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
+                        <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 mt-1">
+                          <MapPin className="w-4 h-4 text-orange-500 dark:text-orange-400" />
+                        </div>
+                        <div>
+                          <span className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">Pickup From</span>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.shop?.name || '-'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-slate-600 dark:text-slate-400">Delivery Address</p>
-                        <p className="font-semibold text-slate-900 dark:text-white">
-                          {delivery.order?.deliveryAddress?.addressLine || '-'}
-                          {delivery.order?.deliveryAddress?.pincode ? `, ${delivery.order.deliveryAddress.pincode}` : ''}
-                        </p>
+                      <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
+                        <div className="p-2 bg-sky-50 dark:bg-sky-500/10 rounded-lg border border-sky-200 dark:border-sky-500/20 mt-1">
+                          <MapPin className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                        </div>
+                        <div>
+                          <span className="text-sky-600 dark:text-sky-400 text-[10px] font-black uppercase tracking-widest">Delivery To</span>
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.deliveryAddress?.addressLine || '-'}</p>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">Customer</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.customer?.name || '-'}</span>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10 flex gap-3">
                   {delivery.status === 'Assigned' && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold transition-all"
-                      type="button"
+                    <button
                       onClick={() => advance(delivery._id, 'accept')}
+                      className="flex-1 py-3 px-4 bg-sky-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all"
                     >
-                      Accept Delivery
-                    </motion.button>
+                      Accept Order
+                    </button>
                   )}
                   {delivery.status === 'Accepted' && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition-all"
-                      type="button"
+                    <button
                       onClick={() => advance(delivery._id, 'picked')}
+                      className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all"
                     >
                       Mark Picked Up
-                    </motion.button>
+                    </button>
                   )}
-                  {(delivery.status === 'Accepted' || delivery.status === 'Picked Up') && (
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white rounded-lg font-semibold transition-all"
-                      type="button"
+                  {delivery.status === 'PickedUp' && (
+                    <button
                       onClick={() => advance(delivery._id, 'delivered')}
+                      className="flex-1 py-3 px-4 bg-green-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all"
                     >
                       Mark Delivered
-                    </motion.button>
+                    </button>
+                  )}
+                  {delivery.status === 'Delivered' && (
+                    <div className="w-full py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 rounded-xl font-black text-xs uppercase tracking-widest text-center">
+                      Completed
+                    </div>
                   )}
                 </div>
               </motion.div>

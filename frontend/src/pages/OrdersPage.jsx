@@ -78,8 +78,9 @@ export default function OrdersPage() {
 
   return (
     <PageTransition>
-      <div className="relative min-h-screen">
-        <AnimatedGradientBg />
+      <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
+        {/* Background Gradients */}
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <div className="relative py-12 px-4 md:px-8">
           <div className="max-w-4xl mx-auto">
@@ -91,24 +92,24 @@ export default function OrdersPage() {
               className="mb-10"
             >
               <div className="flex items-center gap-3 mb-6">
-                <ShoppingBag className="w-8 h-8 text-orange-500" />
-                <h1 className="text-4xl font-bold font-display bg-gradient-to-r from-orange-600 to-sky-600 bg-clip-text text-transparent">
+                <ShoppingBag className="w-8 h-8 text-sky-500 dark:text-sky-400" />
+                <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white">
                   Your Orders
                 </h1>
               </div>
 
               {/* Filter Tabs */}
-              <div className="flex gap-2 overflow-x-auto pb-2 flex-wrap">
+              <div className="flex gap-2 overflow-x-auto pb-2 flex-wrap custom-scrollbar">
                 {statusOptions.map((option) => (
                   <motion.button
                     key={option.value}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={() => setFilter(option.value)}
-                    className={`px-4 py-2 rounded-full font-semibold transition-all whitespace-nowrap ${
+                    className={`px-5 py-2 rounded-full font-bold transition-all whitespace-nowrap border text-sm uppercase tracking-widest ${
                       filter === option.value
-                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg'
-                        : 'bg-white/20 backdrop-blur-xl border border-white/30 text-slate-700 hover:bg-white/30'
+                        ? 'bg-sky-500 text-white shadow-[0_0_15px_rgba(14,165,233,0.4)] border-sky-400'
+                        : 'bg-white dark:bg-white/5 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
                     }`}
                   >
                     {option.label}
@@ -146,14 +147,14 @@ export default function OrdersPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-20"
               >
-                <ChefHat className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-2xl font-bold text-slate-700 mb-2">No orders yet</h3>
-                <p className="text-slate-500 mb-6">Start ordering delicious food from our amazing shops!</p>
+                <ChefHat className="w-16 h-16 text-slate-400 mx-auto mb-4 dark:text-slate-600" />
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">No orders yet</h3>
+                <p className="text-slate-500 dark:text-slate-400 mb-6 font-semibold">Start ordering delicious food from our amazing shops!</p>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/')}
-                  className="px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+                  className="px-8 py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 transition-all uppercase tracking-widest text-sm"
                 >
                   Browse Shops
                 </motion.button>
@@ -167,44 +168,42 @@ export default function OrdersPage() {
                   {filteredOrders.map((order) => (
                     <StaggerItem key={order._id}>
                       <motion.div
-                        whileHover={{ y: -4, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.15)' }}
+                        whileHover={{ scale: 1.02, y: -5 }}
                         onClick={() => navigate(`/orders/${order._id}`)}
-                        className="cursor-pointer"
+                        className="cursor-pointer bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 group hover:shadow-[0_8px_40px_rgba(14,165,233,0.15)] hover:border-sky-500/30 transition-all"
                       >
-                        <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all">
-                          <div className="p-6">
-                            <div className="flex items-start justify-between mb-4">
-                              <div className="flex-1">
-                                <h3 className="text-xl font-bold text-slate-900 mb-1">
-                                  {order.shop?.name || 'Order'}
-                                </h3>
-                                <div className="flex items-center gap-4 text-sm text-slate-600">
-                                  <span className="flex items-center gap-1">
-                                    <Calendar className="w-4 h-4" />
-                                    {formatDate(order.createdAt)}
-                                  </span>
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="w-4 h-4" />
-                                    {order.deliveryAddress?.area || 'Campus'}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-2xl font-bold text-orange-600">
-                                  {formatPrice(order.totalAmount)}
-                                </p>
+                        <div className="p-6">
+                          <div className="flex items-start justify-between mb-4">
+                            <div className="flex-1">
+                              <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+                                {order.shop?.name || 'Order'}
+                              </h3>
+                              <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 font-bold">
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-4 h-4 text-orange-400" />
+                                  {formatDate(order.createdAt)}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-4 h-4 text-orange-400" />
+                                  {order.deliveryAddress?.area || 'Campus'}
+                                </span>
                               </div>
                             </div>
+                            <div className="text-right">
+                              <p className="text-2xl font-black text-slate-900 dark:text-white">
+                                {formatPrice(order.totalAmount)}
+                              </p>
+                            </div>
+                          </div>
 
-                            <div className="border-t border-slate-100 pt-4 flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                {getStatusIcon(order.status)}
-                                <Badge variant={order.status === 'delivered' ? 'success' : 'primary'}>
-                                  {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
-                                </Badge>
-                              </div>
-                              <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                          <div className="border-t border-slate-200 dark:border-white/10 pt-4 flex items-center justify-between">
+                            <div className="flex items-center gap-2 text-slate-600 dark:text-white">
+                              {getStatusIcon(order.status)}
+                              <Badge variant={order.status === 'delivered' ? 'success' : 'primary'}>
+                                {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
+                              </Badge>
                             </div>
+                            <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-sky-400 transition-colors" />
                           </div>
                         </div>
                       </motion.div>
