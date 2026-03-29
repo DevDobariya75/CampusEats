@@ -80,16 +80,18 @@ export default function ShopsPage() {
       <div className="relative min-h-screen bg-white dark:bg-[#060b13] text-slate-900 dark:text-[#f8fafc] transition-colors duration-300">
 
         {/* --- HERO SECTION WITH 3D CANVAS --- */}
-        <section className="relative h-[min(74vh,720px)] min-h-[500px] sm:min-h-[560px] lg:min-h-[620px] w-full bg-white dark:bg-[#060b13] transition-colors duration-300 grid [grid-template-areas:'stack'] overflow-hidden">
+        <section className="relative h-[min(78vh,760px)] min-h-[520px] sm:min-h-[580px] lg:min-h-[660px] w-full bg-[#fefaf4] dark:bg-[#060b13] transition-colors duration-300 grid [grid-template-areas:'stack'] overflow-hidden rounded-b-[2rem]">
           {/* Background Gradients */}
-          <div className="pointer-events-none [grid-area:stack] bg-gradient-to-b from-orange-50/70 via-orange-50/20 to-transparent dark:hidden" />
+          <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_50%_42%,rgba(255,170,88,0.34),transparent_45%),radial-gradient(circle_at_12%_16%,rgba(255,255,255,0.9),transparent_46%),radial-gradient(circle_at_88%_14%,rgba(255,255,255,0.72),transparent_46%)] dark:hidden" />
+          <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_50%_52%,rgba(249,115,22,0.26),transparent_40%),radial-gradient(circle_at_50%_48%,rgba(251,146,60,0.2),transparent_52%)] dark:hidden" />
           <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_20%_15%,rgba(60,130,246,0.22),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(56,189,248,0.12),transparent_40%)] hidden dark:block" />
-          <div className="pointer-events-none [grid-area:stack] bg-gradient-to-b from-white/25 via-transparent to-white/45 dark:from-black/30 dark:via-transparent dark:to-black/35" />
+          <div className="pointer-events-none [grid-area:stack] bg-gradient-to-b from-white/42 via-transparent to-white/60 dark:from-black/30 dark:via-transparent dark:to-black/35" />
 
-          <div className="[grid-area:stack] z-0 pointer-events-auto">
+          <div className="[grid-area:stack] z-0 pointer-events-auto [filter:drop-shadow(0_28px_42px_rgba(249,115,22,0.28))]">
             <Canvas camera={{ position: isMobile ? [0, 0.42, 10.65] : isTablet ? [0, 0.76, 10.5] : [0, 0.9, 10.2], fov: isMobile ? 37 : isTablet ? 35 : 33 }} dpr={[1, 2]} className="w-full h-full">
-              <ambientLight intensity={0.62} />
-              <directionalLight position={[4, 5, 6]} intensity={1.1} />
+              <ambientLight intensity={0.74} color="#fff2e2" />
+              <directionalLight position={[4, 5, 6]} intensity={1.2} color="#ffd8ad" />
+              <directionalLight position={[-3, 2, 4]} intensity={0.55} color="#ff9f45" />
               <StaticBurgerScene isMobile={isMobile} isTablet={isTablet} />
             </Canvas>
           </div>
@@ -103,13 +105,13 @@ export default function ShopsPage() {
                   initial={{ y: -16, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ duration: 0.42 }}
-                  className="absolute top-[12%] inset-x-0 px-4 flex justify-center"
+                  className="absolute top-[10%] inset-x-0 px-4 flex justify-center"
                 >
                   <div className="w-full max-w-[18rem] text-center">
-                    <p className="text-[11px] font-bold tracking-[0.28em] uppercase text-orange-600/90 dark:text-orange-300/95 font-serif italic [text-shadow:0_1px_7px_rgba(255,255,255,0.55)] dark:[text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
+                    <p className="text-[11px] font-bold tracking-[0.28em] uppercase text-slate-900 dark:text-orange-300/95 font-serif italic [text-shadow:0_1px_7px_rgba(255,255,255,0.6)] dark:[text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
                       The
                     </p>
-                    <h1 className="mt-1 text-[clamp(1.6rem,7.8vw,2.45rem)] leading-[0.92] font-black font-serif uppercase tracking-tight text-slate-900 dark:text-white [text-shadow:0_4px_16px_rgba(255,255,255,0.72)] dark:[text-shadow:0_4px_18px_rgba(0,0,0,0.62)]">
+                    <h1 className="mt-1 text-[clamp(1.6rem,7.8vw,2.6rem)] leading-[0.92] font-black font-serif uppercase tracking-tight text-slate-950 dark:text-white [text-shadow:0_4px_16px_rgba(255,255,255,0.72)] dark:[text-shadow:0_4px_18px_rgba(0,0,0,0.62)]">
                       MIDDAY <br /> CRAVINGS
                     </h1>
                   </div>
@@ -119,41 +121,59 @@ export default function ShopsPage() {
                   initial={{ y: 14, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.08, duration: 0.42 }}
-                  className="absolute bottom-[8%] inset-x-0 px-4 flex justify-center"
+                  className="absolute bottom-[7%] inset-x-0 px-4 flex justify-center"
                 >
-                  <p className="pointer-events-auto w-full max-w-[22rem] mx-auto px-3 text-center text-[clamp(0.88rem,2.3vw,1rem)] font-semibold leading-relaxed text-slate-700 dark:text-slate-100 dark:font-medium [text-shadow:0_1px_8px_rgba(255,255,255,0.6)] dark:[text-shadow:0_2px_12px_rgba(0,0,0,0.85)]">
-                    Discover amazing food from your favorite campus eateries. Fast delivery, endless choices, all within reach.
-                  </p>
+                  <div className="pointer-events-auto w-full max-w-[22rem] mx-auto px-2 text-center">
+                    <p className="text-[clamp(0.88rem,2.3vw,1rem)] font-semibold leading-relaxed text-slate-700 dark:text-slate-100 dark:font-medium [text-shadow:0_1px_8px_rgba(255,255,255,0.6)] dark:[text-shadow:0_2px_12px_rgba(0,0,0,0.85)]">
+                      Discover amazing food from your favorite campus eateries. Fast delivery, endless choices, all within reach.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/register')}
+                      className="mt-4 inline-flex items-center justify-center rounded-full bg-orange-500 px-6 py-2.5 text-sm font-black uppercase tracking-wide text-white shadow-[0_10px_26px_rgba(249,115,22,0.45)] transition-all hover:bg-orange-400"
+                    >
+                      Order Now
+                    </button>
+                  </div>
                 </motion.div>
               </div>
 
-              {/* Desktop / Horizontal Layout (restored style) */}
+              {/* Desktop / Horizontal Layout */}
               <div className="hidden md:flex h-full items-center">
                 <div className="mx-auto flex flex-row justify-between w-full max-w-7xl items-center gap-6 lg:gap-10">
                   <motion.div initial={{ x: -28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-left">
-                    <p className="text-sm lg:text-base font-bold tracking-[0.24em] uppercase mb-2 text-slate-800 dark:text-white font-serif italic">The</p>
-                    <h1 className="text-[clamp(3.5rem,7.1vw,6.4rem)] leading-[0.9] font-black text-slate-900 dark:text-white font-serif uppercase tracking-tight">
+                    <p className="text-sm lg:text-base font-bold tracking-[0.24em] uppercase mb-2 text-slate-900 dark:text-white font-serif italic">The</p>
+                    <h1 className="text-[clamp(3.6rem,7.4vw,6.8rem)] leading-[0.9] font-black text-slate-950 dark:text-white font-serif uppercase tracking-tight">
                       MIDDAY <br /> CRAVINGS
                     </h1>
                     <p className="mt-4 text-slate-700 dark:text-white/75 text-base max-w-sm leading-relaxed">
                       Discover amazing food from your favorite campus eateries. Fast delivery, endless choices, all within reach.
                     </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/register')}
+                      className="mt-8 inline-flex items-center justify-center rounded-full bg-orange-500 px-9 py-3.5 text-[1.08rem] font-black uppercase tracking-wide text-white shadow-[0_12px_32px_rgba(249,115,22,0.42)] transition-all hover:bg-orange-400"
+                    >
+                      Order Now
+                    </button>
                   </motion.div>
 
-                  <motion.div initial={{ x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-right">
-                    <p className="text-lg font-medium tracking-wide mb-4 text-slate-800 dark:text-white font-serif">Campus <br/>Food Hub</p>
-                    <h1 className="text-[clamp(3.2rem,6.4vw,6.1rem)] font-black leading-none text-slate-900 dark:text-white font-serif uppercase tracking-tight">
+                  <motion.div initial={{ x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-right pr-1">
+                    <p className="text-[1.9rem] font-medium leading-tight tracking-tight mb-3 text-slate-800 dark:text-white font-serif">Campus<br/>Food Hub</p>
+                    <h1 className="text-[clamp(3.3rem,6.8vw,6.6rem)] font-black leading-[0.9] text-slate-950 dark:text-white font-serif uppercase tracking-tight">
                       CAMPUS <br /> EATS
                     </h1>
                   </motion.div>
                 </div>
               </div>
+
+              <div className="absolute inset-x-0 bottom-0 h-10 bg-white/86 border-t border-slate-200/60 dark:bg-black/30 dark:border-white/10" />
             </header>
           </div>
         </section>
 
         {/* --- LISTING SECTION --- */}
-        <section className="relative z-30 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 bg-white dark:bg-[#060b13] text-slate-900 dark:text-white rounded-t-[2.3rem] sm:rounded-t-[3rem] min-h-screen transition-colors duration-300 shadow-[0_-14px_46px_rgba(0,0,0,0.08)] dark:shadow-[0_-18px_52px_rgba(0,0,0,0.45)]">
+        <section id="bento" className="scroll-mt-24 relative z-30 px-4 sm:px-6 lg:px-8 py-12 sm:py-16 bg-white dark:bg-[#060b13] text-slate-900 dark:text-white rounded-t-[2.3rem] sm:rounded-t-[3rem] min-h-screen transition-colors duration-300 shadow-[0_-14px_46px_rgba(0,0,0,0.08)] dark:shadow-[0_-18px_52px_rgba(0,0,0,0.45)]">
           <div className="mx-auto max-w-7xl">
             {/* Bento Title */}
             <div className="mb-7 sm:mb-8">

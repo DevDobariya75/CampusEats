@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
@@ -16,7 +16,6 @@ import {
   UserRoundPlus,
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { ThemeToggle } from './ThemeToggle'
 import NotificationBell from './NotificationBell'
 import ShopStatusToggle from './ShopStatusToggle'
 import { getInitials } from '../utils/helpers'
@@ -39,6 +38,12 @@ const getRoleLinks = (role) => {
 
   return []
 }
+
+const guestTopLinks = [
+  { to: '/#bento', label: 'Browse Food' },
+  { to: '/#how-it-works', label: 'How It Works' },
+  { to: '/#campus-specials', label: 'Campus Specials' },
+]
 
 const getMobileNavLinks = ({ user, isCustomer, cartShopId }) => {
   if (!user) {
@@ -90,6 +95,7 @@ const getMobileNavLinks = ({ user, isCustomer, cartShopId }) => {
 export default function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const roleLinks = getRoleLinks(user?.role)
   const isShopkeeper = user?.role === 'shopkeeper'
   const isCustomer = user?.role === 'customer'
@@ -115,15 +121,78 @@ export default function Layout() {
     }
   }, [isCustomer])
 
+  useEffect(() => {
+    if (location.pathname !== '/') {
+      return undefined
+    }
+
+    const pendingTarget = sessionStorage.getItem('campus-scroll-target')
+    if (!pendingTarget) {
+      return undefined
+    }
+
+    const scrollToTarget = () => {
+      const target = document.getElementById(pendingTarget)
+      if (!target) {
+        return false
+      }
+
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      sessionStorage.removeItem('campus-scroll-target')
+      return true
+    }
+
+    if (scrollToTarget()) {
+      return undefined
+    }
+
+    const timer = window.setTimeout(scrollToTarget, 180)
+    return () => window.clearTimeout(timer)
+  }, [location.pathname])
+
+  const handleGuestAnchorClick = (event, to) => {
+    if (!to.includes('#')) {
+      return
+    }
+
+    event.preventDefault()
+    const sectionId = to.split('#')[1]
+    if (!sectionId) {
+      return
+    }
+
+    if (location.pathname === '/') {
+      const target = document.getElementById(sectionId)
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+      return
+    }
+
+    sessionStorage.setItem('campus-scroll-target', sectionId)
+    navigate('/')
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] font-sans transition-colors duration-300">
       <header className="sticky top-0 z-[70] w-full bg-white/88 dark:bg-[#060B13]/84 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 shadow-[0_6px_24px_rgba(15,23,42,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-11 sm:h-12 md:h-[3.4rem] flex items-center justify-between gap-2 sm:gap-4">
-          <Link className="font-display font-black text-[1.35rem] sm:text-[1.5rem] text-orange-500 dark:text-orange-400 tracking-wide hover:text-orange-600 dark:hover:text-orange-300 transition-colors leading-none" to="/">
+        <div className="w-full px-3 sm:px-5 lg:px-8 h-12 md:h-[3.25rem]">
+          <div className="relative flex h-full items-center">
+          <Link className="shrink-0 font-display font-black text-[1.28rem] sm:text-[1.45rem] text-orange-500 dark:text-orange-400 tracking-wide hover:text-orange-600 dark:hover:text-orange-300 transition-colors leading-none" to="/">
             CampusEats
           </Link>
 
-          <nav className="hidden md:flex items-center gap-1 lg:gap-2">
+          <nav className="hidden md:flex items-center gap-2 lg:gap-3 absolute left-1/2 -translate-x-1/2">
+            {!user && guestTopLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.to}
+                onClick={(event) => handleGuestAnchorClick(event, link.to)}
+                className="px-3.5 py-1.5 font-semibold text-[0.95rem] rounded-xl transition-all text-slate-700 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-300 dark:hover:text-white dark:hover:bg-white/5"
+              >
+                {link.label}
+              </a>
+            ))}
             {isCustomer && (
               <NavLink 
                 className={({isActive}) => `px-3.5 py-2 font-bold text-sm rounded-xl transition-all ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/10 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`} 
@@ -159,8 +228,7 @@ export default function Layout() {
             ))}
           </nav>
 
-          <div className="flex items-center gap-1.5 sm:gap-2.5">
-            <ThemeToggle />
+          <div className="ml-auto flex items-center gap-1.5 sm:gap-2.5">
             {isShopkeeper && <ShopStatusToggle />}
             {user && <NotificationBell />}
             {user ? (
@@ -185,14 +253,15 @@ export default function Layout() {
               </div>
             ) : (
               <div className="hidden sm:flex items-center gap-3 ml-2 border-l border-slate-200 dark:border-white/10 pl-4">
-                <Link className="px-5 py-2.5 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white font-bold text-sm rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition-all" to="/login">
+                <Link className="px-5 py-2 bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-white font-bold text-sm rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 transition-all" to="/login">
                   Login
                 </Link>
-                <Link className="px-5 py-2.5 bg-orange-500 text-white font-black text-sm rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-wider" to="/register">
+                <Link className="px-5 py-2 bg-orange-500 text-white font-black text-sm rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-wider" to="/register">
                   Register
                 </Link>
               </div>
             )}
+          </div>
           </div>
         </div>
       </header>
