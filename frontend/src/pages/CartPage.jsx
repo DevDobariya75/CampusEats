@@ -92,7 +92,7 @@ export default function CartPage() {
     <PageTransition>
       <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
         {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <section className="relative py-12 px-4">
           <div className="max-w-4xl mx-auto">
@@ -103,14 +103,14 @@ export default function CartPage() {
               className="mb-8"
             >
               <div className="flex items-center gap-3 mb-4">
-                <ShoppingCart className="w-8 h-8 text-sky-500 dark:text-sky-400" />
+                <ShoppingCart className="w-8 h-8 text-orange-500 dark:text-orange-400" />
                 <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white">
                   Your Cart
                 </h1>
               </div>
               {shop && (
                 <p className="text-slate-500 dark:text-slate-400 text-lg">
-                  From <span className="font-bold text-sky-600 dark:text-sky-400">{shop.name}</span>
+                  From <span className="font-bold text-orange-600 dark:text-orange-400">{shop.name}</span>
                 </p>
               )}
             </motion.div>
@@ -148,7 +148,7 @@ export default function CartPage() {
                       <StaggerItem key={item._id}>
                         <motion.div
                           whileHover={{ scale: 1.02, y: -5 }}
-                          className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 p-5 flex flex-col sm:flex-row gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(14,165,233,0.15)] hover:border-sky-500/30 cursor-pointer"
+                          className="bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 p-5 flex flex-col sm:flex-row gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(249,115,22,0.15)] hover:border-orange-500/30 cursor-pointer"
                         >
                           <div className="flex flex-1 gap-4">
                             {/* Image */}
@@ -171,7 +171,7 @@ export default function CartPage() {
                               </div>
 
                               <div className="flex items-center justify-between mt-auto">
-                                <span className="text-xl font-black text-sky-500 dark:text-sky-400">
+                                <span className="text-xl font-black text-orange-500 dark:text-orange-400">
                                   {formatPrice(item.menuItem?.price || 0)}
                                 </span>
 
@@ -248,9 +248,9 @@ export default function CartPage() {
                       </div>
                     )}
                     {summary?.discount > 0 && (
-                      <div className="flex justify-between text-sky-400">
+                      <div className="flex justify-between text-orange-400">
                         <span>Discount</span>
-                        <span className="font-semibold text-sky-400">-{formatPrice(summary.discount)}</span>
+                        <span className="font-semibold text-orange-400">-{formatPrice(summary.discount)}</span>
                       </div>
                     )}
                   </div>
@@ -269,7 +269,7 @@ export default function CartPage() {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handleCheckout}
-                    className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
+                    className="w-full py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
                   >
                     Checkout
                     <ArrowRight className="w-5 h-5" />
@@ -315,3 +315,4 @@ export default function CartPage() {
     </PageTransition>
   )
 }
+

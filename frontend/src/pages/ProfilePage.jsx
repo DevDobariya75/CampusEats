@@ -149,7 +149,7 @@ export default function ProfilePage() {
     <PageTransition>
       <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
         {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <div className="relative py-12 px-4 md:px-8">
           <div className="max-w-2xl mx-auto">
@@ -165,7 +165,7 @@ export default function ProfilePage() {
                 <div className="relative border border-slate-300 dark:border-white/20 rounded-full p-1 bg-white dark:bg-white/5 shadow-md dark:shadow-none backdrop-blur-md">
                   <motion.div
                     whileHover={{ scale: 1.05 }}
-                    className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white text-2xl font-black shadow-[0_0_20px_rgba(14,165,233,0.4)]"
+                    className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl font-black shadow-[0_0_20px_rgba(249,115,22,0.4)]"
                   >
                     {profilePreview || user?.profilePicture ? (
                       <img src={profilePreview || user?.profilePicture} alt={user?.name} className="w-full h-full rounded-full object-cover" />
@@ -179,11 +179,11 @@ export default function ProfilePage() {
                 <div className="flex-1">
                   <h1 className="text-3xl font-black font-display text-slate-900 dark:text-white mb-2">{user?.name}</h1>
                   <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400 mb-2">
-                    <Mail className="w-4 h-4 text-sky-400" />
+                    <Mail className="w-4 h-4 text-orange-400" />
                     <span>{user?.email}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-400">
-                    <User className="w-4 h-4 text-sky-400" />
+                    <User className="w-4 h-4 text-orange-400" />
                     <span className="capitalize font-bold uppercase tracking-widest text-xs">{user?.role}</span>
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                     onClick={() => setActiveTab(id)}
                     className={`px-4 py-3 font-bold transition-all flex items-center gap-2 uppercase tracking-widest text-xs border-b-2 ${
                       activeTab === id
-                        ? 'text-sky-500 border-sky-500'
+                        ? 'text-orange-500 border-orange-500'
                         : 'text-slate-500 border-transparent hover:text-slate-700 dark:hover:text-slate-300'
                     }`}
                   >
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your full name"
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-bold"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold"
                         required
                       />
                     </div>
@@ -275,7 +275,7 @@ export default function ProfilePage() {
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="Your phone number"
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-bold"
+                        className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold"
                         required
                       />
                     </div>
@@ -287,19 +287,19 @@ export default function ProfilePage() {
                       Profile Picture
                     </label>
                     <div className="flex flex-col gap-4">
-                      <label className="flex items-center justify-center w-full min-h-[160px] border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl hover:border-sky-400 cursor-pointer transition-all bg-slate-50 dark:bg-white/5 overflow-hidden group relative">
+                      <label className="flex items-center justify-center w-full min-h-[160px] border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl hover:border-orange-400 cursor-pointer transition-all bg-slate-50 dark:bg-white/5 overflow-hidden group relative">
                         {profilePreview ? (
                           <div className="absolute inset-0 w-full h-full">
                             <img src={profilePreview} alt="Preview" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                             <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                              <span className="bg-sky-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">
+                              <span className="bg-orange-500 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">
                                 <Camera className="w-4 h-4" /> Change Selection
                               </span>
                             </div>
                           </div>
                         ) : (
                           <div className="text-center p-6">
-                            <Upload className="w-10 h-10 text-sky-500 mx-auto mb-3" />
+                            <Upload className="w-10 h-10 text-orange-500 mx-auto mb-3" />
                             <p className="text-sm text-slate-500 dark:text-slate-400 font-bold tracking-wider">Click to browse or drag and drop</p>
                             <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">JPG, PNG, GIF up to 5MB</p>
                           </div>
@@ -319,7 +319,7 @@ export default function ProfilePage() {
                               type="button"
                               onClick={handleImageOnlyUpload}
                               disabled={imageUploading}
-                              className="w-full py-3.5 bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-500/20 rounded-xl font-black shadow-sm dark:shadow-[0_0_15px_rgba(14,165,233,0.1)] hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
+                              className="w-full py-3.5 bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20 rounded-xl font-black shadow-sm dark:shadow-[0_0_15px_rgba(249,115,22,0.1)] hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs"
                             >
                               {imageUploading ? (
                                 <><LoadingSpinner size="sm" /> Uploading to Cloudinary...</>
@@ -339,7 +339,7 @@ export default function ProfilePage() {
                     whileTap={{ scale: 0.98 }}
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
+                    className="w-full py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
                   >
                     {loading ? (
                       <>
@@ -397,13 +397,13 @@ export default function ProfilePage() {
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-bold tracking-widest"
+                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold tracking-widest"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-sky-400"
+                        className="absolute right-4 top-3.5 text-slate-500 hover:text-orange-400"
                       >
                         {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -422,13 +422,13 @@ export default function ProfilePage() {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-bold tracking-widest"
+                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold tracking-widest"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-sky-400"
+                        className="absolute right-4 top-3.5 text-slate-500 hover:text-orange-400"
                       >
                         {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -447,13 +447,13 @@ export default function ProfilePage() {
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all font-bold tracking-widest"
+                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold tracking-widest"
                         required
                       />
                       <button
                         type="button"
                         onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-sky-400"
+                        className="absolute right-4 top-3.5 text-slate-500 hover:text-orange-400"
                       >
                         {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -514,3 +514,4 @@ export default function ProfilePage() {
     </PageTransition>
   )
 }
+

@@ -6,9 +6,9 @@ export const Button = ({ children, variant = 'primary', size = 'md', className, 
   const baseClasses = 'font-semibold rounded-lg transition-all duration-300 font-display'
   
   const variants = {
-    primary: 'bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:shadow-lg hover:from-sky-600 hover:to-blue-700 shadow-md dark:from-sky-600 dark:to-blue-700',
-    secondary: 'bg-white border-2 border-sky-500 text-sky-600 hover:bg-sky-50 dark:bg-slate-800 dark:border-sky-400 dark:text-sky-400',
-    outline: 'border-2 border-sky-500 text-sky-600 hover:bg-sky-50 dark:border-sky-400 dark:text-sky-400 dark:hover:bg-sky-950',
+    primary: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg hover:from-orange-600 hover:to-orange-700 shadow-md dark:from-orange-600 dark:to-orange-700',
+    secondary: 'bg-white border-2 border-orange-500 text-orange-600 hover:bg-orange-50 dark:bg-slate-800 dark:border-orange-400 dark:text-orange-400',
+    outline: 'border-2 border-orange-500 text-orange-600 hover:bg-orange-50 dark:border-orange-400 dark:text-orange-400 dark:hover:bg-orange-950',
     ghost: 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
     danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-lg hover:from-red-600 hover:to-red-700 shadow-md dark:from-red-600 dark:to-red-700',
   }
@@ -45,8 +45,8 @@ export const Card = ({ children, className, hover = true, ...props }) => {
 
 export const Badge = ({ children, variant = 'primary', ...props }) => {
   const variants = {
-    primary: 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-300',
-    secondary: 'bg-sky-50 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400',
+    primary: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+    secondary: 'bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400',
     success: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
     warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
     danger: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
@@ -70,7 +70,7 @@ export const LoadingSpinner = ({ size = 'md' }) => {
     <motion.div
       animate={{ rotate: 360 }}
       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-      className={cn('border-4 border-slate-200 dark:border-slate-700 border-t-sky-500 dark:border-t-sky-400 rounded-full', sizes[size])}
+      className={cn('border-4 border-slate-200 dark:border-slate-700 border-t-orange-500 dark:border-t-orange-400 rounded-full', sizes[size])}
     />
   )
 }
@@ -106,7 +106,7 @@ export const InputField = ({ label, error, ...props }) => {
         whileFocus={{ scale: 1.01 }}
         className={cn(
           'w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-700 rounded-lg font-base transition-all duration-300 placeholder-slate-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100',
-          'focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-400/30',
+          'focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-400/30',
           error && 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-400/30',
         )}
         {...props}
@@ -142,7 +142,7 @@ export const FormSelect = ({ label, options, error, ...props }) => {
         whileFocus={{ scale: 1.01 }}
         className={cn(
           'w-full px-4 py-3 border-2 border-slate-200 dark:border-slate-700 rounded-lg font-base transition-all duration-300 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100',
-          'focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:focus:ring-sky-400/30',
+          'focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-200 dark:focus:ring-orange-400/30',
           error && 'border-red-500 dark:border-red-400 focus:border-red-500 focus:ring-red-200 dark:focus:ring-red-400/30',
         )}
         {...props}
@@ -166,3 +166,4 @@ export const FormSelect = ({ label, options, error, ...props }) => {
     </motion.div>
   )
 }
+

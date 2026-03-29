@@ -110,9 +110,9 @@ export default function RegisterPage() {
 
   return (
     <PageTransition>
-      <div className="fixed inset-0 overflow-hidden bg-[#060B13] text-[#f8fafc]">
+      <div className="fixed inset-0 overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
         {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)]" />
 
         {/* 3D Background */}
         <div className="absolute inset-0 w-full h-full opacity-30 mix-blend-screen">
@@ -128,7 +128,7 @@ export default function RegisterPage() {
             className="w-full max-w-md"
           >
             {/* Card */}
-            <div className="bento-card p-10 shadow-[0_8px_30px_rgb(0,0,0,0.6)] max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="bento-card p-10 bg-white/95 dark:bg-[#0b1320]/90 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(15,23,42,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.6)] rounded-3xl max-h-[90vh] overflow-y-auto custom-scrollbar transition-colors duration-300">
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
@@ -136,18 +136,18 @@ export default function RegisterPage() {
                 transition={{ delay: 0.1 }}
                 className="mb-8 text-center"
               >
-                <div className="inline-block p-4 bg-sky-500/20 rounded-2xl mb-4 shadow-[0_0_15px_rgba(14,165,233,0.3)] border border-sky-500/30">
+                <div className="inline-block p-4 bg-orange-100 dark:bg-orange-500/20 rounded-2xl mb-4 shadow-[0_0_15px_rgba(249,115,22,0.3)] border border-orange-200 dark:border-orange-500/30 transition-colors duration-300">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <User className="w-8 h-8 text-sky-400" />
+                    <User className="w-8 h-8 text-orange-400" />
                   </motion.div>
                 </div>
-                <h1 className="text-3xl font-black font-display text-white mb-2 uppercase tracking-widest">
+                <h1 className="text-3xl font-black font-display text-slate-900 dark:text-white mb-2 uppercase tracking-widest transition-colors duration-300">
                   Join CampusEats
                 </h1>
-                <p className="text-slate-400 font-bold text-sm tracking-wider">
+                <p className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wider transition-colors duration-300">
                   {step === 1 ? 'Create your account' : 'Complete your profile'}
                 </p>
               </motion.div>
@@ -157,9 +157,9 @@ export default function RegisterPage() {
                 <motion.div
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
-                  className="flex-1 h-1 bg-sky-500 rounded-full shadow-[0_0_10px_rgba(14,165,233,0.5)]"
+                  className="flex-1 h-1 bg-orange-500 rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]"
                 />
-                <div className={`flex-1 h-1 rounded-full transition-all ${step === 2 ? 'bg-sky-500 shadow-[0_0_10px_rgba(14,165,233,0.5)]' : 'bg-white/10'}`} />
+                <div className={`flex-1 h-1 rounded-full transition-all ${step === 2 ? 'bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.5)]' : 'bg-slate-200 dark:bg-white/10'}`} />
               </div>
 
               {/* Error Alert */}
@@ -196,10 +196,10 @@ export default function RegisterPage() {
                           if (errors.name) setErrors({ ...errors, name: '' })
                         }}
                         placeholder="John Doe"
-                        className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
                           errors.name
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                            : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                         } outline-none`}
                       />
                     </div>
@@ -226,10 +226,10 @@ export default function RegisterPage() {
                           if (errors.email) setErrors({ ...errors, email: '' })
                         }}
                         placeholder="your@email.com"
-                        className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
                           errors.email
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                            : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                         } outline-none`}
                       />
                     </div>
@@ -256,16 +256,16 @@ export default function RegisterPage() {
                           if (errors.password) setErrors({ ...errors, password: '' })
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-12 pr-12 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
                           errors.password
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                            : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                         } outline-none`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-sky-400 transition-colors"
+                        className="absolute right-4 top-3.5 text-slate-500 dark:text-slate-500 hover:text-orange-400 transition-colors"
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -293,10 +293,10 @@ export default function RegisterPage() {
                           if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' })
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-12 pr-12 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
                           errors.confirmPassword
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                            : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                         } outline-none`}
                       />
                     </div>
@@ -312,7 +312,7 @@ export default function RegisterPage() {
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={handleNext}
-                    className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all uppercase tracking-widest text-sm"
+                    className="w-full py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all uppercase tracking-widest text-sm"
                   >
                     Next Step
                   </motion.button>
@@ -338,10 +338,10 @@ export default function RegisterPage() {
                           if (errors.phone) setErrors({ ...errors, phone: '' })
                         }}
                         placeholder="+91 98765 43210"
-                        className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
                           errors.phone
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                            : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                            : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                         } outline-none`}
                       />
                     </div>
@@ -364,11 +364,11 @@ export default function RegisterPage() {
                         setForm({ ...form, role: e.target.value, shopName: '', shopDescription: '' })
                         if (errors.role) setErrors({ ...errors, role: '' })
                       }}
-                      className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 font-bold appearance-none transition-all"
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-bold appearance-none transition-all"
                     >
-                      <option value="customer" className="bg-[#060B13]">Customer (Order Food)</option>
-                      <option value="shopkeeper" className="bg-[#060B13]">Shopkeeper (Sell Food)</option>
-                      <option value="delivery" className="bg-[#060B13]">Delivery Partner</option>
+                      <option value="customer" className="bg-white dark:bg-[#060B13] text-slate-900 dark:text-white">Customer (Order Food)</option>
+                      <option value="shopkeeper" className="bg-white dark:bg-[#060B13] text-slate-900 dark:text-white">Shopkeeper (Sell Food)</option>
+                      <option value="delivery" className="bg-white dark:bg-[#060B13] text-slate-900 dark:text-white">Delivery Partner</option>
                     </select>
                   </motion.div>
 
@@ -390,10 +390,10 @@ export default function RegisterPage() {
                               if (errors.shopName) setErrors({ ...errors, shopName: '' })
                             }}
                             placeholder="My Awesome Shop"
-                            className={`w-full pl-12 pr-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest ${
+                            className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
                               errors.shopName
                                 ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                                : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                                : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                             } outline-none`}
                           />
                         </div>
@@ -417,10 +417,10 @@ export default function RegisterPage() {
                             if (errors.shopDescription) setErrors({ ...errors, shopDescription: '' })
                           }}
                           placeholder="Tell customers about your shop..."
-                          className={`w-full px-4 py-3 bg-white/5 border rounded-xl font-bold text-white transition-all tracking-widest resize-none h-24 ${
+                          className={`w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest resize-none h-24 ${
                             errors.shopDescription
                               ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
-                              : 'border-white/10 focus:border-sky-500 focus:ring-1 focus:ring-sky-500'
+                              : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
                           } outline-none`}
                           rows={3}
                         />
@@ -444,10 +444,10 @@ export default function RegisterPage() {
                       whileTap={{ scale: 0.98 }}
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className={`w-full py-6 bg-white/5 border border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 ${
+                      className={`w-full py-6 bg-slate-50 dark:bg-white/5 border border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 ${
                         previewUrl
                           ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
-                          : 'border-white/20 hover:border-sky-400 transition-colors'
+                          : 'border-slate-300 dark:border-white/20 hover:border-orange-400 transition-colors'
                       }`}
                     >
                       {previewUrl ? (
@@ -459,7 +459,7 @@ export default function RegisterPage() {
                         </>
                       ) : (
                         <>
-                          <Upload className="w-8 h-8 text-sky-400" />
+                          <Upload className="w-8 h-8 text-orange-400" />
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Click to upload photo</span>
                         </>
                       )}
@@ -476,7 +476,7 @@ export default function RegisterPage() {
                         setStep(1)
                         setErrors({})
                       }}
-                      className="flex-1 py-4 border border-white/20 text-slate-300 font-bold rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
+                      className="flex-1 py-4 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
                     >
                       Back
                     </motion.button>
@@ -486,7 +486,7 @@ export default function RegisterPage() {
                       whileTap={{ scale: 0.98 }}
                       type="submit"
                       disabled={isSubmitting || authLoading}
-                      className="flex-1 py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs disabled:opacity-50"
+                      className="flex-1 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs disabled:opacity-50"
                     >
                       {isSubmitting || authLoading ? (
                         <>
@@ -513,7 +513,7 @@ export default function RegisterPage() {
                   whileHover={{ scale: 1.05 }}
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="font-black text-white hover:text-sky-400 uppercase tracking-widest ml-1 transition-colors"
+                  className="font-black text-slate-900 dark:text-white hover:text-orange-400 uppercase tracking-widest ml-1 transition-colors"
                 >
                   Login here
                 </motion.button>
@@ -529,7 +529,7 @@ export default function RegisterPage() {
             <motion.div
               animate={{ y: [0, 20, 0] }}
               transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-              className="absolute -bottom-40 -right-20 w-40 h-40 bg-gradient-to-tl from-sky-400 to-transparent rounded-full opacity-20 blur-3xl pointer-events-none"
+              className="absolute -bottom-40 -right-20 w-40 h-40 bg-gradient-to-tl from-orange-400 to-transparent rounded-full opacity-20 blur-3xl pointer-events-none"
             />
           </motion.div>
         </div>
@@ -537,3 +537,4 @@ export default function RegisterPage() {
     </PageTransition>
   )
 }
+

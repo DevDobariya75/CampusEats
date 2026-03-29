@@ -67,7 +67,7 @@ export default function AdminPage() {
   }, [])
 
   const statItems = [
-    { title: 'Total Shops', value: stats.totalShops, icon: Store, color: 'from-blue-500 to-blue-600' },
+    { title: 'Total Shops', value: stats.totalShops, icon: Store, color: 'from-orange-500 to-orange-600' },
     { title: 'Total Orders', value: stats.totalOrders, icon: ShoppingBag, color: 'from-purple-500 to-purple-600' },
     { title: 'Total Revenue', value: formatPrice(stats.totalRevenue), icon: DollarSign, color: 'from-green-500 to-green-600' },
     { title: 'Active Shops', value: stats.activeShops, icon: TrendingUp, color: 'from-orange-500 to-orange-600' },
@@ -76,7 +76,7 @@ export default function AdminPage() {
   return (
     <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
       {/* Background Gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
       <div className="relative max-w-7xl mx-auto">
         <motion.div
@@ -95,8 +95,8 @@ export default function AdminPage() {
             className="flex justify-center items-center min-h-96"
           >
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
-              <p className="text-sky-400 font-bold uppercase tracking-widest text-sm">Loading dashboard...</p>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]"></div>
+              <p className="text-orange-400 font-bold uppercase tracking-widest text-sm">Loading dashboard...</p>
             </div>
           </motion.div>
         )}
@@ -121,7 +121,7 @@ export default function AdminPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] dark:hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-[0_8px_30px_rgba(249,115,22,0.1)] dark:hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] transition-all"
               >
                 <div className={`inline-block p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg mb-4`}>
                   <stat.icon className="w-6 h-6 text-white" />
@@ -170,7 +170,7 @@ export default function AdminPage() {
                         transition={{ delay: idx * 0.05 }}
                         className="hover:bg-white/5 transition-colors"
                       >
-                        <td className="py-4 font-mono text-sm text-sky-400 font-bold truncate pr-4">
+                        <td className="py-4 font-mono text-sm text-orange-400 font-bold truncate pr-4">
                           #{order._id?.slice(-8) || '-'}
                         </td>
                         <td className="py-4 text-slate-900 dark:text-white font-bold">{order.shop?.name || '-'}</td>
@@ -211,16 +211,16 @@ export default function AdminPage() {
             transition={{ delay: 0.5 }}
             className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6"
           >
-            <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-sky-200 dark:border-sky-500/30 hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all">
+            <div className="bg-white dark:bg-white/5 rounded-3xl p-8 border border-orange-200 dark:border-orange-500/30 hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] transition-all">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sky-600 dark:text-sky-400 text-xs font-black uppercase tracking-widest">Avg Order Value</p>
+                  <p className="text-orange-600 dark:text-orange-400 text-xs font-black uppercase tracking-widest">Avg Order Value</p>
                   <p className="text-3xl font-black text-slate-900 dark:text-white mt-2 font-display">
                     {formatPrice(stats.totalOrders > 0 ? stats.totalRevenue / stats.totalOrders : 0)}
                   </p>
                 </div>
-                <div className="p-4 bg-sky-50 dark:bg-sky-500/10 rounded-2xl shadow-inner border border-sky-100 dark:border-sky-500/20">
-                  <DollarSign className="w-10 h-10 text-sky-500 dark:text-sky-400" />
+                <div className="p-4 bg-orange-50 dark:bg-orange-500/10 rounded-2xl shadow-inner border border-orange-100 dark:border-orange-500/20">
+                  <DollarSign className="w-10 h-10 text-orange-500 dark:text-orange-400" />
                 </div>
               </div>
             </div>
@@ -258,3 +258,4 @@ export default function AdminPage() {
     </section>
   )
 }
+

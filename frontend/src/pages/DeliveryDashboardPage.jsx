@@ -69,7 +69,7 @@ export default function DeliveryDashboardPage() {
   }
 
   const statItems = [
-    { title: 'Total Assigned', value: stats?.totalAssigned ?? stats?.totalDeliveries ?? stats?.total ?? 0, icon: Truck, color: 'from-blue-500 to-blue-600' },
+    { title: 'Total Assigned', value: stats?.totalAssigned ?? stats?.totalDeliveries ?? stats?.total ?? 0, icon: Truck, color: 'from-orange-500 to-orange-600' },
     { title: 'Total Earned', value: formatPrice(totalEarned), icon: DollarSign, color: 'from-green-500 to-green-600' },
     { title: 'Picked Up', value: stats?.pickedUp ?? 0, icon: TrendingUp, color: 'from-orange-500 to-orange-600' },
     { title: 'Delivered', value: stats?.delivered ?? 0, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
@@ -78,7 +78,7 @@ export default function DeliveryDashboardPage() {
   return (
     <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
       {/* Background Gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
       <div className="relative max-w-7xl mx-auto">
         <motion.div
@@ -110,7 +110,7 @@ export default function DeliveryDashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] dark:hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-[0_8px_30px_rgba(249,115,22,0.1)] dark:hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] transition-all"
               >
                 <div className={`inline-block p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg mb-4`}>
                   <stat.icon className="w-6 h-6 text-white" />
@@ -129,9 +129,9 @@ export default function DeliveryDashboardPage() {
             className="text-center py-12"
           >
             <div className="inline-block">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]"></div>
             </div>
-            <p className="mt-4 text-sky-400 font-bold uppercase tracking-widest text-sm">Loading deliveries...</p>
+            <p className="mt-4 text-orange-400 font-bold uppercase tracking-widest text-sm">Loading deliveries...</p>
           </motion.div>
         )}
 
@@ -155,13 +155,13 @@ export default function DeliveryDashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(14,165,233,0.15)] transition-all"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(249,115,22,0.15)] transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between mb-6">
                     <div>
                       <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-1">Order</p>
-                      <h3 className="text-xl font-black text-sky-500 dark:text-sky-400 font-mono">#{delivery.order?._id?.slice(-6) || '-'}</h3>
+                      <h3 className="text-xl font-black text-orange-500 dark:text-orange-400 font-mono">#{delivery.order?._id?.slice(-6) || '-'}</h3>
                       <p className="text-xs text-orange-400 font-black tracking-widest mt-1">
                         Rs {delivery.order?.totalAmount || 0}
                       </p>
@@ -170,7 +170,7 @@ export default function DeliveryDashboardPage() {
                       delivery.status === 'Delivered'
                         ? 'bg-green-500/10 text-green-400 border-green-500/20'
                         : delivery.status === 'Accepted'
-                        ? 'bg-sky-500/10 text-sky-400 border-sky-500/20'
+                        ? 'bg-orange-500/10 text-orange-400 border-orange-500/20'
                         : 'bg-orange-500/10 text-orange-400 border-orange-500/20'
                     }`}>{delivery.status}</span>
                   </div>
@@ -187,11 +187,11 @@ export default function DeliveryDashboardPage() {
                         </div>
                       </div>
                       <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
-                        <div className="p-2 bg-sky-50 dark:bg-sky-500/10 rounded-lg border border-sky-200 dark:border-sky-500/20 mt-1">
-                          <MapPin className="w-4 h-4 text-sky-500 dark:text-sky-400" />
+                        <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/20 mt-1">
+                          <MapPin className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                         </div>
                         <div>
-                          <span className="text-sky-600 dark:text-sky-400 text-[10px] font-black uppercase tracking-widest">Delivery To</span>
+                          <span className="text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest">Delivery To</span>
                           <p className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.deliveryAddress?.addressLine || '-'}</p>
                         </div>
                       </div>
@@ -207,7 +207,7 @@ export default function DeliveryDashboardPage() {
                   {delivery.status === 'Assigned' && (
                     <button
                       onClick={() => advance(delivery._id, 'accept')}
-                      className="flex-1 py-3 px-4 bg-sky-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-sky-400 shadow-[0_0_15px_rgba(14,165,233,0.4)] transition-all"
+                      className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-400 shadow-[0_0_15px_rgba(249,115,22,0.4)] transition-all"
                     >
                       Accept Order
                     </button>
@@ -242,3 +242,4 @@ export default function DeliveryDashboardPage() {
     </section>
   )
 }
+

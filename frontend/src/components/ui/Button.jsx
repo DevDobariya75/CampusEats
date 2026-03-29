@@ -7,7 +7,7 @@ export const Button = ({ children, variant = 'primary', size = 'md', className, 
   
   const variants = {
     primary: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-xl hover:from-orange-600 hover:to-orange-700 shadow-lg dark:from-orange-600 dark:to-orange-700',
-    secondary: 'bg-gradient-to-r from-sky-500 to-sky-600 text-white hover:shadow-xl hover:from-sky-600 hover:to-sky-700 shadow-lg dark:from-sky-600 dark:to-sky-700',
+    secondary: 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-xl hover:from-orange-600 hover:to-orange-700 shadow-lg dark:from-orange-600 dark:to-orange-700',
     outline: 'border-2 border-orange-500 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950 dark:text-orange-400',
     ghost: 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
     danger: 'bg-gradient-to-r from-red-500 to-red-600 text-white hover:shadow-xl hover:from-red-600 hover:to-red-700 shadow-lg dark:from-red-600 dark:to-red-700',
@@ -46,7 +46,7 @@ export const Card = ({ children, className, hover = true, ...props }) => {
 export const Badge = ({ children, variant = 'primary', ...props }) => {
   const variants = {
     primary: 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 dark:from-orange-900/30 dark:to-orange-800/30 dark:text-orange-300',
-    secondary: 'bg-gradient-to-r from-sky-100 to-sky-50 text-sky-700 dark:from-sky-900/30 dark:to-sky-800/30 dark:text-sky-300',
+    secondary: 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 dark:from-orange-900/30 dark:to-orange-800/30 dark:text-orange-300',
     success: 'bg-gradient-to-r from-green-100 to-green-50 text-green-700 dark:from-green-900/30 dark:to-green-800/30 dark:text-green-300',
     warning: 'bg-gradient-to-r from-yellow-100 to-yellow-50 text-yellow-700 dark:from-yellow-900/30 dark:to-yellow-800/30 dark:text-yellow-300',
     danger: 'bg-gradient-to-r from-red-100 to-red-50 text-red-700 dark:from-red-900/30 dark:to-red-800/30 dark:text-red-300',
@@ -203,3 +203,4 @@ export const TextArea = ({ label, error, ...props }) => {
     </motion.div>
   )
 }
+

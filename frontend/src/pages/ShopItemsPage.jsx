@@ -170,13 +170,13 @@ export default function ShopItemsPage() {
   return (
     <PageTransition>
       <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <div className="relative z-10 py-12 px-4 md:px-8 max-w-7xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
             <div className="p-3 bg-white dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm">
-              <Store className="w-6 h-6 text-sky-500" />
+              <Store className="w-6 h-6 text-orange-500" />
             </div>
             <h1 className="text-3xl sm:text-4xl font-black font-display tracking-wide text-slate-900 dark:text-white">
               Menu Management
@@ -205,7 +205,7 @@ export default function ShopItemsPage() {
               <Store className="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
               <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 uppercase tracking-wide">Create Shop First</h3>
               <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-sm mx-auto">You need to set up your shop profile before you can start adding menu items.</p>
-              <Link to="/shop-dashboard" className="px-8 py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 transition-all uppercase tracking-widest text-sm inline-flex items-center gap-2">
+              <Link to="/shop-dashboard" className="px-8 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-widest text-sm inline-flex items-center gap-2">
                 <Store className="w-4 h-4" />
                 Go to Shop Dashboard
               </Link>
@@ -217,7 +217,7 @@ export default function ShopItemsPage() {
               <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 h-fit">
                 <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-6">
                   <h2 className="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-widest flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-sky-500" />
+                    <Plus className="w-5 h-5 text-orange-500" />
                     Add Menu Item
                   </h2>
                   
@@ -225,7 +225,7 @@ export default function ShopItemsPage() {
                     {/* Image Upload */}
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Image</label>
-                      <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl hover:border-sky-400 cursor-pointer transition-all bg-slate-50 dark:bg-white/5 overflow-hidden group">
+                      <label className="flex items-center justify-center w-full h-32 border-2 border-dashed border-slate-300 dark:border-white/20 rounded-2xl hover:border-orange-400 cursor-pointer transition-all bg-slate-50 dark:bg-white/5 overflow-hidden group">
                         {previewUrl ? (
                           <div className="relative w-full h-full">
                             <img src={previewUrl} alt="Preview" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -235,7 +235,7 @@ export default function ShopItemsPage() {
                           </div>
                         ) : (
                           <div className="text-center">
-                            <ImageIcon className="w-8 h-8 text-sky-500 mx-auto mb-2" />
+                            <ImageIcon className="w-8 h-8 text-orange-500 mx-auto mb-2" />
                             <span className="text-xs font-bold text-slate-400">Click to upload image</span>
                           </div>
                         )}
@@ -246,31 +246,31 @@ export default function ShopItemsPage() {
                     {/* Basic Info */}
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Item Name</label>
-                      <input value={itemForm.name} onChange={(e) => setItemForm(prev => ({ ...prev, name: e.target.value }))} placeholder="e.g. Classic Burger" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 transition-all font-bold text-sm" required />
+                      <input value={itemForm.name} onChange={(e) => setItemForm(prev => ({ ...prev, name: e.target.value }))} placeholder="e.g. Classic Burger" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all font-bold text-sm" required />
                     </div>
                     
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Description</label>
-                      <textarea value={itemForm.description} onChange={(e) => setItemForm(prev => ({ ...prev, description: e.target.value }))} placeholder="A brief description of this dish..." rows="3" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 transition-all text-sm resize-none"></textarea>
+                      <textarea value={itemForm.description} onChange={(e) => setItemForm(prev => ({ ...prev, description: e.target.value }))} placeholder="A brief description of this dish..." rows="3" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all text-sm resize-none"></textarea>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Price (₹)</label>
-                        <input type="number" min="1" value={itemForm.price} onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))} placeholder="0.00" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 transition-all font-bold text-sm" required />
+                        <input type="number" min="1" value={itemForm.price} onChange={(e) => setItemForm(prev => ({ ...prev, price: e.target.value }))} placeholder="0.00" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all font-bold text-sm" required />
                       </div>
                       <div>
                         <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Stock</label>
-                        <input type="number" min="0" value={itemForm.stock} onChange={(e) => setItemForm(prev => ({ ...prev, stock: e.target.value }))} placeholder="10" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 transition-all font-bold text-sm" />
+                        <input type="number" min="0" value={itemForm.stock} onChange={(e) => setItemForm(prev => ({ ...prev, stock: e.target.value }))} placeholder="10" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all font-bold text-sm" />
                       </div>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Category</label>
-                      <input value={itemForm.category} onChange={(e) => setItemForm(prev => ({ ...prev, category: e.target.value }))} placeholder="e.g. Beverages" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-sky-500 transition-all font-bold text-sm" />
+                      <input value={itemForm.category} onChange={(e) => setItemForm(prev => ({ ...prev, category: e.target.value }))} placeholder="e.g. Beverages" className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 transition-all font-bold text-sm" />
                     </div>
 
-                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={submitting} type="submit" className="w-full py-4 mt-4 bg-sky-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-2">
+                    <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} disabled={submitting} type="submit" className="w-full py-4 mt-4 bg-orange-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-widest text-sm flex items-center justify-center gap-2">
                       {submitting ? <><LoadingSpinner size="sm" /> Adding...</> : <><Plus className="w-4 h-4" /> Add Item</>}
                     </motion.button>
                   </form>
@@ -293,7 +293,7 @@ export default function ShopItemsPage() {
                         initial={{ opacity: 0, y: 20 }} 
                         animate={{ opacity: 1, y: 0 }} 
                         transition={{ delay: Math.min(idx * 0.05, 0.3) }}
-                        className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-sky-500/30 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] transition-all group flex flex-col"
+                        className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-orange-500/30 hover:shadow-[0_8px_30px_rgba(249,115,22,0.1)] transition-all group flex flex-col"
                       >
                         {editingItemId === item._id ? (
                           // === EDIT MODE ===
@@ -303,7 +303,7 @@ export default function ShopItemsPage() {
                               <button onClick={cancelEdit} className="p-1 hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg text-slate-500 transition-colors"><X className="w-4 h-4" /></button>
                             </h3>
                             <div className="space-y-3 flex-1">
-                               <label className="flex items-center justify-center w-full h-24 border border-dashed border-slate-300 dark:border-white/20 rounded-xl hover:border-sky-400 cursor-pointer overflow-hidden bg-white dark:bg-black/20">
+                               <label className="flex items-center justify-center w-full h-24 border border-dashed border-slate-300 dark:border-white/20 rounded-xl hover:border-orange-400 cursor-pointer overflow-hidden bg-white dark:bg-black/20">
                                 {editPreviewUrl ? (
                                   <img src={editPreviewUrl} alt="Preview" className="w-full h-full object-cover" />
                                 ) : (
@@ -311,15 +311,15 @@ export default function ShopItemsPage() {
                                 )}
                                 <input type="file" onChange={(e) => handleFileChange(e, true)} accept="image/*" className="hidden" />
                               </label>
-                              <input value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} placeholder="Item Name" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-sky-500 font-bold" />
-                              <textarea value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} placeholder="Description" rows="2" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-sky-500 resize-none"></textarea>
+                              <input value={editForm.name} onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))} placeholder="Item Name" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-orange-500 font-bold" />
+                              <textarea value={editForm.description} onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))} placeholder="Description" rows="2" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-orange-500 resize-none"></textarea>
                               <div className="grid grid-cols-2 gap-2">
-                                <input type="number" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))} placeholder="Price" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-sky-500 font-bold" />
-                                <input type="number" value={editForm.stock} onChange={(e) => setEditForm(prev => ({ ...prev, stock: e.target.value }))} placeholder="Stock" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-sky-500 font-bold" />
+                                <input type="number" value={editForm.price} onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))} placeholder="Price" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-orange-500 font-bold" />
+                                <input type="number" value={editForm.stock} onChange={(e) => setEditForm(prev => ({ ...prev, stock: e.target.value }))} placeholder="Stock" className="w-full px-3 py-2 bg-white dark:bg-black/20 border border-slate-200 dark:border-white/10 rounded-lg text-slate-900 dark:text-white text-sm outline-none focus:border-orange-500 font-bold" />
                               </div>
                             </div>
                             <div className="pt-4 mt-4 border-t border-slate-200 dark:border-white/10">
-                              <motion.button onClick={() => saveEdit(item._id)} disabled={submitting} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full py-2.5 bg-sky-500 text-white font-black rounded-lg hover:bg-sky-400 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                              <motion.button onClick={() => saveEdit(item._id)} disabled={submitting} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full py-2.5 bg-orange-500 text-white font-black rounded-lg hover:bg-orange-400 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2">
                                 {submitting ? <LoadingSpinner size="sm" /> : <><Save className="w-4 h-4" /> Save</>}
                               </motion.button>
                             </div>
@@ -341,9 +341,9 @@ export default function ShopItemsPage() {
                               <div className="flex justify-between items-start gap-4 mb-2">
                                 <div>
                                   <h3 className="text-lg font-black text-slate-900 dark:text-white line-clamp-1">{item.name}</h3>
-                                  <span className="text-xs font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded border border-sky-100 dark:border-sky-500/20">{item.category}</span>
+                                  <span className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded border border-orange-100 dark:border-orange-500/20">{item.category}</span>
                                 </div>
-                                <span className="text-xl font-black text-sky-500 whitespace-nowrap">{formatPrice(item.price)}</span>
+                                <span className="text-xl font-black text-orange-500 whitespace-nowrap">{formatPrice(item.price)}</span>
                               </div>
                               
                               <p className="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 flex-1">
@@ -363,7 +363,7 @@ export default function ShopItemsPage() {
                                 </button>
                                 <button
                                   onClick={() => startEdit(item)}
-                                  className="flex-1 py-2 rounded-xl bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xs font-bold uppercase tracking-widest hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors flex items-center justify-center gap-1.5"
+                                  className="flex-1 py-2 rounded-xl bg-orange-50 dark:bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-bold uppercase tracking-widest hover:bg-orange-100 dark:hover:bg-orange-500/20 transition-colors flex items-center justify-center gap-1.5"
                                 >
                                   <Edit2 className="w-3.5 h-3.5" /> Edit
                                 </button>
@@ -383,4 +383,5 @@ export default function ShopItemsPage() {
     </PageTransition>
   )
 }
+
 

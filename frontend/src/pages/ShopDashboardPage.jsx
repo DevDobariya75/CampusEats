@@ -102,7 +102,7 @@ export default function ShopDashboardPage() {
   }
 
   const statItems = [
-    { title: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'from-blue-500 to-blue-600' },
+    { title: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'from-orange-500 to-orange-600' },
     { title: 'Total Earned', value: formatPrice(stats.totalEarned), icon: DollarSign, color: 'from-green-500 to-green-600' },
     { title: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'from-orange-500 to-orange-600' },
     { title: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
@@ -111,7 +111,7 @@ export default function ShopDashboardPage() {
   return (
     <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
       {/* Background Gradients */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
       <div className="relative max-w-7xl mx-auto">
         <motion.div
@@ -153,7 +153,7 @@ export default function ShopDashboardPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
-                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-sky-300 dark:hover:border-sky-500/50 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] dark:hover:shadow-[0_0_20px_rgba(14,165,233,0.15)] transition-all"
+                className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 hover:border-orange-300 dark:hover:border-orange-500/50 hover:shadow-[0_8px_30px_rgba(249,115,22,0.1)] dark:hover:shadow-[0_0_20px_rgba(249,115,22,0.15)] transition-all"
               >
                 <div className={`inline-block p-4 rounded-2xl bg-gradient-to-br ${stat.color} shadow-lg mb-4`}>
                   <stat.icon className="w-6 h-6 text-white" />
@@ -172,9 +172,9 @@ export default function ShopDashboardPage() {
             className="text-center py-12"
           >
             <div className="inline-block">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(14,165,233,0.5)]"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]"></div>
             </div>
-            <p className="mt-4 text-sky-400 font-bold uppercase tracking-widest text-sm">Loading incoming orders...</p>
+            <p className="mt-4 text-orange-400 font-bold uppercase tracking-widest text-sm">Loading incoming orders...</p>
           </motion.div>
         )}
 
@@ -203,13 +203,13 @@ export default function ShopDashboardPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.05 }}
-                      className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(14,165,233,0.15)] transition-all"
+                      className="bg-white dark:bg-white/5 rounded-3xl p-6 border border-slate-200 dark:border-white/10 flex flex-col justify-between shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_8px_40px_rgba(249,115,22,0.15)] transition-all"
                     >
                       <div>
                         <div className="flex items-start justify-between mb-6">
                           <div>
                             <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs mb-1">Order</p>
-                            <h3 className="text-xl font-black text-sky-500 dark:text-sky-400 font-mono">#{order._id.slice(-6)}</h3>
+                            <h3 className="text-xl font-black text-orange-500 dark:text-orange-400 font-mono">#{order._id.slice(-6)}</h3>
                           </div>
                           <span className={`px-3 py-1 rounded-full text-[10px] uppercase font-black border tracking-widest ${
                             order.status === 'Delivered'
@@ -222,7 +222,7 @@ export default function ShopDashboardPage() {
 
                         {order.status === 'Out for Delivery' && (
                           <div className="mb-4 p-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl">
-                            <p className="text-xs text-sky-500 dark:text-sky-400 font-black uppercase tracking-widest mb-1">Assigned To</p>
+                            <p className="text-xs text-orange-500 dark:text-orange-400 font-black uppercase tracking-widest mb-1">Assigned To</p>
                             <p className="text-sm font-bold text-slate-900 dark:text-white">
                               {hasAssignedPartner ? `${assignedName} (${assignedPhone})` : 'Not assigned yet'}
                             </p>
@@ -244,24 +244,24 @@ export default function ShopDashboardPage() {
                           </div>
                           {order.specialNotes && (
                             <div>
-                              <span className="text-sky-500 dark:text-sky-400 text-xs font-bold uppercase tracking-widest">Notes</span>
+                              <span className="text-orange-500 dark:text-orange-400 text-xs font-bold uppercase tracking-widest">Notes</span>
                               <p className="text-slate-900 dark:text-white text-sm mt-1 p-3 bg-slate-50 dark:bg-white/5 rounded-xl border border-slate-200 dark:border-white/10 italic">"{order.specialNotes}"</p>
                             </div>
                           )}
                         </div>
 
                         {(order.status === 'Out for Delivery' || hasAssignedPartner) && (
-                          <div className="bg-sky-50 dark:bg-sky-500/10 border border-sky-200 dark:border-sky-500/20 rounded-xl p-4 mb-6 text-xs">
+                          <div className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 rounded-xl p-4 mb-6 text-xs">
                             <div className="flex justify-between mb-2">
-                              <span className="text-sky-600 dark:text-sky-400 font-bold uppercase tracking-widest">Delivery Partner</span>
+                              <span className="text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest">Delivery Partner</span>
                               <span className="text-slate-900 dark:text-white font-bold">{assignedName}</span>
                             </div>
                             <div className="flex justify-between mb-2">
-                              <span className="text-sky-600 dark:text-sky-400 font-bold uppercase tracking-widest">Mobile</span>
+                              <span className="text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest">Mobile</span>
                               <span className="text-slate-900 dark:text-white font-bold">{assignedPhone}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-sky-600 dark:text-sky-400 font-bold uppercase tracking-widest">Status</span>
+                              <span className="text-orange-600 dark:text-orange-400 font-bold uppercase tracking-widest">Status</span>
                               <span className="text-slate-900 dark:text-white font-bold">{order.deliveryStatus || 'Assigned'}</span>
                             </div>
                           </div>
@@ -275,7 +275,7 @@ export default function ShopDashboardPage() {
                               className={`flex-1 py-3 px-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all border outline-none ${
                                 status === 'Cancelled'
                                   ? 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-500 hover:bg-red-500 hover:text-white'
-                                  : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-sky-500 hover:border-sky-500 hover:text-white hover:shadow-[0_0_15px_rgba(14,165,233,0.4)]'
+                                  : 'bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-700 dark:text-white hover:bg-orange-500 hover:border-orange-500 hover:text-white hover:shadow-[0_0_15px_rgba(249,115,22,0.4)]'
                               }`}
                               type="button"
                               key={status}
@@ -297,3 +297,4 @@ export default function ShopDashboardPage() {
     </section>
   )
 }
+

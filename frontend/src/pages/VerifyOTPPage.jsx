@@ -122,7 +122,7 @@ export default function VerifyOTPPage() {
                 <div className={`inline-block p-4 rounded-2xl mb-4 shadow-lg transition-all ${
                   isExpired
                     ? 'bg-gradient-to-br from-red-500 to-red-600'
-                    : 'bg-gradient-to-br from-sky-500 to-sky-600'
+                    : 'bg-gradient-to-br from-orange-500 to-orange-600'
                 }`}>
                   <motion.div
                     animate={{ rotate: isExpired ? [0, -10, 10, 0] : [0, 10, -10, 0] }}
@@ -135,7 +135,7 @@ export default function VerifyOTPPage() {
                     )}
                   </motion.div>
                 </div>
-                <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-sky-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                <h1 className="text-3xl font-bold font-display bg-gradient-to-r from-orange-600 to-purple-600 bg-clip-text text-transparent mb-2">
                   Verify Your Identity
                 </h1>
                 <p className="text-slate-600 font-medium">
@@ -203,7 +203,7 @@ export default function VerifyOTPPage() {
                         className={`w-14 h-14 text-center text-2xl font-bold border-2 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
                           digit
                             ? 'border-orange-500 bg-orange-50'
-                            : 'border-slate-200 bg-slate-50 focus:border-sky-500 focus:bg-white'
+                            : 'border-slate-200 bg-slate-50 focus:border-orange-500 focus:bg-white'
                         }`}
                       />
                     ))}
@@ -240,7 +240,7 @@ export default function VerifyOTPPage() {
                   whileTap={{ scale: isExpired ? 1 : 0.98 }}
                   type="submit"
                   disabled={isSubmitting || loading || isExpired}
-                  className="w-full py-3 bg-gradient-to-r from-sky-500 to-sky-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-gradient-to-r from-orange-500 to-orange-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {isSubmitting || loading ? (
                     <>
@@ -271,7 +271,7 @@ export default function VerifyOTPPage() {
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     type="button"
-                    className="font-bold text-sky-600 hover:text-sky-700 transition-colors"
+                    className="font-bold text-orange-600 hover:text-orange-700 transition-colors"
                   >
                     Resend
                   </motion.button>
@@ -284,7 +284,7 @@ export default function VerifyOTPPage() {
                   whileTap={{ scale: 0.95 }}
                   type="button"
                   onClick={() => navigate('/login')}
-                  className="w-full mt-6 px-6 py-2 border-2 border-sky-500 text-sky-500 font-semibold rounded-xl hover:bg-sky-50 transition-all"
+                  className="w-full mt-6 px-6 py-2 border-2 border-orange-500 text-orange-500 font-semibold rounded-xl hover:bg-orange-50 transition-all"
                 >
                   Return to Login
                 </motion.button>
@@ -295,7 +295,7 @@ export default function VerifyOTPPage() {
             <motion.div
               animate={{ y: [0, -20, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
-              className="absolute -top-40 -left-20 w-40 h-40 bg-gradient-to-br from-sky-400 to-transparent rounded-full opacity-20 blur-3xl pointer-events-none"
+              className="absolute -top-40 -left-20 w-40 h-40 bg-gradient-to-br from-orange-400 to-transparent rounded-full opacity-20 blur-3xl pointer-events-none"
             />
             <motion.div
               animate={{ y: [0, 20, 0] }}
@@ -308,3 +308,4 @@ export default function VerifyOTPPage() {
     </PageTransition>
   )
 }
+

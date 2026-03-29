@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import './App.css'
 import Layout from './components/Layout'
+import WelcomeSplash from './components/WelcomeSplash'
 import ProtectedRoute from './components/ProtectedRoute'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
@@ -40,9 +43,20 @@ function RootRedirect() {
 }
 
 function App() {
+  const [showSplash, setShowSplash] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowSplash(false)
+    }, 1700)
+
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <ThemeProvider>
       <AuthProvider>
+        <AnimatePresence>{showSplash && <WelcomeSplash />}</AnimatePresence>
         <Routes>
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 

@@ -81,7 +81,7 @@ export default function ShopDetailPage() {
   return (
     <PageTransition>
       <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <div className="relative z-10 py-12 px-4 md:px-8 max-w-7xl mx-auto">
           {loading ? (
@@ -94,7 +94,7 @@ export default function ShopDetailPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8 md:p-12 mb-10 text-center md:text-left flex flex-col md:flex-row items-center gap-8"
               >
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg flex-shrink-0">
                   <Store className="w-10 h-10 text-white" />
                 </div>
                 
@@ -149,7 +149,7 @@ export default function ShopDetailPage() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-sky-500/30 hover:shadow-[0_8px_30px_rgba(14,165,233,0.1)] transition-all group flex flex-col"
+                        className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 rounded-3xl overflow-hidden hover:border-orange-500/30 hover:shadow-[0_8px_30px_rgba(249,115,22,0.1)] transition-all group flex flex-col"
                       >
                         {/* Image */}
                         <div className="relative h-48 bg-slate-100 dark:bg-white/5 overflow-hidden">
@@ -172,9 +172,9 @@ export default function ShopDetailPage() {
                           <div className="flex justify-between items-start gap-4 mb-2">
                             <div>
                               <h3 className="text-lg font-black text-slate-900 dark:text-white line-clamp-1">{item.name}</h3>
-                              <span className="text-xs font-bold uppercase tracking-widest text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 rounded border border-sky-100 dark:border-sky-500/20">{item.category || 'General'}</span>
+                              <span className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded border border-orange-100 dark:border-orange-500/20">{item.category || 'General'}</span>
                             </div>
-                            <span className="text-xl font-black text-slate-900 dark:text-sky-400 whitespace-nowrap">
+                            <span className="text-xl font-black text-slate-900 dark:text-orange-400 whitespace-nowrap">
                               {formatPrice(displayPrice)}
                             </span>
                           </div>
@@ -193,7 +193,7 @@ export default function ShopDetailPage() {
                                   onClick={() => setSelectedSizes(prev => ({ ...prev, [item._id]: size }))}
                                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                                     selectedSize === size
-                                      ? 'bg-sky-500 text-white shadow-md'
+                                      ? 'bg-orange-500 text-white shadow-md'
                                       : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
                                   }`}
                                 >
@@ -209,7 +209,7 @@ export default function ShopDetailPage() {
                             type="button"
                             disabled={!item.isAvailable || !shop?.isOpen || addingToCart === item._id}
                             onClick={() => addToCart(item._id, item)}
-                            className="w-full py-3.5 bg-sky-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-sky-500"
+                            className="w-full py-3.5 bg-orange-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500"
                           >
                             {addingToCart === item._id ? (
                               <LoadingSpinner size="sm" />
@@ -232,3 +232,4 @@ export default function ShopDetailPage() {
     </PageTransition>
   )
 }
+

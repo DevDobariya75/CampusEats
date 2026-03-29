@@ -174,9 +174,9 @@ export default function CheckoutPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="relative min-h-screen bg-[#060B13] text-[#f8fafc] py-12 px-4 md:px-8"
+      className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-12 px-4 md:px-8 transition-colors duration-300"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)]" />
 
       <div className="relative max-w-6xl mx-auto">
         {/* Header */}
@@ -186,10 +186,10 @@ export default function CheckoutPage() {
           transition={{ delay: 0.1 }}
           className="mb-10"
         >
-          <h1 className="text-4xl font-black mb-2 font-display text-white">
+          <h1 className="text-4xl font-black mb-2 font-display text-slate-900 dark:text-white">
             Checkout
           </h1>
-          <p className="text-slate-400">Review your order and complete payment</p>
+          <p className="text-slate-500 dark:text-slate-400">Review your order and complete payment</p>
         </motion.div>
 
         {/* Alerts */}
@@ -233,22 +233,22 @@ export default function CheckoutPage() {
               {/* Delivery Address Section */}
               <StaggerItem>
                 <motion.div
-                  className="bento-card p-6"
+                  className="bento-card p-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl"
                 >
                   <div className="flex items-center gap-3 mb-6">
-                    <MapPin className="w-6 h-6 text-sky-400" />
-                    <h2 className="text-2xl font-black text-white">Delivery Address</h2>
+                    <MapPin className="w-6 h-6 text-orange-400" />
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">Delivery Address</h2>
                   </div>
 
                   {addresses.length === 0 ? (
-                    <p className="text-slate-400 mb-4">No addresses found. Add one to continue.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mb-4">No addresses found. Add one to continue.</p>
                   ) : (
                     <div className="space-y-3 mb-6">
                       {addresses.map((address) => (
                         <motion.div
                           key={address._id}
                           whileHover={{ scale: 1.01 }}
-                          className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:border-sky-500/50 transition-colors ${selectedAddress === address._id ? 'border-sky-500 bg-sky-500/10' : 'border-white/10 bg-white/5'}`}
+                          className={`flex items-start gap-3 p-4 border rounded-xl cursor-pointer hover:border-orange-500/50 transition-colors ${selectedAddress === address._id ? 'border-orange-500 bg-orange-500/10' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5'}`}
                           onClick={() => setSelectedAddress(address._id)}
                         >
                           <input
@@ -257,14 +257,14 @@ export default function CheckoutPage() {
                             value={address._id}
                             checked={selectedAddress === address._id}
                             onChange={(e) => setSelectedAddress(e.target.value)}
-                            className="w-5 h-5 mt-0.5 accent-sky-500 flex-shrink-0 cursor-pointer"
+                            className="w-5 h-5 mt-0.5 accent-orange-500 flex-shrink-0 cursor-pointer"
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="font-bold text-white text-sm">{address.label || 'Address'}</p>
-                            <p className="text-xs text-slate-400 mt-1 break-words">{address.addressLine}</p>
+                            <p className="font-bold text-slate-900 dark:text-white text-sm">{address.label || 'Address'}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 break-words">{address.addressLine}</p>
                             <p className="text-xs text-slate-500 mt-0.5">Pin: {address.pinCode}</p>
                             {address.isDefault && (
-                              <span className="inline-block mt-2 px-2 py-1 bg-white/5 border border-white/10 text-slate-300 text-[10px] uppercase font-bold tracking-widest rounded-full">
+                              <span className="inline-block mt-2 px-2 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[10px] uppercase font-bold tracking-widest rounded-full">
                                 Default
                               </span>
                             )}
@@ -280,7 +280,7 @@ export default function CheckoutPage() {
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       onClick={() => setShowAddressForm(true)}
-                      className="w-full py-4 border border-dashed border-white/20 rounded-2xl text-slate-400 hover:border-sky-400 hover:text-sky-400 transition-colors font-bold text-sm uppercase tracking-widest bg-white/5 hover:bg-white/10"
+                      className="w-full py-4 border border-dashed border-slate-300 dark:border-white/20 rounded-2xl text-slate-500 dark:text-slate-400 hover:border-orange-400 hover:text-orange-400 transition-colors font-bold text-sm uppercase tracking-widest bg-white dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10"
                     >
                       + Add New Address
                     </motion.button>
@@ -354,11 +354,11 @@ export default function CheckoutPage() {
               {/* Payment Method Section */}
               <StaggerItem>
                 <motion.div
-                  className="bento-card p-6"
+                  className="bento-card p-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl"
                 >
                   <div className="flex items-center gap-3 mb-6">
                     <CreditCard className="w-6 h-6 text-orange-500" />
-                    <h2 className="text-2xl font-black text-white">Payment Method</h2>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white">Payment Method</h2>
                   </div>
 
                   <div className="space-y-3">
@@ -371,7 +371,7 @@ export default function CheckoutPage() {
                         key={method.value}
                         whileHover={{ scale: 1.01 }}
                         onClick={() => setPaymentMethod(method.value)}
-                        className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer hover:border-orange-500/50 transition-colors ${paymentMethod === method.value ? 'border-orange-500 bg-orange-500/10' : 'border-white/10 bg-white/5'}`}
+                        className={`flex items-center gap-3 p-4 border rounded-xl cursor-pointer hover:border-orange-500/50 transition-colors ${paymentMethod === method.value ? 'border-orange-500 bg-orange-500/10' : 'border-slate-200 dark:border-white/10 bg-white dark:bg-white/5'}`}
                       >
                         <input
                           type="radio"
@@ -382,7 +382,7 @@ export default function CheckoutPage() {
                           className="w-5 h-5 accent-orange-500 flex-shrink-0 cursor-pointer"
                         />
                         <method.Icon className="w-5 h-5 text-orange-500 flex-shrink-0" />
-                        <span className="font-bold text-white text-sm flex-1">{method.label}</span>
+                        <span className="font-bold text-slate-900 dark:text-white text-sm flex-1">{method.label}</span>
                       </motion.div>
                     ))}
                   </div>
@@ -392,14 +392,14 @@ export default function CheckoutPage() {
               {/* Special Notes Section */}
               <StaggerItem>
                 <motion.div
-                  className="bento-card p-6"
+                  className="bento-card p-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl"
                 >
-                  <h2 className="text-lg font-black text-white mb-4">Special Instructions</h2>
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white mb-4">Special Instructions</h2>
                   <textarea
                     value={specialNotes}
                     onChange={(e) => setSpecialNotes(e.target.value)}
                     placeholder="Any special requests or dietary preferences?"
-                    className="w-full px-4 py-3 border border-white/10 rounded-xl bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 resize-none h-24 backdrop-blur-md shadow-inner"
+                    className="w-full px-4 py-3 border border-slate-200 dark:border-white/10 rounded-xl bg-slate-50 dark:bg-white/5 text-slate-900 dark:text-white placeholder-slate-500 focus:outline-none focus:border-orange-500 resize-none h-24 backdrop-blur-md shadow-inner"
                   />
                 </motion.div>
               </StaggerItem>
@@ -410,26 +410,26 @@ export default function CheckoutPage() {
           <div className="lg:col-span-1">
             <StaggerItem>
               <motion.div
-                className="bento-card p-8 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto border border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
+                className="bento-card p-8 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto bg-white dark:bg-white/5 border border-slate-200 dark:border-white/20 rounded-3xl shadow-[0_8px_30px_rgb(15,23,42,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)]"
               >
-                <h2 className="text-2xl font-black text-white mb-6">Order Summary</h2>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6">Order Summary</h2>
 
             {/* Items */}
                 <div className="space-y-3 mb-6 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
                   {cartItems.length === 0 ? (
-                    <p className="text-slate-400 text-center py-4">No items in cart</p>
+                    <p className="text-slate-500 dark:text-slate-400 text-center py-4">No items in cart</p>
                   ) : (
                     cartItems.map((item) => (
-                      <div key={item._id} className="flex justify-between items-start pb-3 border-b border-white/10 last:border-0">
+                      <div key={item._id} className="flex justify-between items-start pb-3 border-b border-slate-200 dark:border-white/10 last:border-0">
                         <div className="flex-1 pr-2">
-                          <p className="font-bold text-white text-sm">
+                          <p className="font-bold text-slate-900 dark:text-white text-sm">
                             {item.menuItem?.name || 'Item'}
                           </p>
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
                             Qty: {item.quantity}
                           </p>
                         </div>
-                        <p className="font-bold text-white text-sm flex-shrink-0">
+                        <p className="font-bold text-slate-900 dark:text-white text-sm flex-shrink-0">
                           {formatPrice(Number(item.price ?? item.menuItem?.price ?? 0) * Number(item.quantity ?? 0))}
                         </p>
                       </div>
@@ -438,25 +438,25 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Breakdown */}
-                <div className="space-y-2 mb-6 pb-6 border-b border-white/10">
-                  <div className="flex justify-between text-sm text-slate-400">
+                <div className="space-y-2 mb-6 pb-6 border-b border-slate-200 dark:border-white/10">
+                  <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                     <span>Subtotal</span>
-                    <span className="text-white font-bold">{formatPrice(summary?.subtotal || calculatedSubTotal)}</span>
+                    <span className="text-slate-900 dark:text-white font-bold">{formatPrice(summary?.subtotal || calculatedSubTotal)}</span>
                   </div>
                   {summary?.deliveryFee > 0 && (
-                    <div className="flex justify-between text-sm text-slate-400">
+                    <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                       <span>Delivery</span>
-                      <span className="text-white font-bold">{formatPrice(summary.deliveryFee)}</span>
+                      <span className="text-slate-900 dark:text-white font-bold">{formatPrice(summary.deliveryFee)}</span>
                     </div>
                   )}
                   {summary?.tax > 0 && (
-                    <div className="flex justify-between text-sm text-slate-400">
+                    <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                       <span>Tax</span>
-                      <span className="text-white font-bold">{formatPrice(summary.tax)}</span>
+                      <span className="text-slate-900 dark:text-white font-bold">{formatPrice(summary.tax)}</span>
                     </div>
                   )}
                   {summary?.discount > 0 && (
-                    <div className="flex justify-between text-sm text-sky-400">
+                    <div className="flex justify-between text-sm text-orange-400">
                       <span>Discount</span>
                       <span className="font-bold">-{formatPrice(summary.discount)}</span>
                     </div>
@@ -464,9 +464,9 @@ export default function CheckoutPage() {
                 </div>
 
                 {/* Total */}
-                <div className="mb-6 p-4 border border-white/10 bg-white/5 rounded-xl">
+                <div className="mb-6 p-4 border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 rounded-xl">
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-300 font-black tracking-widest uppercase text-xs">Total Amount</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-black tracking-widest uppercase text-xs">Total Amount</span>
                     <span className="text-3xl font-black text-orange-500">
                       {formatPrice(totalAmount)}
                     </span>
@@ -479,7 +479,7 @@ export default function CheckoutPage() {
                   whileTap={{ scale: 0.98 }}
                   onClick={placeOrder}
                   disabled={saving || !shopOpen || !selectedAddress || cartItems.length === 0}
-                  className="w-full py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
+                  className="w-full py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
                 >
                   {saving ? (
                     <>
@@ -496,7 +496,7 @@ export default function CheckoutPage() {
 
                 <button
                   onClick={() => navigate(`/cart/${shopId}`)}
-                  className="w-full mt-4 py-4 border border-white/20 text-slate-300 font-bold rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
+                  className="w-full mt-4 py-4 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
                 >
                   Back to Cart
                 </button>
@@ -508,3 +508,4 @@ export default function CheckoutPage() {
     </motion.div>
   )
 }
+

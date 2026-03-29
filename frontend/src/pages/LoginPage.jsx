@@ -58,12 +58,12 @@ export default function LoginPage() {
               transition={{ delay: 0.1 }}
               className="mb-8 text-center"
             >
-              <div className="inline-block p-4 bg-sky-50 dark:bg-sky-500/10 rounded-2xl mb-4 shadow-sm dark:shadow-[0_0_15px_rgba(14,165,233,0.3)] border border-sky-100 dark:border-sky-500/30">
+              <div className="inline-block p-4 bg-orange-50 dark:bg-orange-500/10 rounded-2xl mb-4 shadow-sm dark:shadow-[0_0_15px_rgba(249,115,22,0.3)] border border-orange-100 dark:border-orange-500/30">
                 <motion.div
                   animate={{ rotate: [0, 10, -10, 0] }}
                   transition={{ duration: 3, repeat: Infinity }}
                 >
-                  <Lock className="w-8 h-8 text-sky-500 dark:text-sky-400" />
+                  <Lock className="w-8 h-8 text-orange-500 dark:text-orange-400" />
                 </motion.div>
               </div>
               <h1 className="text-3xl font-black font-display text-slate-900 dark:text-white mb-2 uppercase tracking-widest">
@@ -102,7 +102,7 @@ export default function LoginPage() {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Mail className={`w-5 h-5 transition-colors ${errors.email ? 'text-red-400' : 'text-slate-400 group-focus-within:text-sky-500 dark:group-focus-within:text-sky-400'}`} />
+                      <Mail className={`w-5 h-5 transition-colors ${errors.email ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500 dark:group-focus-within:text-orange-400'}`} />
                     </div>
                     <input
                       type="email"
@@ -111,7 +111,7 @@ export default function LoginPage() {
                          setFormData({ ...formData, email: e.target.value })
                          if (errors.email) setErrors({...errors, email: null})
                       }}
-                      className={`w-full bg-slate-50 dark:bg-white/5 border ${errors.email ? 'border-red-500/50 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-sky-500'} rounded-xl py-3.5 pl-11 pr-4 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 ${errors.email ? 'focus:ring-red-500' : 'focus:ring-sky-500'} transition-all font-medium`}
+                      className={`w-full bg-slate-50 dark:bg-white/5 border ${errors.email ? 'border-red-500/50 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-orange-500'} rounded-xl py-3.5 pl-11 pr-4 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 ${errors.email ? 'focus:ring-red-500' : 'focus:ring-orange-500'} transition-all font-medium`}
                       placeholder="your@email.com"
                     />
                     {errors.email && (
@@ -129,7 +129,7 @@ export default function LoginPage() {
                   </label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock className={`w-5 h-5 transition-colors ${errors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-sky-500 dark:group-focus-within:text-sky-400'}`} />
+                      <Lock className={`w-5 h-5 transition-colors ${errors.password ? 'text-red-400' : 'text-slate-400 group-focus-within:text-orange-500 dark:group-focus-within:text-orange-400'}`} />
                     </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -138,7 +138,7 @@ export default function LoginPage() {
                          setFormData({ ...formData, password: e.target.value })
                          if (errors.password) setErrors({...errors, password: null})
                       }}
-                      className={`w-full bg-slate-50 dark:bg-white/5 border ${errors.password ? 'border-red-500/50 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-sky-500'} rounded-xl py-3.5 pl-11 pr-12 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 ${errors.password ? 'focus:ring-red-500' : 'focus:ring-sky-500'} transition-all font-medium`}
+                      className={`w-full bg-slate-50 dark:bg-white/5 border ${errors.password ? 'border-red-500/50 focus:border-red-500' : 'border-slate-200 dark:border-white/10 focus:border-orange-500'} rounded-xl py-3.5 pl-11 pr-12 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 ${errors.password ? 'focus:ring-red-500' : 'focus:ring-orange-500'} transition-all font-medium`}
                       placeholder="••••••••"
                     />
                     <button
@@ -164,10 +164,10 @@ export default function LoginPage() {
                 className="flex items-center justify-between mt-8 text-xs font-bold"
               >
                 <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" className="w-4 h-4 rounded border border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/5 text-sky-500 focus:ring-sky-500 transition-colors" />
+                  <input type="checkbox" className="w-4 h-4 rounded border border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/5 text-orange-500 focus:ring-orange-500 transition-colors" />
                   <span className="text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-white transition-colors tracking-widest uppercase">Remember me</span>
                 </label>
-                <Link to="/forgot-password" className="text-sky-500 hover:text-sky-400 transition-colors uppercase tracking-wider">
+                <Link to="/forgot-password" className="text-orange-500 hover:text-orange-400 transition-colors uppercase tracking-wider">
                   Forgot Password?
                 </Link>
               </motion.div>
@@ -180,7 +180,7 @@ export default function LoginPage() {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-8 py-4 bg-sky-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 hover:shadow-[0_0_25px_rgba(14,165,233,0.6)] transition-all uppercase tracking-widest disabled:opacity-50 flex items-center justify-center gap-2"
+                className="w-full mt-8 py-4 bg-orange-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all uppercase tracking-widest disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {isSubmitting ? <><LoadingSpinner size="sm" /> Authenticating...</> : 'Sign In'}
               </motion.button>
@@ -194,7 +194,7 @@ export default function LoginPage() {
             >
               <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
                 Don't have an account?{' '}
-                <Link to="/register" className="text-sky-600 dark:text-sky-400 font-black hover:text-sky-500 dark:hover:text-sky-300 transition-colors uppercase tracking-wider text-xs ml-1">
+                <Link to="/register" className="text-orange-600 dark:text-orange-400 font-black hover:text-orange-500 dark:hover:text-orange-300 transition-colors uppercase tracking-wider text-xs ml-1">
                   Create Account
                 </Link>
               </p>
@@ -205,3 +205,4 @@ export default function LoginPage() {
     </PageTransition>
   )
 }
+

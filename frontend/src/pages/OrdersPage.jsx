@@ -80,7 +80,7 @@ export default function OrdersPage() {
     <PageTransition>
       <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
         {/* Background Gradients */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(14,165,233,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <div className="relative py-12 px-4 md:px-8">
           <div className="max-w-4xl mx-auto">
@@ -92,7 +92,7 @@ export default function OrdersPage() {
               className="mb-10"
             >
               <div className="flex items-center gap-3 mb-6">
-                <ShoppingBag className="w-8 h-8 text-sky-500 dark:text-sky-400" />
+                <ShoppingBag className="w-8 h-8 text-orange-500 dark:text-orange-400" />
                 <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white">
                   Your Orders
                 </h1>
@@ -108,8 +108,8 @@ export default function OrdersPage() {
                     onClick={() => setFilter(option.value)}
                     className={`px-5 py-2 rounded-full font-bold transition-all whitespace-nowrap border text-sm uppercase tracking-widest ${
                       filter === option.value
-                        ? 'bg-sky-500 text-white shadow-[0_0_15px_rgba(14,165,233,0.4)] border-sky-400'
-                        : 'bg-white dark:bg-white/5 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-sky-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
+                        ? 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)] border-orange-400'
+                        : 'bg-white dark:bg-white/5 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
                     }`}
                   >
                     {option.label}
@@ -154,7 +154,7 @@ export default function OrdersPage() {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => navigate('/')}
-                  className="px-8 py-4 bg-sky-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(14,165,233,0.4)] hover:bg-sky-400 transition-all uppercase tracking-widest text-sm"
+                  className="px-8 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-widest text-sm"
                 >
                   Browse Shops
                 </motion.button>
@@ -170,12 +170,12 @@ export default function OrdersPage() {
                       <motion.div
                         whileHover={{ scale: 1.02, y: -5 }}
                         onClick={() => navigate(`/orders/${order._id}`)}
-                        className="cursor-pointer bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 group hover:shadow-[0_8px_40px_rgba(14,165,233,0.15)] hover:border-sky-500/30 transition-all"
+                        className="cursor-pointer bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 group hover:shadow-[0_8px_40px_rgba(249,115,22,0.15)] hover:border-orange-500/30 transition-all"
                       >
                         <div className="p-6">
                           <div className="flex items-start justify-between mb-4">
                             <div className="flex-1">
-                              <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-colors">
+                              <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1 group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
                                 {order.shop?.name || 'Order'}
                               </h3>
                               <div className="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400 font-bold">
@@ -203,7 +203,7 @@ export default function OrdersPage() {
                                 {order.status.charAt(0).toUpperCase() + order.status.slice(1).replace('_', ' ')}
                               </Badge>
                             </div>
-                            <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-sky-400 transition-colors" />
+                            <ArrowRight className="w-5 h-5 text-slate-500 group-hover:text-orange-400 transition-colors" />
                           </div>
                         </div>
                       </motion.div>
@@ -218,3 +218,4 @@ export default function OrdersPage() {
     </PageTransition>
   )
 }
+
