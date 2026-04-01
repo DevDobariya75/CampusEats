@@ -1,424 +1,506 @@
-import User from "../models/users.model.js"
-import Shop from "../models/shops.model.js"
-import { ApiError } from "../utils/ApiError.js"
-import { ApiResponse } from "../utils/ApiResponse.js"
-import { asyncHandler } from "../utils/asyncHandler.js"
-import { uploadOnCloudinary } from "../utils/cloudinary.js"
-import jwt from "jsonwebtoken"
-// Helper function to generate tokens
-const generateAccessAndRefreshTokens = async (userId) => {
-    try {
-        const user = await User.findById(userId)
-        const accessToken = user.generateAccessToken()
-        const refreshToken = user.generateRefreshToken()
+import User from '../models/users.model.js'
+import Shop from '../models/shops.model.js'
+import { ApiError } from '../utils/ApiError.js'
+import { ApiResponse } from '../utils/ApiResponse.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
+import { uploadOnCloudinary } from '../utils/cloudinary.js'
+import {
+  changeCognitoPassword,
+  confirmCognitoSignUp,
+  confirmForgotPassword,
+  loginWithCognito,
+  refreshCognitoToken,
+  resendCognitoSignUpCode,
+  signOutCognitoSession,
+  signUpCognitoUser,
+  startForgotPassword,
+} from '../services/auth.js'
 
-        user.refreshToken = refreshToken
-        await user.save({ validateBeforeSave: false })
+const validRoles = ['customer', 'admin', 'shopkeeper', 'delivery']
 
-        return { accessToken, refreshToken }
-    } catch (error) {
-        throw new ApiError(500, "Something went wrong while generating refresh and access token")
-    }
+const toSafeUser = (userDoc) => {
+  if (!userDoc) {
+    return null
+  }
+
+  const user = userDoc.toObject ? userDoc.toObject() : userDoc
+  delete user.password
+  delete user.refreshToken
+  return user
 }
 
-// Register User
+const mapCognitoError = (error) => {
+  if (!error?.name) {
+    return new ApiError(500, 'Authentication service unavailable')
+  }
+
+  if (
+    error?.name === 'InvalidParameterException' &&
+    error?.message?.includes('USER_PASSWORD_AUTH flow not enabled for this client')
+  ) {
+    return new ApiError(
+      500,
+      'Cognito app client is misconfigured: enable USER_PASSWORD_AUTH in Cognito app client authentication flows.',
+    )
+  }
+
+  if (
+    error?.name === 'InvalidParameterException' &&
+    error?.message?.includes('ADMIN_USER_PASSWORD_AUTH flow not enabled for this client')
+  ) {
+    return new ApiError(
+      500,
+      'Cognito app client is misconfigured: enable ADMIN_USER_PASSWORD_AUTH or USER_PASSWORD_AUTH in app client authentication flows.',
+    )
+  }
+
+  if (
+    error?.name === 'UnrecognizedClientException' ||
+    error?.name === 'InvalidClientTokenId' ||
+    error?.name === 'AccessDeniedException'
+  ) {
+    return new ApiError(
+      500,
+      'Server AWS credentials are missing/invalid for Cognito admin auth fallback. Configure AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_REGION or enable USER_PASSWORD_AUTH in app client.',
+    )
+  }
+
+  if (
+    error?.name === 'InvalidParameterException' &&
+    error?.message?.includes('REFRESH_TOKEN_AUTH flow not enabled for this client')
+  ) {
+    return new ApiError(
+      500,
+      'Cognito app client is misconfigured: enable REFRESH_TOKEN_AUTH in Cognito app client authentication flows.',
+    )
+  }
+
+  const errorMap = {
+    UserNotConfirmedException: new ApiError(403, 'Account is not verified. Please confirm OTP first.'),
+    NotAuthorizedException: new ApiError(401, 'Invalid email or password'),
+    UserNotFoundException: new ApiError(401, 'Invalid email or password'),
+    UsernameExistsException: new ApiError(409, 'Email already registered in Cognito'),
+    InvalidPasswordException: new ApiError(400, 'Password does not meet Cognito policy'),
+    CodeMismatchException: new ApiError(400, 'Invalid OTP code'),
+    ExpiredCodeException: new ApiError(400, 'OTP has expired. Request a new code.'),
+    LimitExceededException: new ApiError(429, 'Too many attempts. Please try again later.'),
+  }
+
+  return errorMap[error.name] || new ApiError(500, error.message || 'Authentication request failed')
+}
+
 const registerUser = asyncHandler(async (req, res) => {
-    const { name, email, password, role, phone, shopName, shopDescription } = req.body
+  const { name, email, password, role, phone, shopName, shopDescription } = req.body
 
-    // Validation
-    if (!name || !email || !password || !role || !phone) {
-        throw new ApiError(400, "All fields are required")
+  if (!name || !email || !password || !role || !phone) {
+    throw new ApiError(400, 'All fields are required')
+  }
+
+  const normalizedEmail = email.toLowerCase().trim()
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    throw new ApiError(400, 'Invalid email format')
+  }
+
+  if (password.length < 8) {
+    throw new ApiError(400, 'Password must be at least 8 characters')
+  }
+
+  if (!validRoles.includes(role)) {
+    throw new ApiError(400, `Invalid role. Must be one of: ${validRoles.join(', ')}`)
+  }
+
+  if (role === 'shopkeeper') {
+    if (!shopName || !shopName.trim() || !shopDescription || !shopDescription.trim()) {
+      throw new ApiError(400, 'Shop name and shop description are required for shopkeeper registration')
     }
+  }
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        throw new ApiError(400, "Invalid email format")
+  const existingUser = await User.findOne({ email: normalizedEmail })
+  if (existingUser?.isDeleted) {
+    throw new ApiError(403, 'This user account is deleted')
+  }
+
+  if (existingUser?.isActive) {
+    throw new ApiError(409, 'Email already registered')
+  }
+
+  let cognitoSignUp
+  try {
+    cognitoSignUp = await signUpCognitoUser({
+      email: normalizedEmail,
+      password,
+      attributes: {
+        name: name.trim(),
+      },
+    })
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+
+  let imageUrl = existingUser?.imageUrl || null
+  if (req.file) {
+    const uploadedImage = await uploadOnCloudinary(req.file.path)
+    if (uploadedImage) {
+      imageUrl = uploadedImage.url
     }
+  }
 
-    if (password.length < 8) {
-        throw new ApiError(400, "Password must be at least 8 characters")
-    }
-
-    // Validate role against model enum
-    const validRoles = ['customer', 'admin', 'shopkeeper', 'delivery']
-    if (!validRoles.includes(role)) {
-        throw new ApiError(400, `Invalid role. Must be one of: ${validRoles.join(', ')}`)
-    }
-
-    if (role === 'shopkeeper') {
-        if (!shopName || !shopName.trim() || !shopDescription || !shopDescription.trim()) {
-            throw new ApiError(400, "Shop name and shop description are required for shopkeeper registration")
-        }
-    }
-
-    // Check if user already exists
-    const existingUser = await User.findOne({ email })
-    if (existingUser) {
-        throw new ApiError(409, "Email already registered")
-    }
-
-    // Handle profile picture upload
-    let imageUrl = null
-    if (req.file) {
-        const uploadedImage = await uploadOnCloudinary(req.file.path)
-        if (uploadedImage) {
-            imageUrl = uploadedImage.url
-        }
-    }
-
-    // Create user
-    const user = await User.create({
-        name,
-        email,
-        password, // Schema will hash this
+  const upsertedUser = await User.findOneAndUpdate(
+    { email: normalizedEmail },
+    {
+      $set: {
+        name: name.trim(),
+        email: normalizedEmail,
+        cognitoSub: cognitoSignUp?.UserSub,
         role,
         phone,
         imageUrl,
+        isActive: false,
+        isDeleted: false,
+      },
+    },
+    {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+    },
+  )
+
+  let createdShop = null
+  if (role === 'shopkeeper') {
+    const existingShop = await Shop.findOne({ owner: upsertedUser._id, isDeleted: false })
+    if (!existingShop) {
+      createdShop = await Shop.create({
+        name: shopName.trim(),
+        description: shopDescription.trim(),
+        owner: upsertedUser._id,
+        isOpen: true,
         isActive: true,
-        isDeleted: false
-    })
-
-    let createdShop = null
-    if (role === 'shopkeeper') {
-        try {
-            createdShop = await Shop.create({
-                name: shopName.trim(),
-                description: shopDescription.trim(),
-                owner: user._id,
-                isOpen: true,
-                isActive: true,
-                isDeleted: false,
-                totalSales: 0
-            })
-        } catch (error) {
-            await User.findByIdAndDelete(user._id)
-            throw new ApiError(500, "Failed to create shop during shopkeeper registration")
-        }
+        isDeleted: false,
+        totalSales: 0,
+      })
     }
+  }
 
-    const createdUser = await User.findById(user._id).select("-password -refreshToken")
-
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong while registering the user")
-    }
-
-    return res.status(201).json(
-        new ApiResponse(
-            201,
-            {
-                user: createdUser,
-                shop: createdShop
-            },
-            "User registered successfully"
-        )
-    )
+  return res.status(201).json(
+    new ApiResponse(
+      201,
+      {
+        user: toSafeUser(upsertedUser),
+        shop: createdShop,
+        requiresOtp: true,
+      },
+      'Registration initiated. Verify OTP sent to your email.',
+    ),
+  )
 })
 
-// Login User
+const confirmRegistrationOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body
+
+  if (!email || !otp) {
+    throw new ApiError(400, 'Email and OTP are required')
+  }
+
+  try {
+    await confirmCognitoSignUp({ email, code: otp })
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+
+  const user = await User.findOneAndUpdate(
+    { email: email.toLowerCase().trim() },
+    { $set: { isActive: true, isDeleted: false } },
+    { new: true },
+  )
+
+  if (!user) {
+    throw new ApiError(404, 'Local user profile not found. Register again first.')
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { user: toSafeUser(user) }, 'Account verified successfully'))
+})
+
+const resendRegistrationOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  if (!email) {
+    throw new ApiError(400, 'Email is required')
+  }
+
+  try {
+    await resendCognitoSignUpCode(email)
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+
+  return res.status(200).json(new ApiResponse(200, {}, 'Verification OTP sent again'))
+})
+
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body
+  const { email, password } = req.body
 
-    // Validation
-    if (!email) {
-        throw new ApiError(400, "Email is required")
-    }
+  if (!email || !password) {
+    throw new ApiError(400, 'Email and password are required')
+  }
 
-    if (!password) {
-        throw new ApiError(400, "Password is required")
-    }
+  let cognitoResult
+  try {
+    cognitoResult = await loginWithCognito({ email, password })
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
 
-    // Find user
-    const user = await User.findOne({ email })
+  const user = await User.findOne({ email: email.toLowerCase().trim() })
 
-    if (!user) {
-        throw new ApiError(401, "Invalid email or password")
-    }
+  if (!user || user.isDeleted) {
+    throw new ApiError(403, 'User account is not available in application')
+  }
 
-    if (user.isDeleted) {
-        throw new ApiError(401, "User account has been deleted")
-    }
+  if (!user.isActive) {
+    throw new ApiError(403, 'User account is not active. Please verify your OTP first.')
+  }
 
-    if (!user.isActive) {
-        throw new ApiError(401, "User account is inactive")
-    }
+  const authResult = cognitoResult.AuthenticationResult || {}
 
-    // Check password
-    const isPasswordValid = await user.isPasswordCorrect(password)
-
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Invalid email or password")
-    }
-
-    // Generate tokens
-    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
-
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
-
-    const options = {
-        httpOnly: true,
-        sameSite: 'strict'
-    }
-
-    return res
-        .status(200)
-        .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-            new ApiResponse(
-                200,
-                loggedInUser,
-                "User logged in successfully"
-            )
-        )
-})
-
-// Logout User
-const logoutUser = asyncHandler(async (req, res) => {
-    // User should be authenticated before this
-    const userId = req.user?._id
-
-    if (!userId) {
-        throw new ApiError(401, "User not authenticated")
-    }
-
-    await User.findByIdAndUpdate(
-        userId,
-        {
-            $unset: {
-                refreshToken: 1
-            }
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: toSafeUser(user),
+        tokens: {
+          accessToken: authResult.AccessToken,
+          idToken: authResult.IdToken,
+          refreshToken: authResult.RefreshToken,
+          expiresIn: authResult.ExpiresIn,
+          tokenType: authResult.TokenType || 'Bearer',
         },
-        {
-            new: true
-        }
-    )
-
-    const options = {
-        httpOnly: true,
-        sameSite: 'strict'
-    }
-
-    return res
-        .status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
-        .json(new ApiResponse(200, {}, "User logged out successfully"))
+      },
+      'User logged in successfully',
+    ),
+  )
 })
 
-// Get Current User
-const getCurrentUser = asyncHandler(async (req, res) => {
-    if (!req.user) {
-        throw new ApiError(401, "User not authenticated")
-    }
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, req.user, "Current user fetched successfully"))
-})
-
-// Get User by ID
-const getUserById = asyncHandler(async (req, res) => {
-    const { userId } = req.params
-
-    if (!userId) {
-        throw new ApiError(400, "User ID is required")
-    }
-
-    const user = await User.findById(userId).select("-password -refreshToken")
-
-    if (!user || user.isDeleted) {
-        throw new ApiError(404, "User not found")
-    }
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, user, "User fetched successfully"))
-})
-
-// Update User Profile
-const updateUserProfile = asyncHandler(async (req, res) => {
-    const { name, phone } = req.body
-    const userId = req.user?._id
-
-    if (!userId) {
-        throw new ApiError(401, "User not authenticated")
-    }
-
-    // Validation
-    if (!name && !phone && !req.file) {
-        throw new ApiError(400, "At least one field is required for update")
-    }
-
-    const updateData = {}
-    if (name) {
-        updateData.name = name
-    }
-    if (phone) {
-        updateData.phone = phone
-    }
-
-    // Handle profile picture upload
-    if (req.file) {
-        const uploadedImage = await uploadOnCloudinary(req.file.path)
-        if (uploadedImage) {
-            updateData.imageUrl = uploadedImage.url
-        }
-    }
-
-    const user = await User.findByIdAndUpdate(
-        userId,
-        { $set: updateData },
-        { new: true }
-    ).select("-password -refreshToken")
-
-    if (!user) {
-        throw new ApiError(404, "User not found")
-    }
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, user, "User profile updated successfully"))
-})
-
-// Change Password
-const changePassword = asyncHandler(async (req, res) => {
-    const { oldPassword, newPassword } = req.body
-    const userId = req.user?._id
-
-    if (!userId) {
-        throw new ApiError(401, "User not authenticated")
-    }
-
-    // Validation
-    if (!oldPassword) {
-        throw new ApiError(400, "Old password is required")
-    }
-
-    if (!newPassword) {
-        throw new ApiError(400, "New password is required")
-    }
-
-    if (newPassword.length < 6) {
-        throw new ApiError(400, "New password must be at least 6 characters")
-    }
-
-    if (oldPassword === newPassword) {
-        throw new ApiError(400, "New password must be different from old password")
-    }
-
-    // Get user with password field
-    const user = await User.findById(userId)
-
-    if (!user) {
-        throw new ApiError(404, "User not found")
-    }
-
-    // Check old password
-    const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
-
-    if (!isPasswordCorrect) {
-        throw new ApiError(401, "Old password is incorrect")
-    }
-
-    // Update password
-    user.password = newPassword
-    await user.save({ validateBeforeSave: false })
-
-    return res
-        .status(200)
-        .json(new ApiResponse(200, {}, "Password changed successfully"))
-})
-
-// Delete User (Soft Delete)
-const deleteUser = asyncHandler(async (req, res) => {
-    const userId = req.user?._id
-
-    if (!userId) {
-        throw new ApiError(401, "User not authenticated")
-    }
-
-    const user = await User.findByIdAndUpdate(
-        userId,
-        {
-            $set: {
-                isDeleted: true,
-                isActive: false
-            }
-        },
-        { new: true }
-    )
-
-    if (!user) {
-        throw new ApiError(404, "User not found")
-    }
-
-    // Clear tokens
-    const options = {
-        httpOnly: true,
-        sameSite: 'strict'
-    }
-
-    return res
-        .status(200)
-        .clearCookie("accessToken", options)
-        .clearCookie("refreshToken", options)
-        .json(new ApiResponse(200, {}, "User account deleted successfully"))
-})
-
-// Refresh Access Token
 const refreshAccessToken = asyncHandler(async (req, res) => {
-    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+  const { email, refreshToken } = req.body
 
-    if (!incomingRefreshToken) {
-        throw new ApiError(401, "Unauthorized request")
+  if (!email || !refreshToken) {
+    throw new ApiError(400, 'Email and refresh token are required')
+  }
+
+  try {
+    const result = await refreshCognitoToken({ email, refreshToken })
+    const authResult = result.AuthenticationResult || {}
+
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          accessToken: authResult.AccessToken,
+          idToken: authResult.IdToken,
+          refreshToken,
+          expiresIn: authResult.ExpiresIn,
+          tokenType: authResult.TokenType || 'Bearer',
+        },
+        'Access token refreshed successfully',
+      ),
+    )
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+})
+
+const logoutUser = asyncHandler(async (req, res) => {
+  const accessToken = req.header('Authorization')?.replace('Bearer ', '') || req.body?.accessToken
+
+  try {
+    await signOutCognitoSession(accessToken)
+  } catch {
+    // Ignore signout errors to keep logout idempotent.
+  }
+
+  return res.status(200).json(new ApiResponse(200, {}, 'User logged out successfully'))
+})
+
+const forgotPassword = asyncHandler(async (req, res) => {
+  const { email } = req.body
+
+  if (!email) {
+    throw new ApiError(400, 'Email is required')
+  }
+
+  try {
+    await startForgotPassword(email)
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, 'Password reset OTP sent to your email'))
+})
+
+const resetPassword = asyncHandler(async (req, res) => {
+  const { email, otp, newPassword } = req.body
+
+  if (!email || !otp || !newPassword) {
+    throw new ApiError(400, 'Email, OTP and new password are required')
+  }
+
+  if (newPassword.length < 8) {
+    throw new ApiError(400, 'Password must be at least 8 characters')
+  }
+
+  try {
+    await confirmForgotPassword({ email, code: otp, newPassword })
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+
+  return res.status(200).json(new ApiResponse(200, {}, 'Password reset successfully'))
+})
+
+const getCurrentUser = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(401, 'User not authenticated')
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, toSafeUser(req.user), 'Current user fetched successfully'))
+})
+
+const getUserById = asyncHandler(async (req, res) => {
+  const { userId } = req.params
+
+  if (!userId) {
+    throw new ApiError(400, 'User ID is required')
+  }
+
+  const user = await User.findById(userId)
+
+  if (!user || user.isDeleted) {
+    throw new ApiError(404, 'User not found')
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, toSafeUser(user), 'User fetched successfully'))
+})
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+  const { name, phone } = req.body
+  const userId = req.user?._id
+
+  if (!userId) {
+    throw new ApiError(401, 'User not authenticated')
+  }
+
+  if (!name && !phone && !req.file) {
+    throw new ApiError(400, 'At least one field is required for update')
+  }
+
+  const updateData = {}
+  if (name) {
+    updateData.name = name
+  }
+
+  if (phone) {
+    updateData.phone = phone
+  }
+
+  if (req.file) {
+    const uploadedImage = await uploadOnCloudinary(req.file.path)
+    if (uploadedImage) {
+      updateData.imageUrl = uploadedImage.url
     }
+  }
 
-    try {
-        const decodedToken = jwt.verify(
-            incomingRefreshToken,
-            process.env.REFRESH_TOKEN_SECRET
-        )
+  const user = await User.findByIdAndUpdate(userId, { $set: updateData }, { new: true })
 
-        const user = await User.findById(decodedToken?._id)
+  if (!user) {
+    throw new ApiError(404, 'User not found')
+  }
 
-        if (!user) {
-            throw new ApiError(401, "Invalid refresh token")
-        }
+  return res
+    .status(200)
+    .json(new ApiResponse(200, toSafeUser(user), 'User profile updated successfully'))
+})
 
-        if (incomingRefreshToken !== user?.refreshToken) {
-            throw new ApiError(401, "Refresh token is expired or used")
-        }
+const changePassword = asyncHandler(async (req, res) => {
+  const { oldPassword, currentPassword, newPassword } = req.body
+  const current = oldPassword || currentPassword
 
-        const { accessToken, refreshToken: newRefreshToken } = await generateAccessAndRefreshTokens(user._id)
+  if (!current || !newPassword) {
+    throw new ApiError(400, 'Current password and new password are required')
+  }
 
-        const options = {
-            httpOnly: true,
-            sameSite: 'strict'
-        }
+  if (newPassword.length < 8) {
+    throw new ApiError(400, 'New password must be at least 8 characters')
+  }
 
-        return res
-            .status(200)
-            .cookie("accessToken", accessToken, options)
-            .cookie("refreshToken", newRefreshToken, options)
-            .json(
-                new ApiResponse(
-                    200,
-                    { accessToken, refreshToken: newRefreshToken },
-                    "Access token refreshed successfully"
-                )
-            )
-    } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid refresh token")
-    }
+  if (current === newPassword) {
+    throw new ApiError(400, 'New password must be different from current password')
+  }
+
+  const accessToken = req.header('Authorization')?.replace('Bearer ', '')
+  if (!accessToken) {
+    throw new ApiError(401, 'Access token required')
+  }
+
+  try {
+    await changeCognitoPassword({
+      accessToken,
+      oldPassword: current,
+      newPassword,
+    })
+  } catch (error) {
+    throw mapCognitoError(error)
+  }
+
+  return res.status(200).json(new ApiResponse(200, {}, 'Password changed successfully'))
+})
+
+const deleteUser = asyncHandler(async (req, res) => {
+  const userId = req.user?._id
+
+  if (!userId) {
+    throw new ApiError(401, 'User not authenticated')
+  }
+
+  const user = await User.findByIdAndUpdate(
+    userId,
+    {
+      $set: {
+        isDeleted: true,
+        isActive: false,
+      },
+    },
+    { new: true },
+  )
+
+  if (!user) {
+    throw new ApiError(404, 'User not found')
+  }
+
+  return res.status(200).json(new ApiResponse(200, {}, 'User account deleted successfully'))
 })
 
 export {
-    registerUser,
-    loginUser,
-    logoutUser,
-    getCurrentUser,
-    getUserById,
-    updateUserProfile,
-    changePassword,
-    deleteUser,
-    refreshAccessToken
+  registerUser,
+  confirmRegistrationOtp,
+  resendRegistrationOtp,
+  loginUser,
+  logoutUser,
+  forgotPassword,
+  resetPassword,
+  getCurrentUser,
+  getUserById,
+  updateUserProfile,
+  changePassword,
+  deleteUser,
+  refreshAccessToken,
 }

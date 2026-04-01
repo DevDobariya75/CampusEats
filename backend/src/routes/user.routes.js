@@ -1,8 +1,12 @@
 import { Router } from 'express'
 import {
     registerUser,
+    confirmRegistrationOtp,
+    resendRegistrationOtp,
     loginUser,
     logoutUser,
+    forgotPassword,
+    resetPassword,
     getCurrentUser,
     getUserById,
     updateUserProfile,
@@ -17,7 +21,11 @@ const router = Router()
 
 // Public routes
 router.post('/register', upload.single('profilePicture'), registerUser)
+router.post('/register/confirm-otp', confirmRegistrationOtp)
+router.post('/register/resend-otp', resendRegistrationOtp)
 router.post('/login', loginUser)
+router.post('/forgot-password', forgotPassword)
+router.post('/reset-password', resetPassword)
 router.post('/refresh-token', refreshAccessToken)
 
 // Protected routes
