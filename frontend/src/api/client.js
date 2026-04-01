@@ -1,4 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1'
+const ACCESS_TOKEN_KEY = 'cognitoAccessToken'
+const ID_TOKEN_KEY = 'cognitoIdToken'
 
 const isObject = (value) => value !== null && typeof value === 'object'
 
@@ -11,10 +13,12 @@ const normalizePayload = (payload) => {
 }
 
 export async function request(path, options = {}) {
+  const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ID_TOKEN_KEY)
   const config = {
     method: options.method || 'GET',
     credentials: 'include',
     headers: {
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...(options.headers || {}),
     },
   }

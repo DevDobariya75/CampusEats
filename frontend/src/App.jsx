@@ -24,6 +24,7 @@ import ShopDashboardPage from './pages/ShopDashboardPage'
 import ShopDetailPage from './pages/ShopDetailPage'
 import ShopItemsPage from './pages/ShopItemsPage'
 import ShopsPage from './pages/ShopsPage'
+import VerifyOTPPage from './pages/VerifyOTPPage'
 function RootRedirect() {
   const { user } = useAuth()
   
@@ -59,6 +60,7 @@ function App() {
         <AnimatePresence>{showSplash && <WelcomeSplash />}</AnimatePresence>
         <Routes>
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/verify-otp" element={<VerifyOTPPage />} />
 
         <Route path="/" element={<Layout />}>
           <Route path="login" element={<LoginPage />} />

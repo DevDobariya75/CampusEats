@@ -104,7 +104,7 @@ export default function RegisterPage() {
     setIsSubmitting(false)
 
     if (result.success) {
-      navigate('/login')
+      navigate(`/verify-otp?email=${encodeURIComponent(form.email)}`)
     }
   }
 

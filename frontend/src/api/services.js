@@ -2,9 +2,11 @@ import { request } from './client'
 
 export const userApi = {
   register: (formData) => request('/users/register', { method: 'POST', body: formData }),
+  confirmRegistration: (body) => request('/users/register/confirm-otp', { method: 'POST', body }),
+  resendRegistrationOtp: (body) => request('/users/register/resend-otp', { method: 'POST', body }),
   login: (body) => request('/users/login', { method: 'POST', body }),
   getCurrentUser: () => request('/users/current-user'),
-  logout: () => request('/users/logout', { method: 'POST' }),
+  logout: (body) => request('/users/logout', { method: 'POST', body }),
   updateProfile: (formData) => request('/users/profile', { method: 'PATCH', body: formData }),
   changePassword: (body) => request('/users/change-password', { method: 'POST', body }),
   forgotPassword: (body) => request('/users/forgot-password', { method: 'POST', body }),

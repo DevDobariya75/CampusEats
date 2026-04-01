@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { CheckCircle, AlertCircle, User, Lock, Upload, Mail, LogOut, Eye, EyeOff, Camera, Phone, MapPin } from 'lucide-react'
@@ -34,6 +34,11 @@ export default function ProfilePage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [passwordMessage, setPasswordMessage] = useState('')
   const [passwordError, setPasswordError] = useState('')
+
+  useEffect(() => {
+    setName(user?.name || '')
+    setPhone(user?.phone || '')
+  }, [user?.name, user?.phone])
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {

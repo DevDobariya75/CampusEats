@@ -6,8 +6,13 @@ import { formatPrice } from '../utils/helpers'
 
 export default function ShopDashboardPage() {
   const [shopId, setShopId] = useState('')
+  const [shop, setShop] = useState(null)
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
+  const [savingShop, setSavingShop] = useState(false)
+  const [shopForm, setShopForm] = useState({ name: '', description: '' })
+  const [shopImage, setShopImage] = useState(null)
+  const [shopPreview, setShopPreview] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [stats, setStats] = useState({
@@ -25,6 +30,7 @@ export default function ShopDashboardPage() {
       const myShopResponse = await shopsApi.getMine()
       const myShop = myShopResponse.data
       const currentShopId = myShop?._id || ''
+      setShop(myShop || null)
       setShopId(currentShopId)
 
       if (currentShopId) {
@@ -45,15 +51,42 @@ export default function ShopDashboardPage() {
           completedOrders,
         })
       } else {
+        setShop(null)
         setOrders([])
         setError('No shop found for this account.')
       }
     } catch (err) {
-      setError(err.message)
+      const text = String(err.message || '').toLowerCase()
+      if (text.includes('shop not found')) {
+        setShop(null)
+        setShopId('')
+        setOrders([])
+        setStats({
+          totalOrders: 0,
+          totalEarned: 0,
+          pendingOrders: 0,
+          completedOrders: 0,
+        })
+      } else {
+        setError(err.message)
+      }
     } finally {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    if (!shop) {
+      return
+    }
+
+    setShopForm({
+      name: shop.name || '',
+      description: shop.description || '',
+    })
+    setShopPreview(shop.imageUrl || '')
+    setShopImage(null)
+  }, [shop?._id])
 
   useEffect(() => {
     loadData()
@@ -108,6 +141,51 @@ export default function ShopDashboardPage() {
     { title: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
   ]
 
+  const handleShopImageChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) {
+      return
+    }
+
+    setShopImage(file)
+    setShopPreview(URL.createObjectURL(file))
+  }
+
+  const handleShopSave = async (event) => {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+
+    if (!shopForm.name.trim()) {
+      setError('Shop name is required')
+      return
+    }
+
+    try {
+      setSavingShop(true)
+      const formData = new FormData()
+      formData.append('name', shopForm.name.trim())
+      formData.append('description', shopForm.description.trim())
+      if (shopImage) {
+        formData.append('image', shopImage)
+      }
+
+      if (shop?._id) {
+        await shopsApi.update(shop._id, formData)
+        setMessage('Shop profile updated successfully.')
+      } else {
+        await shopsApi.create(formData)
+        setMessage('Shop profile created successfully.')
+      }
+
+      await loadData()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSavingShop(false)
+    }
+  }
+
   return (
     <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
       {/* Background Gradients */}
@@ -141,6 +219,74 @@ export default function ShopDashboardPage() {
           >
             <AlertCircle className="w-6 h-6 text-red-500" />
             <p className="text-red-400 font-bold tracking-widest uppercase text-sm">{error}</p>
+          </motion.div>
+        )}
+
+        {!loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
+          >
+            <div className="flex flex-col md:flex-row md:items-start gap-6">
+              <div className="w-32 h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/10 shrink-0">
+                <img
+                  src={shopPreview || 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600'}
+                  alt={shopForm.name || 'Shop'}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+
+              <form onSubmit={handleShopSave} className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <p className="text-xs font-black tracking-widest uppercase text-slate-500 dark:text-slate-400 mb-2">
+                    {shop?._id ? 'Shop Profile' : 'Create Your Shop'}
+                  </p>
+                </div>
+
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Shop Name</span>
+                  <input
+                    type="text"
+                    value={shopForm.name}
+                    onChange={(e) => setShopForm((prev) => ({ ...prev, name: e.target.value }))}
+                    className="mt-2 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-orange-500"
+                    placeholder="Enter your shop name"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Shop Image</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleShopImageChange}
+                    className="mt-2 block w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200"
+                  />
+                </label>
+
+                <label className="block md:col-span-2">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Description</span>
+                  <textarea
+                    rows="3"
+                    value={shopForm.description}
+                    onChange={(e) => setShopForm((prev) => ({ ...prev, description: e.target.value }))}
+                    className="mt-2 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-orange-500"
+                    placeholder="Tell customers about your shop"
+                  />
+                </label>
+
+                <div className="md:col-span-2 flex justify-end">
+                  <button
+                    type="submit"
+                    disabled={savingShop}
+                    className="px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-xs font-black uppercase tracking-widest transition-colors"
+                  >
+                    {savingShop ? 'Saving...' : shop?._id ? 'Update Shop' : 'Create Shop'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </motion.div>
         )}
 
