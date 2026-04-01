@@ -235,8 +235,8 @@ export default function Layout() {
               <div className="flex items-center gap-1.5 sm:gap-2.5 sm:ml-1.5 sm:border-l border-slate-200 dark:border-white/10 sm:pl-3">
                 <Link to="/profile" className="relative group rounded-full p-1 border border-slate-200 dark:border-white/10 hover:border-orange-500/50 transition-colors">
                   <motion.div whileHover={{ scale: 1.05 }} className="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
-                    {user.profilePicture ? (
-                      <img src={user.profilePicture} alt={user.name} className="w-full h-full object-cover" />
+                    {user.imageUrl ? (
+                      <img src={user.imageUrl} alt={user.name} className="w-full h-full object-cover" />
                     ) : (
                       <span>{getInitials(user.name || 'User')}</span>
                     )}

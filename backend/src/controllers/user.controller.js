@@ -57,11 +57,11 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 
     // Handle profile picture upload
-    let profilePicture = null
+    let imageUrl = null
     if (req.file) {
         const uploadedImage = await uploadOnCloudinary(req.file.path)
         if (uploadedImage) {
-            profilePicture = uploadedImage.url
+            imageUrl = uploadedImage.url
         }
     }
 
@@ -72,7 +72,7 @@ const registerUser = asyncHandler(async (req, res) => {
         password, // Schema will hash this
         role,
         phone,
-        profilePicture,
+        imageUrl,
         isActive: true,
         isDeleted: false
     })
@@ -260,7 +260,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     if (req.file) {
         const uploadedImage = await uploadOnCloudinary(req.file.path)
         if (uploadedImage) {
-            updateData.profilePicture = uploadedImage.url
+            updateData.imageUrl = uploadedImage.url
         }
     }
 

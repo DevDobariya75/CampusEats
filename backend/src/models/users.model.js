@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    imageUrl:{
+        type: String,
+    },
     phone:{
         type: String,
         required: true

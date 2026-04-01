@@ -167,8 +167,8 @@ export default function ProfilePage() {
                     whileHover={{ scale: 1.05 }}
                     className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-2xl font-black shadow-[0_0_20px_rgba(249,115,22,0.4)]"
                   >
-                    {profilePreview || user?.profilePicture ? (
-                      <img src={profilePreview || user?.profilePicture} alt={user?.name} className="w-full h-full rounded-full object-cover" />
+                    {profilePreview || user?.imageUrl ? (
+                      <img src={profilePreview || user?.imageUrl} alt={user?.name} className="w-full h-full rounded-full object-cover" />
                     ) : (
                       <span>{getInitials(user?.name || 'User')}</span>
                     )}
