@@ -12,8 +12,6 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [filter, setFilter] = useState('all')
-  const [filteredOrders, setFilteredOrders] = useState([])
 
   const load = async () => {
     try {
@@ -41,16 +39,6 @@ export default function OrdersPage() {
     return () => clearInterval(intervalId)
   }, [])
 
-  useEffect(() => {
-    let results = orders
-
-    if (filter !== 'all') {
-      results = results.filter((order) => order.status === filter)
-    }
-
-    setFilteredOrders(results)
-  }, [orders, filter])
-
   const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
@@ -65,16 +53,6 @@ export default function OrdersPage() {
         return <AlertCircle className="w-5 h-5" />
     }
   }
-
-  const statusOptions = [
-    { value: 'all', label: 'All Orders' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'confirmed', label: 'Confirmed' },
-    { value: 'prepared', label: 'Ready' },
-    { value: 'on_the_way', label: 'On The Way' },
-    { value: 'delivered', label: 'Delivered' },
-    { value: 'cancelled', label: 'Cancelled' },
-  ]
 
   return (
     <PageTransition>
@@ -96,25 +74,6 @@ export default function OrdersPage() {
                 <h1 className="text-4xl font-black font-display text-slate-900 dark:text-white">
                   Your Orders
                 </h1>
-              </div>
-
-              {/* Filter Tabs */}
-              <div className="flex gap-2 overflow-x-auto pb-2 flex-wrap custom-scrollbar">
-                {statusOptions.map((option) => (
-                  <motion.button
-                    key={option.value}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setFilter(option.value)}
-                    className={`px-5 py-2 rounded-full font-bold transition-all whitespace-nowrap border text-sm uppercase tracking-widest ${
-                      filter === option.value
-                        ? 'bg-orange-500 text-white shadow-[0_0_15px_rgba(249,115,22,0.4)] border-orange-400'
-                        : 'bg-white dark:bg-white/5 backdrop-blur-md border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-orange-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/10'
-                    }`}
-                  >
-                    {option.label}
-                  </motion.button>
-                ))}
               </div>
             </motion.div>
 
@@ -141,7 +100,7 @@ export default function OrdersPage() {
             )}
 
             {/* Empty State */}
-            {!loading && filteredOrders.length === 0 && (
+            {!loading && orders.length === 0 && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -162,10 +121,10 @@ export default function OrdersPage() {
             )}
 
             {/* Orders List */}
-            {!loading && filteredOrders.length > 0 && (
+            {!loading && orders.length > 0 && (
               <StaggerContainer delay={0.1}>
                 <div className="space-y-4">
-                  {filteredOrders.map((order) => (
+                  {orders.map((order) => (
                     <StaggerItem key={order._id}>
                       <motion.div
                         whileHover={{ scale: 1.02, y: -5 }}

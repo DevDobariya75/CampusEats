@@ -2,16 +2,16 @@ import { Suspense, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Canvas } from '@react-three/fiber';
-import { ContactShadows, Environment, Float } from '@react-three/drei';
+import { Environment, Float } from '@react-three/drei';
 import { Search, MapPin, Clock, ChefHat, Star, Filter, RotateCcw, ChevronDown } from 'lucide-react';
 
 // Custom API & UI Components
 import { shopsApi } from '../api/services';
 import { PageTransition, LoadingSpinner } from '../components/ui/Button';
 import { StaggerItem } from '../components/ui/3DElements';
-import BurgerModel from '../components/BurgerModel';
+import FoodCarouselModel, { FOOD_SHOWCASE_ITEMS } from '../components/FoodCarouselModel';
 
-const StaticBurgerScene = ({ isMobile, isTablet }) => {
+const StaticFoodScene = ({ isMobile, isTablet, activeFoodIndex }) => {
   const baseScale = isMobile ? 0.94 : isTablet ? 1.05 : 1.18
   const yPosition = isMobile ? -0.08 : isTablet ? 0.04 : 0.2
 
@@ -20,18 +20,10 @@ const StaticBurgerScene = ({ isMobile, isTablet }) => {
       <Float speed={isMobile ? 1.45 : 1.9} rotationIntensity={isMobile ? 0.28 : 0.45} floatIntensity={isMobile ? 0.95 : 1.35}>
         <group position={[0, yPosition, 0]} scale={baseScale}>
           <Suspense fallback={null}>
-            <BurgerModel progress={0} />
+            <FoodCarouselModel activeIndex={activeFoodIndex} />
           </Suspense>
         </group>
       </Float>
-      <ContactShadows
-        position={isMobile ? [0, -1.03, 0] : isTablet ? [0, -0.92, 0] : [0, -0.8, 0]}
-        scale={isMobile ? 6.2 : isTablet ? 7.0 : 8.0}
-        blur={2.5}
-        opacity={0.36}
-        far={4.0}
-        color="#000000"
-      />
       <Environment preset="city" />
     </>
   );
@@ -46,6 +38,7 @@ export default function ShopsPage() {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all');
   const [sortBy, setSortBy] = useState('popular');
+  const [activeFoodIndex, setActiveFoodIndex] = useState(0);
 
   const loadShops = useCallback(async () => {
     try {
@@ -72,8 +65,24 @@ export default function ShopsPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      setActiveFoodIndex((currentIndex) => (currentIndex + 1) % FOOD_SHOWCASE_ITEMS.length);
+    }, 4200);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
   const isMobile = viewportWidth < 768
   const isTablet = viewportWidth >= 768 && viewportWidth < 1024
+  const activeFoodLabel = FOOD_SHOWCASE_ITEMS[activeFoodIndex]?.label || 'Cheeseburger';
+
+  const scrollToBento = () => {
+    const target = document.getElementById('bento')
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
 
   return (
     <PageTransition>
@@ -81,19 +90,31 @@ export default function ShopsPage() {
 
         {/* --- HERO SECTION WITH 3D CANVAS --- */}
         <section className="relative h-[min(78vh,760px)] min-h-[520px] sm:min-h-[580px] lg:min-h-[660px] w-full bg-[#fefaf4] dark:bg-[#060b13] transition-colors duration-300 grid [grid-template-areas:'stack'] overflow-hidden rounded-b-[2rem]">
-          {/* Background Gradients */}
-          <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_50%_42%,rgba(255,170,88,0.34),transparent_45%),radial-gradient(circle_at_12%_16%,rgba(255,255,255,0.9),transparent_46%),radial-gradient(circle_at_88%_14%,rgba(255,255,255,0.72),transparent_46%)] dark:hidden" />
-          <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_50%_52%,rgba(249,115,22,0.26),transparent_40%),radial-gradient(circle_at_50%_48%,rgba(251,146,60,0.2),transparent_52%)] dark:hidden" />
-          <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_20%_15%,rgba(60,130,246,0.22),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(56,189,248,0.12),transparent_40%)] hidden dark:block" />
-          <div className="pointer-events-none [grid-area:stack] bg-gradient-to-b from-white/42 via-transparent to-white/60 dark:from-black/30 dark:via-transparent dark:to-black/35" />
+          {/* Keep background calm so 3D objects stay crisp and readable */}
+          <div className="pointer-events-none [grid-area:stack] bg-[radial-gradient(circle_at_50%_46%,rgba(249,115,22,0.12),transparent_52%)] dark:bg-[radial-gradient(circle_at_50%_48%,rgba(14,165,233,0.08),transparent_52%)]" />
 
-          <div className="[grid-area:stack] z-0 pointer-events-auto [filter:drop-shadow(0_28px_42px_rgba(249,115,22,0.28))]">
+          <div className="[grid-area:stack] z-0 pointer-events-auto">
             <Canvas camera={{ position: isMobile ? [0, 0.42, 10.65] : isTablet ? [0, 0.76, 10.5] : [0, 0.9, 10.2], fov: isMobile ? 37 : isTablet ? 35 : 33 }} dpr={[1, 2]} className="w-full h-full">
               <ambientLight intensity={0.74} color="#fff2e2" />
               <directionalLight position={[4, 5, 6]} intensity={1.2} color="#ffd8ad" />
               <directionalLight position={[-3, 2, 4]} intensity={0.55} color="#ff9f45" />
-              <StaticBurgerScene isMobile={isMobile} isTablet={isTablet} />
+              <StaticFoodScene isMobile={isMobile} isTablet={isTablet} activeFoodIndex={activeFoodIndex} />
             </Canvas>
+          </div>
+
+          <div className="[grid-area:stack] z-20 pointer-events-none flex justify-center items-end pb-[4.8rem] md:items-start md:justify-end md:pr-8 md:pt-7 md:pb-0">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeFoodLabel}
+                initial={{ opacity: 0, y: 14, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.42, ease: 'easeOut' }}
+                className="rounded-full border border-white/70 bg-white/72 px-4 py-1.5 text-xs font-black uppercase tracking-[0.2em] text-slate-900 backdrop-blur-md shadow-[0_12px_30px_rgba(15,23,42,0.16)] dark:border-white/15 dark:bg-black/40 dark:text-orange-200"
+              >
+                {activeFoodLabel}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Text Content */}
@@ -111,7 +132,7 @@ export default function ShopsPage() {
                     <p className="text-[11px] font-bold tracking-[0.28em] uppercase text-slate-900 dark:text-orange-300/95 font-serif italic [text-shadow:0_1px_7px_rgba(255,255,255,0.6)] dark:[text-shadow:0_1px_8px_rgba(0,0,0,0.45)]">
                       The
                     </p>
-                    <h1 className="mt-1 text-[clamp(1.6rem,7.8vw,2.6rem)] leading-[0.92] font-black font-serif uppercase tracking-tight text-slate-950 dark:text-white [text-shadow:0_4px_16px_rgba(255,255,255,0.72)] dark:[text-shadow:0_4px_18px_rgba(0,0,0,0.62)]">
+                    <h1 className="mt-1 text-[clamp(1.6rem,7.8vw,2.6rem)] leading-[0.92] font-semibold font-serif uppercase tracking-tight text-slate-950 dark:text-white [text-shadow:0_4px_16px_rgba(255,255,255,0.72)] dark:[text-shadow:0_4px_18px_rgba(0,0,0,0.62)]">
                       MIDDAY <br /> CRAVINGS
                     </h1>
                   </div>
@@ -129,7 +150,7 @@ export default function ShopsPage() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => navigate('/register')}
+                      onClick={scrollToBento}
                       className="mt-4 inline-flex items-center justify-center rounded-full bg-orange-500 px-6 py-2.5 text-sm font-black uppercase tracking-wide text-white shadow-[0_10px_26px_rgba(249,115,22,0.45)] transition-all hover:bg-orange-400"
                     >
                       Order Now
@@ -140,10 +161,10 @@ export default function ShopsPage() {
 
               {/* Desktop / Horizontal Layout */}
               <div className="hidden md:flex h-full items-center">
-                <div className="mx-auto flex flex-row justify-between w-full max-w-7xl items-center gap-6 lg:gap-10">
-                  <motion.div initial={{ x: -28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-left">
+                <div className="mx-auto flex w-full max-w-[92rem] flex-row items-center justify-between gap-10 px-2 sm:px-4 lg:gap-16 lg:px-8 xl:gap-24 xl:px-12">
+                  <motion.div initial={{ x: -28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-left md:-translate-x-6 lg:-translate-x-10 xl:-translate-x-14">
                     <p className="text-sm lg:text-base font-bold tracking-[0.24em] uppercase mb-2 text-slate-900 dark:text-white font-serif italic">The</p>
-                    <h1 className="text-[clamp(3.6rem,7.4vw,6.8rem)] leading-[0.9] font-black text-slate-950 dark:text-white font-serif uppercase tracking-tight">
+                    <h1 className="text-[clamp(3.6rem,7.4vw,6.8rem)] leading-[0.9] font-semibold text-slate-950 dark:text-white font-serif uppercase tracking-tight">
                       MIDDAY <br /> CRAVINGS
                     </h1>
                     <p className="mt-4 text-slate-700 dark:text-white/75 text-base max-w-sm leading-relaxed">
@@ -151,23 +172,23 @@ export default function ShopsPage() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => navigate('/register')}
+                      onClick={scrollToBento}
                       className="mt-8 inline-flex items-center justify-center rounded-full bg-orange-500 px-9 py-3.5 text-[1.08rem] font-black uppercase tracking-wide text-white shadow-[0_12px_32px_rgba(249,115,22,0.42)] transition-all hover:bg-orange-400"
                     >
                       Order Now
                     </button>
                   </motion.div>
 
-                  <motion.div initial={{ x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-right pr-1">
+                  <motion.div initial={{ x: 28, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="max-w-md pointer-events-auto z-10 w-full text-right pr-1 md:translate-x-6 lg:translate-x-10 xl:translate-x-14">
                     <p className="text-[1.9rem] font-medium leading-tight tracking-tight mb-3 text-slate-800 dark:text-white font-serif">Campus<br/>Food Hub</p>
-                    <h1 className="text-[clamp(3.3rem,6.8vw,6.6rem)] font-black leading-[0.9] text-slate-950 dark:text-white font-serif uppercase tracking-tight">
+                    <h1 className="text-[clamp(3.3rem,6.8vw,6.6rem)] font-semibold leading-[0.9] text-slate-950 dark:text-white font-serif uppercase tracking-tight">
                       CAMPUS <br /> EATS
                     </h1>
                   </motion.div>
                 </div>
               </div>
 
-              <div className="absolute inset-x-0 bottom-0 h-10 bg-white/86 border-t border-slate-200/60 dark:bg-black/30 dark:border-white/10" />
+              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white/60 to-transparent dark:from-black/22 dark:to-transparent" />
             </header>
           </div>
         </section>

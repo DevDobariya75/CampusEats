@@ -10,6 +10,12 @@ import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { assignDeliveryPartner } from "../services/deliveryAssignment.service.js"
 import { createSystemNotification } from "../services/notification.service.js"
+import {
+    getReservationForCustomer,
+    holdInventoryForCart,
+    markReservationPendingPayment,
+    releaseReservationById
+} from "../services/inventoryReservation.service.js"
 
 const safeNotify = async (payload) => {
     try {
@@ -19,9 +25,82 @@ const safeNotify = async (payload) => {
     }
 }
 
+const holdCheckoutReservation = asyncHandler(async (req, res) => {
+    const { shopId } = req.body
+    const customerId = req.user?._id
+
+    if (!customerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (!shopId) {
+        throw new ApiError(400, "Shop ID is required")
+    }
+
+    const reservation = await holdInventoryForCart({
+        customerId,
+        shopId
+    })
+
+    return res
+        .status(201)
+        .json(new ApiResponse(201, reservation, "Checkout inventory reserved for 10 minutes"))
+})
+
+const getCheckoutReservation = asyncHandler(async (req, res) => {
+    const { reservationId } = req.params
+    const customerId = req.user?._id
+
+    if (!customerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (!reservationId) {
+        throw new ApiError(400, "Reservation ID is required")
+    }
+
+    const reservation = await getReservationForCustomer({ reservationId, customerId })
+
+    if (!reservation) {
+        throw new ApiError(404, "Reservation not found")
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, reservation, "Reservation fetched successfully"))
+})
+
+const releaseCheckoutReservation = asyncHandler(async (req, res) => {
+    const { reservationId } = req.params
+    const { reason } = req.body || {}
+    const customerId = req.user?._id
+
+    if (!customerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (!reservationId) {
+        throw new ApiError(400, "Reservation ID is required")
+    }
+
+    const reservation = await getReservationForCustomer({ reservationId, customerId })
+    if (!reservation) {
+        throw new ApiError(404, "Reservation not found")
+    }
+
+    await releaseReservationById({
+        reservationId,
+        reason: reason || 'checkout_cancelled'
+    })
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Reserved inventory released"))
+})
+
 // Create Order
 const createOrder = asyncHandler(async (req, res) => {
-    const { shopId, deliveryAddressId, totalAmount, specialNotes, paymentId } = req.body
+    const { shopId, deliveryAddressId, totalAmount, specialNotes, reservationId } = req.body
     const customerId = req.user?._id
 
     if (!customerId) {
@@ -39,6 +118,10 @@ const createOrder = asyncHandler(async (req, res) => {
 
     if (!totalAmount || totalAmount <= 0) {
         throw new ApiError(400, "Valid total amount is required")
+    }
+
+    if (!reservationId) {
+        throw new ApiError(400, "Reservation ID is required. Please re-open checkout.")
     }
 
     const shop = await Shop.findOne({
@@ -66,6 +149,30 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Delivery address not found")
     }
 
+    const cart = await Cart.findOne({
+        shop: shopId,
+        customer: customerId
+    })
+        .populate({
+            path: 'cartItems',
+            model: 'CartItem',
+            populate: { path: 'menuItem', model: 'MenuItem', select: 'name price imageUrl stock isAvailable' }
+        })
+
+    if (!cart || !cart.cartItems.length) {
+        throw new ApiError(400, "Cart is empty")
+    }
+
+    const stockMismatch = cart.cartItems.find((cartItem) => {
+        const menuItem = cartItem.menuItem
+        const stock = Number(menuItem?.stock ?? Number.POSITIVE_INFINITY)
+        return !menuItem || !menuItem.isAvailable || (Number.isFinite(stock) && Number(cartItem.quantity || 0) > stock)
+    })
+
+    if (stockMismatch) {
+        throw new ApiError(400, "One or more items exceed the available stock")
+    }
+
     const order = await Order.create({
         customer: customerId,
         shop: shopId,
@@ -74,14 +181,21 @@ const createOrder = asyncHandler(async (req, res) => {
         specialNotes: specialNotes || "",
         status: 'Pending',  // Waiting for payment
         payment: null,      // Payment will be linked after successful payment
+        inventoryReservation: reservationId,
         isDeleted: false
     })
 
-    // Clear cart for this customer and shop after order creation.
-    const cart = await Cart.findOne({
-        shop: shopId,
-        customer: customerId
-    })
+    try {
+        await markReservationPendingPayment({
+            reservationId,
+            customerId,
+            shopId,
+            orderId: order._id
+        })
+    } catch (error) {
+        await Order.findByIdAndDelete(order._id)
+        throw error
+    }
 
     if (cart) {
         await CartItem.deleteMany({ cart: cart._id })
@@ -462,6 +576,13 @@ const cancelOrder = asyncHandler(async (req, res) => {
         .populate('deliveryAddress')
         .populate('payment')
 
+    if (cancelledOrder.inventoryReservation) {
+        await releaseReservationById({
+            reservationId: cancelledOrder.inventoryReservation,
+            reason: 'order_cancelled'
+        })
+    }
+
     return res
         .status(200)
         .json(new ApiResponse(200, cancelledOrder, "Order cancelled successfully"))
@@ -501,6 +622,9 @@ const deleteOrder = asyncHandler(async (req, res) => {
 })
 
 export {
+    holdCheckoutReservation,
+    getCheckoutReservation,
+    releaseCheckoutReservation,
     createOrder,
     getCustomerOrders,
     getShopOrders,

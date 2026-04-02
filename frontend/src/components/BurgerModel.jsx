@@ -5,7 +5,7 @@ import gsap from 'gsap'
 import * as THREE from 'three'
 
 export default function BurgerModel({ progress = 0, ...props }) {
-	const { scene } = useGLTF('/Cheeseburger.glb')
+	const { scene } = useGLTF('/animation/Cheeseburger.glb')
 	const timelineRef = useRef(null)
 	const rootRef = useRef(null)
 
@@ -136,4 +136,4 @@ export default function BurgerModel({ progress = 0, ...props }) {
 	)
 }
 
-useGLTF.preload('/Cheeseburger.glb')
+useGLTF.preload('/animation/Cheeseburger.glb')

@@ -11,6 +11,12 @@ const orderSchema = new mongoose.Schema({
         ref: 'Payment',
         required: false
     },
+    inventoryReservation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'InventoryReservation',
+        required: false,
+        default: null
+    },
     customer:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

@@ -1,5 +1,8 @@
 import { Router } from 'express'
 import {
+    holdCheckoutReservation,
+    getCheckoutReservation,
+    releaseCheckoutReservation,
     createOrder,
     getCustomerOrders,
     getShopOrders,
@@ -18,6 +21,15 @@ router.use(verifyJWT)
 
 // Create a new order
 router.post('/', createOrder)
+
+// Reserve stock for checkout (10-minute temporary hold)
+router.post('/reservations/hold', holdCheckoutReservation)
+
+// Get reservation details
+router.get('/reservations/:reservationId', getCheckoutReservation)
+
+// Release reservation manually (cancel/exit checkout)
+router.post('/reservations/:reservationId/release', releaseCheckoutReservation)
 
 // Get customer's orders
 router.get('/', getCustomerOrders)

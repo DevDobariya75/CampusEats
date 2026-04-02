@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
@@ -31,6 +31,12 @@ export default function CheckoutPage() {
   const [saving, setSaving] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [showAddressForm, setShowAddressForm] = useState(false)
+  const [reservationId, setReservationId] = useState('')
+  const [reservationExpiresAt, setReservationExpiresAt] = useState(null)
+  const [reservationTimeLeft, setReservationTimeLeft] = useState(0)
+  const [reservingStock, setReservingStock] = useState(false)
+  const [reservationBlocked, setReservationBlocked] = useState(false)
+  const orderPlacedRef = useRef(false)
 
   const calculatedSubTotal = useMemo(
     () =>
@@ -46,6 +52,83 @@ export default function CheckoutPage() {
     const total = summary?.total ?? summary?.estimatedTotal ?? summary?.subTotal ?? 0
     return Number(total) > 0 ? Number(total) : calculatedSubTotal
   }, [summary, calculatedSubTotal])
+
+  const reservationTimerText = useMemo(() => {
+    if (!reservationTimeLeft || reservationTimeLeft < 0) {
+      return '00:00'
+    }
+
+    const minutes = Math.floor(reservationTimeLeft / 60)
+    const seconds = reservationTimeLeft % 60
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }, [reservationTimeLeft])
+
+  const toPaymentMethod = (method) => {
+    const map = {
+      card: 'Credit Card',
+      upi: 'UPI',
+      cash: 'Cash',
+    }
+
+    return map[method] || 'Credit Card'
+  }
+
+  const releaseReservation = async (reason = 'checkout_exit') => {
+    if (!reservationId) {
+      return
+    }
+
+    const currentReservationId = reservationId
+
+    try {
+      await ordersApi.releaseReservation(currentReservationId, { reason })
+    } catch {
+      // Best effort release to avoid leaking reserved stock.
+    } finally {
+      setReservationId('')
+      setReservationExpiresAt(null)
+      setReservationTimeLeft(0)
+    }
+  }
+
+  const acquireReservation = async ({ clearExistingError = false } = {}) => {
+    if (!shopOpen || !shopId || !cartItems.length) {
+      return null
+    }
+
+    try {
+      setReservingStock(true)
+      if (clearExistingError) {
+        setError('')
+      }
+
+      const response = await ordersApi.holdReservation({ shopId })
+      const nextReservationId = response.data?._id || ''
+      const nextExpiresAt = response.data?.expiresAt || null
+      const nextTimeLeft = nextExpiresAt
+        ? Math.max(0, Math.floor((new Date(nextExpiresAt).getTime() - Date.now()) / 1000))
+        : 0
+
+      setReservationId(nextReservationId)
+      setReservationExpiresAt(nextExpiresAt)
+      setReservationTimeLeft(nextTimeLeft)
+      setReservationBlocked(false)
+      if (nextReservationId) {
+        setError('')
+      }
+
+      return { reservationId: nextReservationId, timeLeft: nextTimeLeft }
+    } catch (err) {
+      setReservationId('')
+      setReservationExpiresAt(null)
+      setReservationTimeLeft(0)
+      setReservationBlocked(true)
+      setError(err.message || 'Item just went out of stock. Please refresh cart.')
+      return null
+    } finally {
+      setReservingStock(false)
+    }
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -66,6 +149,7 @@ export default function CheckoutPage() {
         setSummary(summaryResponse.data)
         setCartItems(Array.isArray(itemsResponse.data) ? itemsResponse.data : itemsResponse.data?.cartItems || [])
         setShopOpen(Boolean(shopResponse.data?.isOpen))
+        setReservationBlocked(false)
 
         localStorage.setItem('activeCartShopId', shopId)
         window.dispatchEvent(new Event('campus-cart-updated'))
@@ -77,15 +161,100 @@ export default function CheckoutPage() {
     load()
   }, [shopId])
 
+  useEffect(() => {
+    if (!shopOpen || !shopId || !cartItems.length || reservationId || reservationBlocked) {
+      return
+    }
+
+    let cancelled = false
+
+    const holdInventory = async () => {
+      const held = await acquireReservation()
+      if (cancelled || !held) {
+        return
+      }
+    }
+
+    holdInventory()
+
+    return () => {
+      cancelled = true
+    }
+  }, [cartItems.length, reservationBlocked, reservationId, shopId, shopOpen])
+
+  useEffect(() => {
+    if (!reservationId || !reservationExpiresAt) {
+      return undefined
+    }
+
+    const updateTimeLeft = () => {
+      const remaining = Math.max(0, Math.floor((new Date(reservationExpiresAt).getTime() - Date.now()) / 1000))
+      setReservationTimeLeft(remaining)
+    }
+
+    updateTimeLeft()
+    const timer = window.setInterval(updateTimeLeft, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [reservationExpiresAt, reservationId])
+
+  useEffect(() => {
+    if (!reservationId || !reservationExpiresAt || orderPlacedRef.current) {
+      return
+    }
+
+    const remainingNow = Math.max(0, Math.floor((new Date(reservationExpiresAt).getTime() - Date.now()) / 1000))
+    if (remainingNow > 0) {
+      return
+    }
+
+    setReservationBlocked(true)
+    setError('Your 10-minute inventory hold expired. Please try checkout again.')
+    releaseReservation('reservation_expired')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reservationExpiresAt, reservationId, reservationTimeLeft])
+
+  useEffect(() => {
+    return () => {
+      if (!orderPlacedRef.current && reservationId) {
+        ordersApi.releaseReservation(reservationId, { reason: 'checkout_exit' }).catch(() => {})
+      }
+    }
+  }, [reservationId])
+
   const placeOrder = async () => {
     if (!shopOpen) {
       setError('Shop is currently closed.')
       return
     }
 
+    const overLimitItem = cartItems.find((item) => {
+      const stock = Number(item.menuItem?.stock ?? Number.POSITIVE_INFINITY)
+      return Number.isFinite(stock) && Number(item.quantity ?? 0) > stock
+    })
+
+    if (overLimitItem) {
+      setError(`Please reduce ${overLimitItem.menuItem?.name || 'an item'} to the available stock before checkout.`)
+      return
+    }
+
     if (!selectedAddress) {
       setError('Please choose a delivery address before placing your order.')
       return
+    }
+
+    const reservationExpired = reservationExpiresAt
+      ? Math.floor((new Date(reservationExpiresAt).getTime() - Date.now()) / 1000) <= 0
+      : true
+
+    let effectiveReservationId = reservationId
+    if (!effectiveReservationId || reservationExpired) {
+      const heldReservation = await acquireReservation({ clearExistingError: true })
+      if (!heldReservation?.reservationId || heldReservation.timeLeft <= 0) {
+        setError('Item just went out of stock. Please try checkout again.')
+        return
+      }
+      effectiveReservationId = heldReservation.reservationId
     }
 
     try {
@@ -100,23 +269,35 @@ export default function CheckoutPage() {
         totalAmount,
         specialNotes,
         paymentMethod,
+        reservationId: effectiveReservationId,
       })
+
+      orderPlacedRef.current = true
 
       // Create payment record
       try {
-        await paymentsApi.create({
+        const paymentResponse = await paymentsApi.create({
           orderId: response.data?._id,
           amount: totalAmount,
-          method: paymentMethod,
-          status: paymentMethod === 'upi' ? 'pending' : 'completed',
+          method: toPaymentMethod(paymentMethod),
         })
+
+        if (paymentMethod !== 'upi' && paymentResponse.data?._id) {
+          await paymentsApi.updateStatus(paymentResponse.data._id, { status: 'Completed' })
+        }
       } catch (paymentErr) {
-        console.warn('Payment creation warning:', paymentErr)
+        await ordersApi.cancel(response.data?._id)
+        orderPlacedRef.current = false
+        throw new Error(paymentErr.message || 'Payment failed. Stock was restored. Please try again.')
       }
 
       await cartApi.clearCart(shopId)
       localStorage.removeItem('activeCartShopId')
       window.dispatchEvent(new Event('campus-cart-updated'))
+
+      setReservationId('')
+      setReservationExpiresAt(null)
+      setReservationTimeLeft(0)
 
       setSuccess('Order placed successfully!')
       setTimeout(() => {
@@ -223,6 +404,40 @@ export default function CheckoutPage() {
           >
             <AlertCircle className="w-5 h-5 text-yellow-500 flex-shrink-0 mt-0.5" />
             <p className="text-yellow-700 dark:text-yellow-300">Shop is currently closed. You will not be able to place orders.</p>
+          </motion.div>
+        )}
+
+        {reservationId && reservationTimeLeft > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl flex gap-3"
+          >
+            <AlertCircle className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+            <p className="text-blue-700 dark:text-blue-300">
+              Items are reserved for you. Complete payment within <span className="font-black">{reservationTimerText}</span>.
+            </p>
+          </motion.div>
+        )}
+
+        {reservationBlocked && !reservationId && !reservingStock && cartItems.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6"
+          >
+            <button
+              type="button"
+              onClick={async () => {
+                const held = await acquireReservation({ clearExistingError: true })
+                if (!held?.reservationId) {
+                  setReservationBlocked(true)
+                }
+              }}
+              className="inline-flex items-center justify-center rounded-xl border border-orange-300 bg-orange-50 px-4 py-2 text-sm font-bold uppercase tracking-wider text-orange-600 transition-colors hover:bg-orange-100 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300"
+            >
+              Retry Inventory Hold
+            </button>
           </motion.div>
         )}
 
@@ -428,6 +643,11 @@ export default function CheckoutPage() {
                           <p className="text-xs text-slate-500 dark:text-slate-400">
                             Qty: {item.quantity}
                           </p>
+                          {item.menuItem?.stock != null && (
+                            <p className="text-[11px] text-slate-400 uppercase tracking-widest mt-1">
+                              Available: {item.menuItem.stock}
+                            </p>
+                          )}
                         </div>
                         <p className="font-bold text-slate-900 dark:text-white text-sm flex-shrink-0">
                           {formatPrice(Number(item.price ?? item.menuItem?.price ?? 0) * Number(item.quantity ?? 0))}
@@ -478,13 +698,13 @@ export default function CheckoutPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={placeOrder}
-                  disabled={saving || !shopOpen || !selectedAddress || cartItems.length === 0}
+                  disabled={saving || reservingStock || !shopOpen || !selectedAddress || cartItems.length === 0}
                   className="w-full py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] flex items-center justify-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
                 >
-                  {saving ? (
+                  {saving || reservingStock ? (
                     <>
                       <LoadingSpinner size="sm" />
-                      <span>Placing Order...</span>
+                      <span>{reservingStock ? 'Reserving Stock...' : 'Placing Order...'}</span>
                     </>
                   ) : (
                     <>
@@ -495,7 +715,10 @@ export default function CheckoutPage() {
                 </motion.button>
 
                 <button
-                  onClick={() => navigate(`/cart/${shopId}`)}
+                  onClick={async () => {
+                    await releaseReservation('checkout_cancelled')
+                    navigate(`/cart/${shopId}`)
+                  }}
                   className="w-full mt-4 py-4 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
                 >
                   Back to Cart

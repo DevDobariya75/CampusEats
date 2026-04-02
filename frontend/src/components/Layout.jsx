@@ -15,6 +15,7 @@ import {
   UserRound,
   UserRoundPlus,
 } from 'lucide-react'
+import { cartApi } from '../api/services'
 import { useAuth } from '../context/AuthContext'
 import NotificationBell from './NotificationBell'
 import ShopStatusToggle from './ShopStatusToggle'
@@ -101,23 +102,54 @@ export default function Layout() {
   const isCustomer = user?.role === 'customer'
   const isHomeRoute = location.pathname === '/'
   const [cartShopId, setCartShopId] = useState(() => localStorage.getItem('activeCartShopId') || '')
+  const [cartItemCount, setCartItemCount] = useState(0)
   const mobileNavLinks = getMobileNavLinks({ user, isCustomer, cartShopId })
 
   useEffect(() => {
     if (!isCustomer) {
+      setCartItemCount(0)
       return undefined
     }
 
-    const syncCartShop = () => {
-      setCartShopId(localStorage.getItem('activeCartShopId') || '')
+    let isMounted = true
+
+    const syncCartState = async () => {
+      const activeShopId = localStorage.getItem('activeCartShopId') || ''
+      if (isMounted) {
+        setCartShopId(activeShopId)
+      }
+
+      if (!activeShopId) {
+        if (isMounted) {
+          setCartItemCount(0)
+        }
+        return
+      }
+
+      try {
+        const response = await cartApi.getCartItems(activeShopId)
+        const cartItems = Array.isArray(response.data) ? response.data : response.data?.cartItems || []
+        const count = cartItems.reduce((total, item) => total + Number(item.quantity || 0), 0)
+
+        if (isMounted) {
+          setCartItemCount(count)
+        }
+      } catch {
+        if (isMounted) {
+          setCartItemCount(0)
+        }
+      }
     }
 
-    window.addEventListener('storage', syncCartShop)
-    window.addEventListener('campus-cart-updated', syncCartShop)
+    syncCartState()
+
+    window.addEventListener('storage', syncCartState)
+    window.addEventListener('campus-cart-updated', syncCartState)
 
     return () => {
-      window.removeEventListener('storage', syncCartShop)
-      window.removeEventListener('campus-cart-updated', syncCartShop)
+      isMounted = false
+      window.removeEventListener('storage', syncCartState)
+      window.removeEventListener('campus-cart-updated', syncCartState)
     }
   }, [isCustomer])
 
@@ -198,7 +230,10 @@ export default function Layout() {
                 className={({isActive}) => `px-3.5 py-2 font-bold text-sm rounded-xl transition-all ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/10 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`} 
                 to="/"
               >
-                Shops
+                <span className="flex items-center gap-2">
+                  <Store className="h-[18px] w-[18px] shrink-0 stroke-[1.8] text-current" />
+                  <span>Shops</span>
+                </span>
               </NavLink>
             )}
             {isCustomer && (
@@ -206,7 +241,17 @@ export default function Layout() {
                 className={({isActive}) => `px-3.5 py-2 font-bold text-sm rounded-xl transition-all ${isActive ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`} 
                 to={cartShopId ? `/cart/${cartShopId}` : '/'}
               >
-                Cart
+                <span className="flex items-center gap-2">
+                  <span className="relative inline-flex">
+                    <ShoppingCart className="h-[18px] w-[18px] shrink-0 stroke-[1.8] text-current" />
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-2.5 -right-2.5 inline-flex min-w-[1.1rem] items-center justify-center rounded-full bg-orange-500 px-1 text-[10px] leading-4 text-white shadow-sm">
+                        {cartItemCount > 99 ? '99+' : cartItemCount}
+                      </span>
+                    )}
+                  </span>
+                  <span>Cart</span>
+                </span>
               </NavLink>
             )}
             {isCustomer && (
@@ -214,7 +259,10 @@ export default function Layout() {
                 className={({isActive}) => `px-3.5 py-2 font-bold text-sm rounded-xl transition-all ${isActive ? 'bg-slate-200 text-slate-900 dark:bg-white/10 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`} 
                 to="/orders"
               >
-                Orders
+                <span className="flex items-center gap-2">
+                  <ClipboardList className="h-[18px] w-[18px] shrink-0 stroke-[1.8] text-current" />
+                  <span>Orders</span>
+                </span>
               </NavLink>
             )}
             {roleLinks.map((link) => (

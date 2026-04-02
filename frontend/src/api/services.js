@@ -45,6 +45,10 @@ export const ordersApi = {
   listMine: () => request('/orders'),
   listForShop: (shopId) => request(`/orders/shop/${shopId}`),
   getById: (orderId) => request(`/orders/${orderId}`),
+  holdReservation: (body) => request('/orders/reservations/hold', { method: 'POST', body }),
+  getReservation: (reservationId) => request(`/orders/reservations/${reservationId}`),
+  releaseReservation: (reservationId, body = {}) =>
+    request(`/orders/reservations/${reservationId}/release`, { method: 'POST', body }),
   updateStatus: (orderId, body) => request(`/orders/${orderId}/status`, { method: 'PATCH', body }),
   cancel: (orderId) => request(`/orders/${orderId}/cancel`, { method: 'PATCH' }),
 }
@@ -74,5 +78,6 @@ export const deliveriesApi = {
 
 export const paymentsApi = {
   create: (body) => request('/payments', { method: 'POST', body }),
+  updateStatus: (paymentId, body) => request(`/payments/${paymentId}/status`, { method: 'PATCH', body }),
   verifyUpi: (paymentId, body) => request(`/payments/${paymentId}/verify-upi`, { method: 'POST', body }),
 }

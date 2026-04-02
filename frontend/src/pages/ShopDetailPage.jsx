@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Store, CheckCircle, AlertCircle, ShoppingCart, Tag, Clock } from 'lucide-react'
@@ -15,29 +15,55 @@ export default function ShopDetailPage() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
-  const [selectedSizes, setSelectedSizes] = useState({})
   const [addingToCart, setAddingToCart] = useState(null)
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setError('')
-        const [shopResponse, itemsResponse] = await Promise.all([
-          shopsApi.getById(shopId),
-          menuApi.listByShop(shopId),
-        ])
+  const loadShopData = useCallback(async ({ silent = false } = {}) => {
+    try {
+      if (!silent) {
+        setLoading(true)
+      }
 
-        setShop(shopResponse.data)
-        setItems(Array.isArray(itemsResponse.data) ? itemsResponse.data : itemsResponse.data?.items || [])
-      } catch (err) {
-        setError(err.message)
-      } finally {
+      setError('')
+      const [shopResponse, itemsResponse] = await Promise.all([
+        shopsApi.getById(shopId),
+        menuApi.listByShop(shopId),
+      ])
+
+      setShop(shopResponse.data)
+      setItems(Array.isArray(itemsResponse.data) ? itemsResponse.data : itemsResponse.data?.items || [])
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      if (!silent) {
         setLoading(false)
       }
     }
-
-    load()
   }, [shopId])
+
+  useEffect(() => {
+    loadShopData({ silent: false })
+  }, [loadShopData])
+
+  useEffect(() => {
+    const pollInterval = window.setInterval(() => {
+      loadShopData({ silent: true })
+    }, 5000)
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        loadShopData({ silent: true })
+      }
+    }
+
+    window.addEventListener('focus', handleVisibility)
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      window.clearInterval(pollInterval)
+      window.removeEventListener('focus', handleVisibility)
+      document.removeEventListener('visibilitychange', handleVisibility)
+    }
+  }, [loadShopData])
 
   const addToCart = async (menuItemId, item) => {
     if (!user) {
@@ -50,14 +76,18 @@ export default function ShopDetailPage() {
       return
     }
 
+    if ((item.stock ?? 0) < 1) {
+      setError('This item is currently out of stock.')
+      return
+    }
+
     try {
       setAddingToCart(menuItemId)
       setError('')
-      const selectedSize = selectedSizes[menuItemId] || 'Medium'
-      await cartApi.addItem(shopId, { menuItemId, quantity: 1, size: selectedSize })
+      await cartApi.addItem(shopId, { menuItemId, quantity: 1 })
       localStorage.setItem('activeCartShopId', shopId)
       window.dispatchEvent(new Event('campus-cart-updated'))
-      setMessage(`${item.name} (${selectedSize}) added to cart!`)
+      setMessage(`${item.name} added to cart!`)
       setTimeout(() => setMessage(''), 3000)
     } catch (err) {
       setError(err.message)
@@ -65,18 +95,6 @@ export default function ShopDetailPage() {
       setAddingToCart(null)
     }
   }
-
-  const calculatePrice = (basePrice, size) => {
-    const multipliers = {
-      'Small': 0.9,
-      'Medium': 1,
-      'Large': 1.2,
-      'XL (Big Size)': 1.5
-    }
-    return Math.round(basePrice * (multipliers[size] || 1))
-  }
-
-  const defaultSizes = ['Small', 'Medium', 'Large', 'XL (Big Size)']
 
   return (
     <PageTransition>
@@ -140,8 +158,7 @@ export default function ShopDetailPage() {
               ) : (
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {items.map((item, idx) => {
-                    const selectedSize = selectedSizes[item._id] || 'Medium'
-                    const displayPrice = calculatePrice(item.price, selectedSize)
+                    const availableStock = Number(item.stock ?? 0)
 
                     return (
                       <motion.div
@@ -175,7 +192,7 @@ export default function ShopDetailPage() {
                               <span className="text-xs font-bold uppercase tracking-widest text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-500/10 px-2 py-0.5 rounded border border-orange-100 dark:border-orange-500/20">{item.category || 'General'}</span>
                             </div>
                             <span className="text-xl font-black text-slate-900 dark:text-orange-400 whitespace-nowrap">
-                              {formatPrice(displayPrice)}
+                              {formatPrice(item.price)}
                             </span>
                           </div>
 
@@ -183,38 +200,25 @@ export default function ShopDetailPage() {
                             {item.description || 'Our signature dish prepared with fresh ingredients.'}
                           </p>
 
-                          {/* Size Selector */}
-                          <div className="mb-4">
-                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Choose Size</span>
-                            <div className="flex flex-wrap gap-2">
-                              {defaultSizes.map((size) => (
-                                <button
-                                  key={size}
-                                  onClick={() => setSelectedSizes(prev => ({ ...prev, [item._id]: size }))}
-                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                    selectedSize === size
-                                      ? 'bg-orange-500 text-white shadow-md'
-                                      : 'bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-white/10'
-                                  }`}
-                                >
-                                  {size}
-                                </button>
-                              ))}
-                            </div>
+                          {/* Stock Availability */}
+                          <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-4 py-3">
+                            <span className={`text-sm font-black uppercase tracking-widest ${availableStock > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'}`}>
+                              Available: {availableStock > 0 ? availableStock : 0}
+                            </span>
                           </div>
 
                           <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
                             type="button"
-                            disabled={!item.isAvailable || !shop?.isOpen || addingToCart === item._id}
+                            disabled={!item.isAvailable || !shop?.isOpen || addingToCart === item._id || availableStock < 1}
                             onClick={() => addToCart(item._id, item)}
                             className="w-full py-3.5 bg-orange-500 text-white font-black rounded-xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500"
                           >
                             {addingToCart === item._id ? (
                               <LoadingSpinner size="sm" />
                             ) : (
-                              <><ShoppingCart className="w-4 h-4" /> Add to Cart</>
+                              <><ShoppingCart className="w-4 h-4" /> {availableStock > 0 ? 'Add to Cart' : 'Sold Out'}</>
                             )}
                           </motion.button>
                         </div>

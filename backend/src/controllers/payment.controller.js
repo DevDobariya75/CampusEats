@@ -3,6 +3,7 @@ import Order from "../models/order.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
+import { completeReservation, releaseReservationById } from "../services/inventoryReservation.service.js"
 
 // Create Payment
 const createPayment = asyncHandler(async (req, res) => {
@@ -183,11 +184,25 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
 
         // Update order status to Confirmed when payment is successful (industry standard)
         if (payment.order) {
-            await Order.findByIdAndUpdate(
+            const paidOrder = await Order.findByIdAndUpdate(
                 payment.order,
                 { $set: { status: 'Confirmed' } },
                 { new: true }
             )
+
+            if (paidOrder?.inventoryReservation) {
+                await completeReservation({ reservationId: paidOrder.inventoryReservation })
+            }
+        }
+    }
+
+    if (status === 'Failed' && payment.order) {
+        const failedOrder = await Order.findById(payment.order)
+        if (failedOrder?.inventoryReservation) {
+            await releaseReservationById({
+                reservationId: failedOrder.inventoryReservation,
+                reason: 'payment_failed'
+            })
         }
     }
 
@@ -252,11 +267,15 @@ const verifyUPIPayment = asyncHandler(async (req, res) => {
 
     // Update order status to Confirmed (industry standard)
     if (payment.order) {
-        await Order.findByIdAndUpdate(
+        const paidOrder = await Order.findByIdAndUpdate(
             payment.order,
             { $set: { status: 'Confirmed' } },
             { new: true }
         )
+
+        if (paidOrder?.inventoryReservation) {
+            await completeReservation({ reservationId: paidOrder.inventoryReservation })
+        }
     }
 
     return res

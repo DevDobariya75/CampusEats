@@ -43,6 +43,7 @@ export default function CartPage() {
       setItems(cartItems)
       setSummary(summaryResponse.data || {})
       localStorage.setItem('activeCartShopId', shopId)
+      window.dispatchEvent(new Event('campus-cart-updated'))
     } catch (err) {
       setError(err.message || 'Failed to load cart')
     } finally {
@@ -57,6 +58,13 @@ export default function CartPage() {
   const updateItemQuantity = async (itemId, quantity) => {
     if (quantity < 1) {
       await removeItem(itemId)
+      return
+    }
+
+    const cartItem = items.find((entry) => entry._id === itemId)
+    const availableStock = Number(cartItem?.menuItem?.stock ?? Number.POSITIVE_INFINITY)
+    if (Number.isFinite(availableStock) && quantity > availableStock) {
+      setError(`Only ${availableStock} item${availableStock === 1 ? '' : 's'} left in stock.`)
       return
     }
 
@@ -195,13 +203,18 @@ export default function CartPage() {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     onClick={() => updateItemQuantity(item._id, item.quantity + 1)}
-                                    disabled={updating}
+                                    disabled={updating || (item.menuItem?.stock != null && item.quantity >= item.menuItem.stock)}
                                     className="w-8 h-8 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-white/10 rounded-lg transition-all disabled:opacity-50 text-slate-700 dark:text-white"
                                   >
                                     <Plus className="w-4 h-4" />
                                   </motion.button>
                                 </div>
                               </div>
+                              {item.menuItem?.stock != null && (
+                                <p className="mt-2 text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                                  Available: {item.menuItem.stock}
+                                </p>
+                              )}
                             </div>
 
                             {/* Remove Button */}

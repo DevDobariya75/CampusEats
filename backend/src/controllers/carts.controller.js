@@ -69,7 +69,7 @@ const getCartItems = asyncHandler(async (req, res) => {
 
     const cartItems = await CartItem.find({
         cart: cart._id
-    }).populate('menuItem', 'name price imageUrl')
+    }).populate('menuItem', 'name price imageUrl stock isAvailable')
 
     return res
         .status(200)
@@ -104,6 +104,12 @@ const addItemToCart = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Menu item not found")
     }
 
+    if (!menuItem.isAvailable || menuItem.stock < 1) {
+        throw new ApiError(400, "Item is out of stock")
+    }
+
+    const requestedQuantity = parseInt(quantity)
+
     // Get or create cart
     let cart = await Cart.findOne({
         shop: shopId,
@@ -124,19 +130,27 @@ const addItemToCart = asyncHandler(async (req, res) => {
     })
 
     if (cartItem) {
+        if (cartItem.quantity + requestedQuantity > menuItem.stock) {
+            throw new ApiError(400, "Requested quantity exceeds available stock")
+        }
+
         // Update quantity
-        cartItem.quantity += parseInt(quantity)
+        cartItem.quantity += requestedQuantity
         await cartItem.save()
     } else {
+        if (requestedQuantity > menuItem.stock) {
+            throw new ApiError(400, "Requested quantity exceeds available stock")
+        }
+
         // Create new cart item
         cartItem = await CartItem.create({
             cart: cart._id,
             menuItem: menuItemId,
             name: menuItem.name,
             price: menuItem.price,
-            quantity: parseInt(quantity),
+            quantity: requestedQuantity,
             ImageUrl: menuItem.imageUrl,
-            subTotal: menuItem.price * parseInt(quantity)
+            subTotal: menuItem.price * requestedQuantity
         })
         
         // Add cartItem to cart's cartItems array if not already present
@@ -146,7 +160,7 @@ const addItemToCart = asyncHandler(async (req, res) => {
         }
     }
 
-    const populatedItem = await CartItem.findById(cartItem._id).populate('menuItem', 'name price imageUrl')
+    const populatedItem = await CartItem.findById(cartItem._id).populate('menuItem', 'name price imageUrl stock isAvailable')
 
     return res
         .status(201)
@@ -189,13 +203,18 @@ const updateCartItemQuantity = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Cart item not found")
     }
 
+    const menuItem = await MenuItem.findById(cartItem.menuItem)
+    if (menuItem && (!menuItem.isAvailable || menuItem.stock < parseInt(quantity))) {
+        throw new ApiError(400, "Requested quantity exceeds available stock")
+    }
+
     cartItem.quantity = parseInt(quantity)
     if (cartItem.price) {
         cartItem.subTotal = cartItem.price * parseInt(quantity)
     }
     await cartItem.save()
 
-    const updatedItem = await CartItem.findById(itemId).populate('menuItem', 'name price imageUrl')
+    const updatedItem = await CartItem.findById(itemId).populate('menuItem', 'name price imageUrl stock isAvailable')
 
     return res
         .status(200)
