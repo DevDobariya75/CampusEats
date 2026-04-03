@@ -1,8 +1,10 @@
 //require('dotenv').config({path: './env'})
 import dotenv from "dotenv"
+import { createServer } from 'node:http'
 import { app } from "./app.js";
 import connectDB from './db/index.js';
 import { cleanupExpiredReservations } from "./services/inventoryReservation.service.js";
+import { initializeSocket } from '../socketHandler.js';
 
 
 dotenv.config({
@@ -11,7 +13,10 @@ dotenv.config({
 
 connectDB()
 .then(() => {
-    app.listen(process.env.PORT || 8000, () => {
+    const server = createServer(app)
+    initializeSocket(server)
+
+    server.listen(process.env.PORT || 8000, () => {
         console.log(`Server is running at port : ${process.env.PORT}`);
 
         const cleanupTimer = setInterval(async () => {

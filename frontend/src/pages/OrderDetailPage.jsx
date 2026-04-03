@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, Clock, ShoppingBag, CheckCircle, AlertCircle, Calendar, MapPin, Receipt, XCircle } from 'lucide-react'
 import { ordersApi } from '../api/services'
+import TrackingMap from '../components/TrackingMap'
 import { PageTransition, LoadingSpinner, Badge } from '../components/ui/Button'
 import { formatPrice, formatDate } from '../utils/helpers'
 
@@ -49,6 +50,32 @@ export default function OrderDetailPage() {
     () => order && ['pending', 'confirmed'].includes(order.status?.toLowerCase()),
     [order],
   )
+
+  const isDeliveryLive = useMemo(() => {
+    const status = String(order?.status || '').toLowerCase()
+    return ['picked up', 'pickedup', 'out for delivery', 'on_the_way', 'on the way'].includes(status)
+  }, [order?.status])
+
+  const trackingDestination = useMemo(() => {
+    const source = order?.deliveryAddress || {}
+
+    return {
+      latitude:
+        source?.latitude ??
+        source?.lat ??
+        source?.location?.latitude ??
+        source?.location?.lat ??
+        source?.coordinates?.lat ??
+        source?.coordinates?.latitude,
+      longitude:
+        source?.longitude ??
+        source?.lng ??
+        source?.location?.longitude ??
+        source?.location?.lng ??
+        source?.coordinates?.lng ??
+        source?.coordinates?.longitude,
+    }
+  }, [order?.deliveryAddress])
 
   const cancelOrder = async () => {
     if (!window.confirm("Are you sure you want to cancel this order?")) return;
@@ -242,6 +269,10 @@ export default function OrderDetailPage() {
                       </div>
                     </div>
                   </div>
+                )}
+
+                {isDeliveryLive && (
+                  <TrackingMap orderId={orderId} destination={trackingDestination} />
                 )}
               </motion.div>
             )}

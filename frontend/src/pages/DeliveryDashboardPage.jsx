@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Truck, CheckCircle, MapPin, AlertCircle, TrendingUp, DollarSign } from 'lucide-react'
+import { io } from 'socket.io-client'
 import { deliveriesApi } from '../api/services'
 import { formatPrice } from '../utils/helpers'
+
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1').replace('/api/v1', '')
 
 export default function DeliveryDashboardPage() {
   const [deliveries, setDeliveries] = useState([])
@@ -13,6 +16,9 @@ export default function DeliveryDashboardPage() {
   const [totalEarned, setTotalEarned] = useState(0)
   const [verificationCodes, setVerificationCodes] = useState({})
   const requestInFlightRef = useRef(false)
+  const socketRef = useRef(null)
+  const watchIdRef = useRef(null)
+  const lastEmitRef = useRef({ timestamp: 0, latitude: null, longitude: null })
 
   const load = useCallback(async ({ silent = false, showError = !silent } = {}) => {
     if (requestInFlightRef.current) {
@@ -66,6 +72,99 @@ export default function DeliveryDashboardPage() {
 
     return () => clearInterval(intervalId)
   }, [load])
+
+  useEffect(() => {
+    const activeOrderIds = deliveries
+      .filter((delivery) => ['Accepted', 'Picked Up', 'PickedUp'].includes(delivery.status))
+      .map((delivery) => delivery.order?._id)
+      .filter(Boolean)
+
+    if (!activeOrderIds.length) {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
+      if (socketRef.current) {
+        socketRef.current.disconnect()
+        socketRef.current = null
+      }
+      return undefined
+    }
+
+    if (!socketRef.current) {
+      socketRef.current = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+        withCredentials: true,
+      })
+    }
+
+    const socket = socketRef.current
+    const joinAllActiveOrders = () => {
+      activeOrderIds.forEach((orderId) => {
+        socket.emit('joinOrder', { orderId })
+      })
+    }
+
+    if (socket.connected) {
+      joinAllActiveOrders()
+    } else {
+      socket.once('connect', joinAllActiveOrders)
+    }
+
+    if (!navigator.geolocation) {
+      setError('Geolocation is not supported on this device.')
+      return undefined
+    }
+
+    const shouldEmitNow = (latitude, longitude, timestamp) => {
+      const prev = lastEmitRef.current
+      const moved = prev.latitude === null || prev.longitude === null || prev.latitude !== latitude || prev.longitude !== longitude
+      const elapsed = timestamp - prev.timestamp >= 5000
+      return moved || elapsed
+    }
+
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const { latitude, longitude, accuracy, heading, speed } = position.coords
+        const timestamp = position.timestamp || Date.now()
+
+        if (!shouldEmitNow(latitude, longitude, timestamp)) {
+          return
+        }
+
+        lastEmitRef.current = { latitude, longitude, timestamp }
+
+        activeOrderIds.forEach((orderId) => {
+          socket.emit('updateLocation', {
+            orderId,
+            latitude,
+            longitude,
+            accuracy,
+            heading,
+            speed,
+            timestamp,
+          })
+        })
+      },
+      () => {
+        setError('Location permission is needed to share your live delivery tracking.')
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge: 3000,
+        timeout: 15000,
+      },
+    )
+
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current)
+        watchIdRef.current = null
+      }
+
+      socket.off('connect', joinAllActiveOrders)
+    }
+  }, [deliveries])
 
   const advance = async (deliveryId, action) => {
     try {
