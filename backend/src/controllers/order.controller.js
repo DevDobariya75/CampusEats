@@ -17,6 +17,8 @@ import {
     releaseReservationById
 } from "../services/inventoryReservation.service.js"
 
+const generateDeliveryVerificationCode = () => String(Math.floor(1000 + Math.random() * 9000))
+
 const safeNotify = async (payload) => {
     try {
         await createSystemNotification(payload)
@@ -163,16 +165,6 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Cart is empty")
     }
 
-    const stockMismatch = cart.cartItems.find((cartItem) => {
-        const menuItem = cartItem.menuItem
-        const stock = Number(menuItem?.stock ?? Number.POSITIVE_INFINITY)
-        return !menuItem || !menuItem.isAvailable || (Number.isFinite(stock) && Number(cartItem.quantity || 0) > stock)
-    })
-
-    if (stockMismatch) {
-        throw new ApiError(400, "One or more items exceed the available stock")
-    }
-
     const order = await Order.create({
         customer: customerId,
         shop: shopId,
@@ -251,6 +243,7 @@ const getCustomerOrders = asyncHandler(async (req, res) => {
     }
 
     let query = Order.find(filter)
+        .select('+deliveryVerificationCode +deliveryVerificationCodeGeneratedAt +deliveryVerificationVerifiedAt')
         .populate('customer', 'name email phone')
         .populate('shop', 'name')
         .populate('deliveryAddress')
@@ -265,9 +258,32 @@ const getCustomerOrders = asyncHandler(async (req, res) => {
 
     const orders = await query
 
+    const orderIds = orders.map((item) => item._id)
+    const deliveryRows = await Delivery.find({
+        order: { $in: orderIds },
+        isDeleted: false
+    })
+        .select('order status acceptedAt pickedUpAt deliveredAt deliveryPartner')
+        .populate('deliveryPartner', 'name email phone')
+
+    const deliveryMap = new Map(deliveryRows.map((item) => [item.order.toString(), item]))
+    const ordersWithDeliveryInfo = orders.map((item) => {
+        const delivery = deliveryMap.get(item._id.toString())
+        const plain = item.toObject()
+        const assignedPartner = plain.deliveryPartnerId || delivery?.deliveryPartner || null
+        return {
+            ...plain,
+            assignedPartner,
+            deliveryStatus: delivery?.status || null,
+            deliveryAcceptedAt: delivery?.acceptedAt || null,
+            deliveryPickedUpAt: delivery?.pickedUpAt || null,
+            deliveryDeliveredAt: delivery?.deliveredAt || null
+        }
+    })
+
     return res
         .status(200)
-        .json(new ApiResponse(200, orders, "Customer orders fetched successfully"))
+        .json(new ApiResponse(200, ordersWithDeliveryInfo, "Customer orders fetched successfully"))
 })
 
 // Get All Orders for Shop (shopkeeper)
@@ -310,6 +326,7 @@ const getShopOrders = asyncHandler(async (req, res) => {
         .populate('shop', 'name')
         .populate('deliveryAddress')
         .populate('payment')
+        .populate('deliveryPartnerId', 'name email phone')
 
     if (sortBy === 'oldest') {
         query = query.sort({ createdAt: 1 })
@@ -325,13 +342,16 @@ const getShopOrders = asyncHandler(async (req, res) => {
         isDeleted: false
     })
         .select('order status acceptedAt deliveryPartner')
-        .populate('deliveryPartner', 'name phone')
+        .populate('deliveryPartner', 'name email phone')
 
     const deliveryMap = new Map(deliveryRows.map((item) => [item.order.toString(), item]))
     const ordersWithDeliveryInfo = orders.map((item) => {
         const delivery = deliveryMap.get(item._id.toString())
         const plain = item.toObject()
-        const assignedPartner = plain.deliveryPartnerId || delivery?.deliveryPartner || null
+        const populatedPartner = plain.deliveryPartnerId && typeof plain.deliveryPartnerId === 'object'
+            ? plain.deliveryPartnerId
+            : null
+        const assignedPartner = populatedPartner || delivery?.deliveryPartner || null
         return {
             ...plain,
             assignedPartner,
@@ -362,6 +382,7 @@ const getOrderById = asyncHandler(async (req, res) => {
         _id: orderId,
         isDeleted: false
     })
+        .select('+deliveryVerificationCode +deliveryVerificationCodeGeneratedAt +deliveryVerificationVerifiedAt')
         .populate('customer', 'name email phone')
         .populate('shop', 'name')
         .populate('deliveryAddress')
@@ -372,8 +393,24 @@ const getOrderById = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found")
     }
 
+    const isOrderCustomer = order.customer._id.toString() === userId.toString()
+
+    const delivery = await Delivery.findOne({
+        order: order._id,
+        isDeleted: false
+    })
+        .select('status acceptedAt pickedUpAt deliveredAt deliveryPartner')
+        .populate('deliveryPartner', 'name email phone')
+
+    const plainOrder = order.toObject()
+    plainOrder.assignedPartner = plainOrder.deliveryPartnerId || delivery?.deliveryPartner || null
+    plainOrder.deliveryStatus = delivery?.status || null
+    plainOrder.deliveryAcceptedAt = delivery?.acceptedAt || null
+    plainOrder.deliveryPickedUpAt = delivery?.pickedUpAt || null
+    plainOrder.deliveryDeliveredAt = delivery?.deliveredAt || null
+
     // Check if user is order customer or shop owner
-    if (order.customer._id.toString() !== userId.toString()) {
+    if (!isOrderCustomer) {
         const shop = await Shop.findOne({
             _id: order.shop._id,
             owner: userId
@@ -382,11 +419,16 @@ const getOrderById = asyncHandler(async (req, res) => {
         if (!shop) {
             throw new ApiError(403, "You don't have permission to view this order")
         }
+
+        // Never expose customer verification code to non-customer viewers.
+        plainOrder.deliveryVerificationCode = undefined
+        plainOrder.deliveryVerificationCodeGeneratedAt = undefined
+        plainOrder.deliveryVerificationVerifiedAt = undefined
     }
 
     return res
         .status(200)
-        .json(new ApiResponse(200, order, "Order fetched successfully"))
+        .json(new ApiResponse(200, plainOrder, "Order fetched successfully"))
 })
 
 // Update Order Status
@@ -445,11 +487,19 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         }
     }
 
+    const orderSetData = { status }
+    if (status === 'Out for Delivery') {
+        orderSetData.deliveryVerificationCode = generateDeliveryVerificationCode()
+        orderSetData.deliveryVerificationCodeGeneratedAt = new Date()
+        orderSetData.deliveryVerificationVerifiedAt = null
+    }
+
     const updatedOrder = await Order.findByIdAndUpdate(
         orderId,
-        { $set: { status } },
+        { $set: orderSetData },
         { new: true }
     )
+        .select('+deliveryVerificationCode')
         .populate('customer', 'name email phone')
         .populate('shop', 'name')
         .populate('deliveryAddress')
@@ -460,7 +510,9 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     await safeNotify({
         recipientId: updatedOrder.customer?._id,
         title: 'Order status updated',
-        message: `Your order #${shortOrderId} is now ${status}.`,
+        message: status === 'Out for Delivery' && updatedOrder.deliveryVerificationCode
+            ? `Your order #${shortOrderId} is now Out for Delivery. Your delivery verification code is ${updatedOrder.deliveryVerificationCode}.`
+            : `Your order #${shortOrderId} is now ${status}.`,
         type: 'Order Update',
         relatedOrder: updatedOrder._id
     })
@@ -560,10 +612,11 @@ const cancelOrder = asyncHandler(async (req, res) => {
         throw new ApiError(403, "Only order customer can cancel the order")
     }
 
-    // Check if order can be cancelled
-    const cancellableStatuses = ['Pending', 'Confirmed']
-    if (!cancellableStatuses.includes(order.status)) {
-        throw new ApiError(400, `Cannot cancel order with status: ${order.status}`)
+    // Customer cancellation is allowed only before preparation starts.
+    const normalizedStatus = String(order.status || '').trim().toLowerCase()
+    const cancellableStatuses = new Set(['pending', 'confirmed'])
+    if (!cancellableStatuses.has(normalizedStatus)) {
+        throw new ApiError(400, 'Order cannot be cancelled once it is in preparing stage or beyond')
     }
 
     const cancelledOrder = await Order.findByIdAndUpdate(

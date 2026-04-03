@@ -10,6 +10,7 @@ export default function DeliveryDashboardPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [totalEarned, setTotalEarned] = useState(0)
+  const [verificationCodes, setVerificationCodes] = useState({})
 
   const load = async () => {
     try {
@@ -60,10 +61,20 @@ export default function DeliveryDashboardPage() {
         await deliveriesApi.markPickedUp(deliveryId)
       }
       if (action === 'delivered') {
-        await deliveriesApi.markDelivered(deliveryId)
+        const code = String(verificationCodes[deliveryId] || '').trim()
+        if (!/^\d{4}$/.test(code)) {
+          setError('Enter a valid 4-digit customer code to complete delivery.')
+          return
+        }
+        await deliveriesApi.markDelivered(deliveryId, { verificationCode: code })
+        setVerificationCodes((prev) => ({ ...prev, [deliveryId]: '' }))
       }
       await load()
     } catch (err) {
+      const errMessage = err.message || ''
+      if (/invalid delivery verification code|wrong code/i.test(errMessage)) {
+        window.alert('Wrong code. Please ask the customer for the correct 4-digit code.')
+      }
       setError(err.message)
     }
   }
@@ -220,13 +231,27 @@ export default function DeliveryDashboardPage() {
                       Mark Picked Up
                     </button>
                   )}
-                  {delivery.status === 'PickedUp' && (
-                    <button
-                      onClick={() => advance(delivery._id, 'delivered')}
-                      className="flex-1 py-3 px-4 bg-green-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all"
-                    >
-                      Mark Delivered
-                    </button>
+                  {(delivery.status === 'Picked Up' || delivery.status === 'PickedUp') && (
+                    <div className="w-full space-y-2">
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={verificationCodes[delivery._id] || ''}
+                        onChange={(event) => {
+                          const digits = event.target.value.replace(/\D/g, '').slice(0, 4)
+                          setVerificationCodes((prev) => ({ ...prev, [delivery._id]: digits }))
+                        }}
+                        placeholder="Enter 4-digit customer code"
+                        className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 px-3 py-2 text-sm font-bold tracking-[0.2em] text-slate-900 dark:text-white outline-none focus:border-orange-500"
+                      />
+                      <button
+                        onClick={() => advance(delivery._id, 'delivered')}
+                        className="w-full py-3 px-4 bg-green-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all"
+                      >
+                        Verify Code & Mark Delivered
+                      </button>
+                    </div>
                   )}
                   {delivery.status === 'Delivered' && (
                     <div className="w-full py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 rounded-xl font-black text-xs uppercase tracking-widest text-center">

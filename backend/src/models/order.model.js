@@ -40,6 +40,21 @@ const orderSchema = new mongoose.Schema({
     specialNotes:{
         type: String,
     },
+    deliveryVerificationCode: {
+        type: String,
+        default: null,
+        select: false
+    },
+    deliveryVerificationCodeGeneratedAt: {
+        type: Date,
+        default: null,
+        select: false
+    },
+    deliveryVerificationVerifiedAt: {
+        type: Date,
+        default: null,
+        select: false
+    },
     deliveryAddress:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'DeliveryAddress',

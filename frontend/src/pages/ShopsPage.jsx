@@ -259,7 +259,11 @@ export default function ShopsPage() {
                         className="group bg-white dark:bg-white/5 rounded-[2.5rem] overflow-hidden border border-slate-100 dark:border-white/10 shadow-sm hover:shadow-2xl transition-all cursor-pointer backdrop-blur-md"
                       >
                         <div className="relative h-64">
-                          <img src={shop.imageUrl || 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800'} alt={shop.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                          <img
+                            src={shop.imageUrl || shop.owner?.imageUrl || 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800'}
+                            alt={shop.name}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
                           <div className={`absolute top-5 right-5 px-4 py-1.5 rounded-full text-[10px] font-black uppercase backdrop-blur-md ${shop.isOpen ? 'bg-green-500/90 text-white' : 'bg-red-500/90 text-white'}`}>
                             {shop.isOpen ? '● Open' : '○ Closed'}
                           </div>

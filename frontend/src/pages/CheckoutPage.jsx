@@ -282,8 +282,14 @@ export default function CheckoutPage() {
           method: toPaymentMethod(paymentMethod),
         })
 
-        if (paymentMethod !== 'upi' && paymentResponse.data?._id) {
-          await paymentsApi.updateStatus(paymentResponse.data._id, { status: 'Completed' })
+        if (paymentResponse.data?._id) {
+          if (paymentMethod === 'upi') {
+            await paymentsApi.verifyUpi(paymentResponse.data._id, {
+              upiTransactionId: `UPI-${Date.now()}`,
+            })
+          } else {
+            await paymentsApi.updateStatus(paymentResponse.data._id, { status: 'Completed' })
+          }
         }
       } catch (paymentErr) {
         await ordersApi.cancel(response.data?._id)

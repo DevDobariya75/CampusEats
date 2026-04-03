@@ -1,4 +1,5 @@
 import Shop from "../models/shops.model.js"
+import User from "../models/users.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -29,8 +30,10 @@ const createShop = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Shop name is required")
     }
 
-    // Handle image upload
-    let imageUrl = null
+    const owner = await User.findById(ownerId).select('imageUrl')
+
+    // Handle image upload (fallback to shopkeeper profile image)
+    let imageUrl = owner?.imageUrl || null
     if (req.file) {
         const uploadedImage = await uploadOnCloudinary(req.file.path)
         if (uploadedImage) {

@@ -7,6 +7,8 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 import { assignPendingOutForDeliveryOrders, markOrderDelivered } from "../services/deliveryAssignment.service.js"
 import { createSystemNotification } from "../services/notification.service.js"
 
+const generateDeliveryVerificationCode = () => String(Math.floor(1000 + Math.random() * 9000))
+
 const decrementPartnerLoad = async (partnerId) => {
     if (!partnerId) {
         return
@@ -289,6 +291,24 @@ const markPickedUp = asyncHandler(async (req, res) => {
     delivery.pickedUpAt = new Date()
     await delivery.save()
 
+    const verificationOrder = await Order.findById(delivery.order)
+        .select('+deliveryVerificationCode +deliveryVerificationCodeGeneratedAt +deliveryVerificationVerifiedAt')
+
+    let verificationCode = verificationOrder?.deliveryVerificationCode
+    if (!verificationCode) {
+        verificationCode = generateDeliveryVerificationCode()
+        await Order.findByIdAndUpdate(
+            delivery.order,
+            {
+                $set: {
+                    deliveryVerificationCode: verificationCode,
+                    deliveryVerificationCodeGeneratedAt: new Date(),
+                    deliveryVerificationVerifiedAt: null
+                }
+            }
+        )
+    }
+
     const updatedDelivery = await Delivery.findById(deliveryId)
         .populate('deliveryPartner', 'name email phone')
         .populate('order', 'totalAmount customer')
@@ -300,7 +320,7 @@ const markPickedUp = asyncHandler(async (req, res) => {
         await safeNotify({
             recipientId: pickedOrder.customer._id,
             title: 'Order picked up',
-            message: `Your order #${delivery.order.toString().slice(-6)} has been picked up and is on the way.`,
+            message: `Your order #${delivery.order.toString().slice(-6)} is out for delivery. Share this code with your delivery partner: ${verificationCode}.`,
             type: 'Order Update',
             relatedOrder: delivery.order
         })
@@ -314,6 +334,7 @@ const markPickedUp = asyncHandler(async (req, res) => {
 // Mark as Delivered
 const markDelivered = asyncHandler(async (req, res) => {
     const { deliveryId } = req.params
+    const { verificationCode } = req.body || {}
     const partnerId = req.user?._id
     const userRole = req.user?.role
 
@@ -342,6 +363,28 @@ const markDelivered = asyncHandler(async (req, res) => {
     if (!['Accepted', 'Picked Up'].includes(delivery.status)) {
         throw new ApiError(400, "Order must be accepted or picked up before delivery")
     }
+
+    if (!verificationCode || !/^\d{4}$/.test(String(verificationCode).trim())) {
+        throw new ApiError(400, "Valid 4-digit delivery verification code is required")
+    }
+
+    const orderForVerification = await Order.findById(delivery.order)
+        .select('+deliveryVerificationCode +deliveryVerificationCodeGeneratedAt +deliveryVerificationVerifiedAt')
+
+    if (!orderForVerification) {
+        throw new ApiError(404, "Order not found")
+    }
+
+    if (!orderForVerification.deliveryVerificationCode) {
+        throw new ApiError(400, "Delivery verification code is not generated yet")
+    }
+
+    if (String(orderForVerification.deliveryVerificationCode) !== String(verificationCode).trim()) {
+        throw new ApiError(400, "Invalid delivery verification code")
+    }
+
+    orderForVerification.deliveryVerificationVerifiedAt = new Date()
+    await orderForVerification.save()
 
     try {
         await markOrderDelivered(delivery.order)

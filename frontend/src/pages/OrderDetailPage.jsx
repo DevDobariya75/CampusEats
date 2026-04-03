@@ -160,6 +160,17 @@ export default function OrderDetailPage() {
                   </div>
                 </div>
 
+                {(order.status === 'Out for Delivery' || order.status === 'Picked Up') && order.deliveryVerificationCode && (
+                  <div className="bento-card p-6 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-3xl">
+                    <p className="text-slate-600 dark:text-orange-200 text-xs font-black uppercase tracking-widest mb-2">
+                      Share this secure delivery code with your delivery partner
+                    </p>
+                    <p className="text-3xl font-black tracking-[0.45em] text-orange-600 dark:text-orange-300">
+                      {order.deliveryVerificationCode}
+                    </p>
+                  </div>
+                )}
+
                 {/* Details Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Shop & Customer Info */}
@@ -211,6 +222,28 @@ export default function OrderDetailPage() {
                     </div>
                   </div>
                 </div>
+
+                {(order.assignedPartner || order.deliveryPartnerId || order.deliveryStatus) && (
+                  <div className="bento-card p-6 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-3xl">
+                    <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest mb-4">
+                      Delivery Partner Details
+                    </h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">Name</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{order.assignedPartner?.name || order.deliveryPartnerId?.name || 'Not assigned yet'}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">Mobile</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{order.assignedPartner?.phone || order.deliveryPartnerId?.phone || 'Not available'}</span>
+                      </div>
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-xs">Status</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{order.deliveryStatus || order.status || '-'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
           </div>

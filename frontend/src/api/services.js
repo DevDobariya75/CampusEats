@@ -72,7 +72,7 @@ export const deliveriesApi = {
   listMine: () => request('/deliveries'),
   accept: (deliveryId) => request(`/deliveries/${deliveryId}/accept`, { method: 'PATCH' }),
   markPickedUp: (deliveryId) => request(`/deliveries/${deliveryId}/picked-up`, { method: 'PATCH' }),
-  markDelivered: (deliveryId) => request(`/deliveries/${deliveryId}/delivered`, { method: 'PATCH' }),
+  markDelivered: (deliveryId, body) => request(`/deliveries/${deliveryId}/delivered`, { method: 'PATCH', body }),
   stats: () => request('/deliveries/stats'),
 }
 
