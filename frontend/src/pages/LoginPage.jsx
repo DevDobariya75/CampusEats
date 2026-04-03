@@ -41,7 +41,12 @@ export default function LoginPage() {
 
   return (
     <PageTransition>
-      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center py-12 px-4 relative z-10 w-full">
+      <div className="fixed inset-0 bg-gradient-to-br from-slate-50 to-slate-100 dark:bg-gradient-to-br dark:from-[#0f1419] dark:to-[#1a2332] flex items-center justify-center px-4 py-12">
+        {/* Background Effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.1),transparent_40%),radial-gradient(circle_at_85%_80%,rgba(249,115,22,0.08),transparent_45%)] pointer-events-none" />
+        {/* Background Effect */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.1),transparent_40%),radial-gradient(circle_at_85%_80%,rgba(249,115,22,0.08),transparent_45%)] pointer-events-none" />
+
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}

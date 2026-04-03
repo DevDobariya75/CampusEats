@@ -12,6 +12,13 @@ const normalizePayload = (payload) => {
   return payload
 }
 
+// Listener for unauthorized access
+let unauthorizedListener = null
+
+export function setUnauthorizedListener(listener) {
+  unauthorizedListener = listener
+}
+
 export async function request(path, options = {}) {
   const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ID_TOKEN_KEY)
   const config = {
@@ -33,6 +40,24 @@ export async function request(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, config)
   const raw = await response.text()
   const payload = raw ? JSON.parse(raw) : {}
+
+  // Handle 401 Unauthorized - token expired or invalid
+  if (response.status === 401 || payload.code === 401) {
+    // Clear tokens and notify listener
+    localStorage.removeItem(ACCESS_TOKEN_KEY)
+    localStorage.removeItem(ID_TOKEN_KEY)
+    localStorage.removeItem('cognitoRefreshToken')
+    localStorage.removeItem('cognitoUserEmail')
+    localStorage.removeItem('cognitoUserRole')
+    localStorage.removeItem('cognitoUserPhone')
+    
+    if (unauthorizedListener) {
+      unauthorizedListener()
+    }
+    
+    const message = payload.message || 'Your session has expired. Please login again.'
+    throw new Error(message)
+  }
 
   if (!response.ok || payload.success === false) {
     const message = payload.message || 'Request failed'

@@ -81,6 +81,12 @@ export default function RegisterPage() {
     e.preventDefault()
     clearError()
 
+    // Re-validate both steps before registration so OTP is not requested with incomplete data.
+    if (!validateStep1()) {
+      setStep(1)
+      return
+    }
+
     if (!validateStep2()) return
 
     setIsSubmitting(true)
@@ -110,7 +116,7 @@ export default function RegisterPage() {
 
   return (
     <PageTransition>
-      <div className="fixed inset-0 overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300">
+      <div className="fixed inset-0 bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] transition-colors duration-300 flex items-center justify-center">
         {/* Background Gradients */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)]" />
 
@@ -120,40 +126,40 @@ export default function RegisterPage() {
         </div>
 
         {/* Content */}
-        <div className="relative h-full flex items-center justify-center p-4">
+        <div className="relative p-2">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md"
+            className="w-full max-w-2xl"
           >
             {/* Card */}
-            <div className="bento-card p-10 bg-white/95 dark:bg-[#0b1320]/90 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(15,23,42,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.6)] rounded-3xl max-h-[90vh] overflow-y-auto custom-scrollbar transition-colors duration-300">
+            <div className="bento-card p-6 bg-white/95 dark:bg-[#0b1320]/90 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(15,23,42,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.6)] rounded-3xl transition-colors duration-300">
               {/* Header */}
               <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 }}
-                className="mb-8 text-center"
+                className="mb-5 text-center"
               >
-                <div className="inline-block p-4 bg-orange-100 dark:bg-orange-500/20 rounded-2xl mb-4 shadow-[0_0_15px_rgba(249,115,22,0.3)] border border-orange-200 dark:border-orange-500/30 transition-colors duration-300">
+                <div className="inline-block p-3 bg-orange-100 dark:bg-orange-500/20 rounded-2xl mb-3 shadow-[0_0_15px_rgba(249,115,22,0.3)] border border-orange-200 dark:border-orange-500/30 transition-colors duration-300">
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   >
-                    <User className="w-8 h-8 text-orange-400" />
+                    <User className="w-6 h-6 text-orange-400" />
                   </motion.div>
                 </div>
-                <h1 className="text-3xl font-black font-display text-slate-900 dark:text-white mb-2 uppercase tracking-widest transition-colors duration-300">
+                <h1 className="text-2xl font-black font-display text-slate-900 dark:text-white mb-1 uppercase tracking-widest transition-colors duration-300">
                   Join CampusEats
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 font-bold text-sm tracking-wider transition-colors duration-300">
+                <p className="text-slate-500 dark:text-slate-400 font-bold text-xs tracking-wider transition-colors duration-300">
                   {step === 1 ? 'Create your account' : 'Complete your profile'}
                 </p>
               </motion.div>
 
               {/* Progress Bar */}
-              <div className="mb-8 flex gap-2">
+              <div className="mb-5 flex gap-2">
                 <motion.div
                   initial={{ scaleX: 0 }}
                   animate={{ scaleX: 1 }}
@@ -167,25 +173,25 @@ export default function RegisterPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3"
+                  className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3"
                 >
-                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-red-800 text-sm">Error</h3>
-                    <p className="text-xs text-red-700 mt-1">{authError}</p>
+                    <h3 className="font-semibold text-red-800 text-xs">Error</h3>
+                    <p className="text-xs text-red-700 mt-0.5">{authError}</p>
                   </div>
                 </motion.div>
               )}
 
               {/* Step 1: Account Information */}
               {step === 1 && (
-                <form className="space-y-6">
+                <form className="space-y-4">
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Full Name</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Full Name</label>
                     <div className="relative">
                       <User className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
@@ -195,8 +201,8 @@ export default function RegisterPage() {
                           setForm({ ...form, name: e.target.value })
                           if (errors.name) setErrors({ ...errors, name: '' })
                         }}
-                        placeholder="John Doe"
-                        className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
+                        placeholder="Your name"
+                        className={`w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest text-sm ${
                           errors.name
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                             : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -217,7 +223,7 @@ export default function RegisterPage() {
                   >
                     <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Email</label>
                     <div className="relative">
-                      <Mail className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                      <Mail className="absolute left-4 top-3 w-5 h-5 text-slate-500" />
                       <input
                         type="email"
                         value={form.email}
@@ -226,7 +232,7 @@ export default function RegisterPage() {
                           if (errors.email) setErrors({ ...errors, email: '' })
                         }}
                         placeholder="your@email.com"
-                        className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest text-sm ${
                           errors.email
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                             : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -245,9 +251,9 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
                   >
-                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Password</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                      <Lock className="absolute left-4 top-2.5 w-5 h-5 text-slate-500" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={form.password}
@@ -256,7 +262,7 @@ export default function RegisterPage() {
                           if (errors.password) setErrors({ ...errors, password: '' })
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-12 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest text-sm ${
                           errors.password
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                             : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -265,7 +271,7 @@ export default function RegisterPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-3.5 text-slate-500 dark:text-slate-500 hover:text-orange-400 transition-colors"
+                        className="absolute right-4 top-2.5 text-slate-500 dark:text-slate-500 hover:text-orange-400 transition-colors"
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -282,9 +288,9 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.35 }}
                   >
-                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Confirm Password</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Confirm Password</label>
                     <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                      <Lock className="absolute left-4 top-2.5 w-5 h-5 text-slate-500" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={form.confirmPassword}
@@ -293,7 +299,7 @@ export default function RegisterPage() {
                           if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: '' })
                         }}
                         placeholder="••••••••"
-                        className={`w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-12 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest text-sm ${
                           errors.confirmPassword
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                             : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -312,7 +318,7 @@ export default function RegisterPage() {
                     whileTap={{ scale: 0.98 }}
                     type="button"
                     onClick={handleNext}
-                    className="w-full py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all uppercase tracking-widest text-sm"
+                    className="w-full py-3 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all uppercase tracking-widest text-sm"
                   >
                     Next Step
                   </motion.button>
@@ -321,13 +327,13 @@ export default function RegisterPage() {
 
               {/* Step 2: Profile Information */}
               {step === 2 && (
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
                   <motion.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
                   >
-                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Phone Number</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Phone Number</label>
                     <div className="relative">
                       <Phone className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
                       <input
@@ -338,7 +344,7 @@ export default function RegisterPage() {
                           if (errors.phone) setErrors({ ...errors, phone: '' })
                         }}
                         placeholder="+91 98765 43210"
-                        className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
+                        className={`w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest text-sm ${
                           errors.phone
                             ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                             : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -357,14 +363,14 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.25 }}
                   >
-                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">I am a...</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">I am a...</label>
                     <select
                       value={form.role}
                       onChange={(e) => {
                         setForm({ ...form, role: e.target.value, shopName: '', shopDescription: '' })
                         if (errors.role) setErrors({ ...errors, role: '' })
                       }}
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-bold appearance-none transition-all"
+                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-bold appearance-none transition-all text-sm"
                     >
                       <option value="customer" className="bg-white dark:bg-[#060B13] text-slate-900 dark:text-white">Customer (Order Food)</option>
                       <option value="shopkeeper" className="bg-white dark:bg-[#060B13] text-slate-900 dark:text-white">Shopkeeper (Sell Food)</option>
@@ -390,7 +396,7 @@ export default function RegisterPage() {
                               if (errors.shopName) setErrors({ ...errors, shopName: '' })
                             }}
                             placeholder="My Awesome Shop"
-                            className={`w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest ${
+                            className={`w-full pl-12 pr-4 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest text-sm ${
                               errors.shopName
                                 ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                                 : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -409,7 +415,7 @@ export default function RegisterPage() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.35 }}
                       >
-                        <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Shop Description</label>
+                        <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Shop Description</label>
                         <textarea
                           value={form.shopDescription}
                           onChange={(e) => {
@@ -417,7 +423,7 @@ export default function RegisterPage() {
                             if (errors.shopDescription) setErrors({ ...errors, shopDescription: '' })
                           }}
                           placeholder="Tell customers about your shop..."
-                          className={`w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest resize-none h-24 ${
+                          className={`w-full px-4 py-2.5 bg-slate-50 dark:bg-white/5 border rounded-xl font-bold text-slate-900 dark:text-white transition-all tracking-widest resize-none h-20 text-sm ${
                             errors.shopDescription
                               ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500'
                               : 'border-slate-200 dark:border-white/10 focus:border-orange-500 focus:ring-1 focus:ring-orange-500'
@@ -438,13 +444,13 @@ export default function RegisterPage() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.4 }}
                   >
-                    <label className="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-widest">Profile Picture (Optional)</label>
+                    <label className="block text-xs font-bold text-slate-400 mb-1.5 uppercase tracking-widest">Profile Picture (Optional)</label>
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className={`w-full py-6 bg-slate-50 dark:bg-white/5 border border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 ${
+                      className={`w-full py-4 bg-slate-50 dark:bg-white/5 border border-dashed rounded-xl transition-all flex flex-col items-center justify-center gap-2 ${
                         previewUrl
                           ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]'
                           : 'border-slate-300 dark:border-white/20 hover:border-orange-400 transition-colors'
@@ -467,7 +473,7 @@ export default function RegisterPage() {
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                   </motion.div>
 
-                  <div className="flex gap-4 pt-4">
+                  <div className="flex gap-3 pt-2">
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -476,7 +482,7 @@ export default function RegisterPage() {
                         setStep(1)
                         setErrors({})
                       }}
-                      className="flex-1 py-4 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
+                      className="flex-1 py-3 border border-slate-300 dark:border-white/20 text-slate-600 dark:text-slate-300 font-bold rounded-2xl hover:bg-slate-100 dark:hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
                     >
                       Back
                     </motion.button>
@@ -486,7 +492,7 @@ export default function RegisterPage() {
                       whileTap={{ scale: 0.98 }}
                       type="submit"
                       disabled={isSubmitting || authLoading}
-                      className="flex-1 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs disabled:opacity-50"
+                      className="flex-1 py-3 bg-orange-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(249,115,22,0.4)] hover:bg-orange-400 hover:shadow-[0_0_25px_rgba(249,115,22,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-xs disabled:opacity-50"
                     >
                       {isSubmitting || authLoading ? (
                         <>
@@ -506,7 +512,7 @@ export default function RegisterPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                className="text-center text-slate-400 font-bold tracking-widest text-sm mt-6"
+                className="text-center text-slate-400 font-bold tracking-widest text-xs mt-3"
               >
                 Already have an account?{' '}
                 <motion.button

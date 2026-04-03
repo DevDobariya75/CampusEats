@@ -206,7 +206,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] font-sans transition-colors duration-300">
+    <div className="flex h-screen flex-col overflow-hidden bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] font-sans transition-colors duration-300">
       <header className="sticky top-0 z-[70] w-full bg-white/88 dark:bg-[#060B13]/84 backdrop-blur-xl border-b border-slate-200/80 dark:border-white/10 shadow-[0_6px_24px_rgba(15,23,42,0.06)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.45)] transition-colors duration-300">
         <div className="w-full px-3 sm:px-5 lg:px-8 h-12 md:h-[3.25rem]">
           <div className="relative flex h-full items-center">
@@ -314,7 +314,7 @@ export default function Layout() {
         </div>
       </header>
 
-      <main className={`relative z-10 pb-[5.6rem] md:pb-0 ${isHomeRoute ? '' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-12'}`}>
+      <main className={`relative z-10 flex-1 overflow-y-auto overscroll-contain pb-[5.6rem] md:pb-0 ${isHomeRoute ? '' : 'px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-12'}`}>
         <Outlet />
       </main>
 

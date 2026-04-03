@@ -1,18 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { TrendingUp, Package, Clock, CheckCircle, AlertCircle, DollarSign } from 'lucide-react'
+import { Package, Clock, CheckCircle, AlertCircle, DollarSign } from 'lucide-react'
 import { ordersApi, shopsApi } from '../api/services'
 import { formatPrice } from '../utils/helpers'
 
 export default function ShopDashboardPage() {
   const [shopId, setShopId] = useState('')
-  const [shop, setShop] = useState(null)
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const [savingShop, setSavingShop] = useState(false)
-  const [shopForm, setShopForm] = useState({ name: '', description: '' })
-  const [shopImage, setShopImage] = useState(null)
-  const [shopPreview, setShopPreview] = useState('')
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [stats, setStats] = useState({
@@ -21,44 +16,46 @@ export default function ShopDashboardPage() {
     pendingOrders: 0,
     completedOrders: 0,
   })
+  const ordersRef = useRef([])
 
-  const loadData = async () => {
+  const calculateStats = (ordersList) => {
+    const totalOrders = ordersList.length
+    const totalEarned = ordersList.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0)
+    const pendingOrders = ordersList.filter((o) => o.status === 'Pending').length
+    const completedOrders = ordersList.filter((o) => o.status === 'Delivered').length
+
+    return {
+      totalOrders,
+      totalEarned,
+      pendingOrders,
+      completedOrders,
+    }
+  }
+
+  const loadData = async ({ silent = false } = {}) => {
     try {
       setError('')
       setMessage('')
-      setLoading(true)
+      if (!silent) {
+        setLoading(true)
+      }
       const myShopResponse = await shopsApi.getMine()
       const myShop = myShopResponse.data
       const currentShopId = myShop?._id || ''
-      setShop(myShop || null)
       setShopId(currentShopId)
 
       if (currentShopId) {
         const ordersResponse = await ordersApi.listForShop(currentShopId)
         const ordersList = Array.isArray(ordersResponse.data) ? ordersResponse.data : ordersResponse.data?.orders || []
         setOrders(ordersList)
-
-        // Calculate stats
-        const totalOrders = ordersList.length
-        const totalEarned = ordersList.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0)
-        const pendingOrders = ordersList.filter(o => o.status === 'Pending').length
-        const completedOrders = ordersList.filter(o => o.status === 'Delivered').length
-
-        setStats({
-          totalOrders,
-          totalEarned,
-          pendingOrders,
-          completedOrders,
-        })
+        setStats(calculateStats(ordersList))
       } else {
-        setShop(null)
         setOrders([])
         setError('No shop found for this account.')
       }
     } catch (err) {
       const text = String(err.message || '').toLowerCase()
       if (text.includes('shop not found')) {
-        setShop(null)
         setShopId('')
         setOrders([])
         setStats({
@@ -71,34 +68,49 @@ export default function ShopDashboardPage() {
         setError(err.message)
       }
     } finally {
-      setLoading(false)
+      if (!silent) {
+        setLoading(false)
+      }
     }
   }
-
-  useEffect(() => {
-    if (!shop) {
-      return
-    }
-
-    setShopForm({
-      name: shop.name || '',
-      description: shop.description || '',
-    })
-    setShopPreview(shop.imageUrl || '')
-    setShopImage(null)
-  }, [shop?._id])
 
   useEffect(() => {
     loadData()
   }, [])
 
   useEffect(() => {
+    ordersRef.current = orders
+  }, [orders])
+
+  useEffect(() => {
+    if (!shopId) {
+      return undefined
+    }
+
+    const pollForNewOrders = async () => {
+      try {
+        const response = await ordersApi.listForShop(shopId)
+        const latestOrders = Array.isArray(response.data) ? response.data : response.data?.orders || []
+        const existingOrderIds = new Set(ordersRef.current.map((order) => order._id))
+        const hasIncomingOrder = latestOrders.some((order) => !existingOrderIds.has(order._id))
+
+        // Refresh dashboard data only when a new customer order is received.
+        if (hasIncomingOrder) {
+          setOrders(latestOrders)
+          setStats(calculateStats(latestOrders))
+          setMessage('New order received.')
+        }
+      } catch {
+        // Silent polling should not interrupt dashboard usage.
+      }
+    }
+
     const intervalId = setInterval(() => {
-      loadData()
+      pollForNewOrders()
     }, 8000)
 
     return () => clearInterval(intervalId)
-  }, [])
+  }, [shopId])
 
   const updateStatus = async (orderId, status) => {
     try {
@@ -124,67 +136,12 @@ export default function ShopDashboardPage() {
     return []
   }
 
-  const getStatusClassName = (status) => {
-    if (status === 'Delivered') {
-      return 'status-chip status-done'
-    }
-    if (status === 'Cancelled') {
-      return 'status-chip status-cancel'
-    }
-    return 'status-chip status-progress'
-  }
-
   const statItems = [
     { title: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'from-orange-500 to-orange-600' },
     { title: 'Total Earned', value: formatPrice(stats.totalEarned), icon: DollarSign, color: 'from-green-500 to-green-600' },
     { title: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'from-orange-500 to-orange-600' },
     { title: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
   ]
-
-  const handleShopImageChange = (event) => {
-    const file = event.target.files?.[0]
-    if (!file) {
-      return
-    }
-
-    setShopImage(file)
-    setShopPreview(URL.createObjectURL(file))
-  }
-
-  const handleShopSave = async (event) => {
-    event.preventDefault()
-    setError('')
-    setMessage('')
-
-    if (!shopForm.name.trim()) {
-      setError('Shop name is required')
-      return
-    }
-
-    try {
-      setSavingShop(true)
-      const formData = new FormData()
-      formData.append('name', shopForm.name.trim())
-      formData.append('description', shopForm.description.trim())
-      if (shopImage) {
-        formData.append('image', shopImage)
-      }
-
-      if (shop?._id) {
-        await shopsApi.update(shop._id, formData)
-        setMessage('Shop profile updated successfully.')
-      } else {
-        await shopsApi.create(formData)
-        setMessage('Shop profile created successfully.')
-      }
-
-      await loadData()
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setSavingShop(false)
-    }
-  }
 
   return (
     <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
@@ -222,74 +179,6 @@ export default function ShopDashboardPage() {
           </motion.div>
         )}
 
-        {!loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-8 bg-white dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/10 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
-          >
-            <div className="flex flex-col md:flex-row md:items-start gap-6">
-              <div className="w-32 h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/10 shrink-0">
-                <img
-                  src={shopPreview || 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600'}
-                  alt={shopForm.name || 'Shop'}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-
-              <form onSubmit={handleShopSave} className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <p className="text-xs font-black tracking-widest uppercase text-slate-500 dark:text-slate-400 mb-2">
-                    {shop?._id ? 'Shop Profile' : 'Create Your Shop'}
-                  </p>
-                </div>
-
-                <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Shop Name</span>
-                  <input
-                    type="text"
-                    value={shopForm.name}
-                    onChange={(e) => setShopForm((prev) => ({ ...prev, name: e.target.value }))}
-                    className="mt-2 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-orange-500"
-                    placeholder="Enter your shop name"
-                  />
-                </label>
-
-                <label className="block">
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Shop Image</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleShopImageChange}
-                    className="mt-2 block w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200"
-                  />
-                </label>
-
-                <label className="block md:col-span-2">
-                  <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Description</span>
-                  <textarea
-                    rows="3"
-                    value={shopForm.description}
-                    onChange={(e) => setShopForm((prev) => ({ ...prev, description: e.target.value }))}
-                    className="mt-2 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-orange-500"
-                    placeholder="Tell customers about your shop"
-                  />
-                </label>
-
-                <div className="md:col-span-2 flex justify-end">
-                  <button
-                    type="submit"
-                    disabled={savingShop}
-                    className="px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-xs font-black uppercase tracking-widest transition-colors"
-                  >
-                    {savingShop ? 'Saving...' : shop?._id ? 'Update Shop' : 'Create Shop'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </motion.div>
-        )}
-
         {/* Stats Grid */}
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -309,19 +198,6 @@ export default function ShopDashboardPage() {
               </motion.div>
             ))}
           </div>
-        )}
-
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-12"
-          >
-            <div className="inline-block">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]"></div>
-            </div>
-            <p className="mt-4 text-orange-400 font-bold uppercase tracking-widest text-sm">Loading incoming orders...</p>
-          </motion.div>
         )}
 
         {!loading && shopId && (

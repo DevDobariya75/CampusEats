@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { userApi } from '../api/services'
+import { setUnauthorizedListener } from '../api/client'
 
 const AuthContext = createContext(null)
 
@@ -21,6 +23,18 @@ function decodeJwtPayload(token) {
   } catch {
     return null
   }
+}
+
+function isTokenExpired(token) {
+  const payload = decodeJwtPayload(token)
+  if (!payload || !payload.exp) return true
+
+  // Check if token expires within next minute
+  const expirationTime = payload.exp * 1000 // Convert to milliseconds
+  const currentTime = Date.now()
+  const timeUntilExpiry = expirationTime - currentTime
+
+  return timeUntilExpiry < 60000 // Token expired or expires within 1 minute
 }
 
 function buildFallbackUser() {
@@ -77,13 +91,30 @@ function clearSessionTokens() {
 }
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  // Handle unauthorized access (401 from API)
+  const handleUnauthorized = useCallback(() => {
+    clearSessionTokens()
+    setUser(null)
+    navigate('/login', { replace: true })
+  }, [navigate])
+
+  // Refresh user and validate token
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem(ACCESS_TOKEN_KEY)
-    if (!token) {
+    const idToken = localStorage.getItem(ID_TOKEN_KEY)
+    
+    // Check if token is expired
+    if (token && isTokenExpired(token)) {
+      handleUnauthorized()
+      return
+    }
+
+    if (!token && !idToken) {
       setUser(null)
       setLoading(false)
       return
@@ -107,17 +138,19 @@ export function AuthProvider({ children }) {
         return
       }
 
-      clearSessionTokens()
-      setUser(null)
-      setError(null)
+      handleUnauthorized()
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [handleUnauthorized])
 
   useEffect(() => {
+    // Set up unauthorized listener for 401 responses
+    setUnauthorizedListener(handleUnauthorized)
+
+    // Check token expiration on mount
     refreshUser()
-  }, [refreshUser])
+  }, [refreshUser, handleUnauthorized])
 
   const login = useCallback(
     async (credentials) => {

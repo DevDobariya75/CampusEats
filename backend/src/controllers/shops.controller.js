@@ -49,7 +49,7 @@ const createShop = asyncHandler(async (req, res) => {
         totalSales: 0
     })
 
-    const createdShop = await shop.populate('owner', 'name email phone')
+    const createdShop = await shop.populate('owner', 'name email phone imageUrl')
 
     return res
         .status(201)
@@ -74,7 +74,7 @@ const getAllShops = asyncHandler(async (req, res) => {
     }
 
     const shops = await Shop.find(filter)
-        .populate('owner', 'name email phone')
+        .populate('owner', 'name email phone imageUrl')
         .sort({ createdAt: -1 })
 
     return res
@@ -93,7 +93,7 @@ const getShopById = asyncHandler(async (req, res) => {
     const shop = await Shop.findOne({
         _id: shopId,
         isDeleted: false
-    }).populate('owner', 'name email phone')
+    }).populate('owner', 'name email phone imageUrl')
 
     if (!shop) {
         throw new ApiError(404, "Shop not found")
@@ -115,7 +115,7 @@ const getMyShop = asyncHandler(async (req, res) => {
     const shop = await Shop.findOne({
         owner: ownerId,
         isDeleted: false
-    }).populate('owner', 'name email phone')
+    }).populate('owner', 'name email phone imageUrl')
 
     if (!shop) {
         throw new ApiError(404, "Shop not found")
@@ -185,7 +185,7 @@ const updateShop = asyncHandler(async (req, res) => {
         shopId,
         { $set: updateData },
         { new: true }
-    ).populate('owner', 'name email phone')
+    ).populate('owner', 'name email phone imageUrl')
 
     return res
         .status(200)

@@ -92,11 +92,14 @@ const mapCognitoError = (error) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, role, phone, shopName, shopDescription } = req.body
 
-  if (!name || !email || !password || !role || !phone) {
-    throw new ApiError(400, 'All fields are required')
-  }
+  const trimmedName = name?.trim()
+  const normalizedEmail = email?.toLowerCase().trim()
+  const trimmedRole = role?.trim()
+  const trimmedPhone = phone?.trim()
 
-  const normalizedEmail = email.toLowerCase().trim()
+  if (!trimmedName || !normalizedEmail || !password || !trimmedRole || !trimmedPhone) {
+    throw new ApiError(400, 'Please fill all required fields before requesting OTP')
+  }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
     throw new ApiError(400, 'Invalid email format')
@@ -106,11 +109,11 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, 'Password must be at least 8 characters')
   }
 
-  if (!validRoles.includes(role)) {
+  if (!validRoles.includes(trimmedRole)) {
     throw new ApiError(400, `Invalid role. Must be one of: ${validRoles.join(', ')}`)
   }
 
-  if (role === 'shopkeeper') {
+  if (trimmedRole === 'shopkeeper') {
     if (!shopName || !shopName.trim() || !shopDescription || !shopDescription.trim()) {
       throw new ApiError(400, 'Shop name and shop description are required for shopkeeper registration')
     }
@@ -131,7 +134,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email: normalizedEmail,
       password,
       attributes: {
-        name: name.trim(),
+        name: trimmedName,
       },
     })
   } catch (error) {
@@ -150,11 +153,11 @@ const registerUser = asyncHandler(async (req, res) => {
     { email: normalizedEmail },
     {
       $set: {
-        name: name.trim(),
+        name: trimmedName,
         email: normalizedEmail,
         cognitoSub: cognitoSignUp?.UserSub,
-        role,
-        phone,
+        role: trimmedRole,
+        phone: trimmedPhone,
         imageUrl,
         isActive: false,
         isDeleted: false,
@@ -168,12 +171,13 @@ const registerUser = asyncHandler(async (req, res) => {
   )
 
   let createdShop = null
-  if (role === 'shopkeeper') {
+  if (trimmedRole === 'shopkeeper') {
     const existingShop = await Shop.findOne({ owner: upsertedUser._id, isDeleted: false })
     if (!existingShop) {
       createdShop = await Shop.create({
         name: shopName.trim(),
         description: shopDescription.trim(),
+        imageUrl,
         owner: upsertedUser._id,
         isOpen: true,
         isActive: true,

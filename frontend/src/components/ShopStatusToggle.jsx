@@ -63,13 +63,21 @@ export default function ShopStatusToggle() {
   return (
     <button
       type="button"
-      className={`shop-toggle ${isOpen ? 'shop-open' : 'shop-closed'}`}
+      className={`inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm font-bold transition-colors ${
+        isOpen
+          ? 'border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300'
+          : 'border-red-300 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300'
+      }`}
       onClick={handleToggle}
       disabled={saving}
       title={isOpen ? 'Customers can place orders' : 'Customers cannot place orders'}
     >
-      <span className="dot" />
-      {saving ? 'Updating...' : isOpen ? 'Shop Open' : 'Shop Closed'}
+      <span
+        className={`inline-block h-2.5 w-2.5 rounded-full ${
+          isOpen ? 'bg-emerald-500' : 'bg-red-500'
+        }`}
+      />
+      {saving ? 'Updating...' : isOpen ? 'Open Shop' : 'Close Shop'}
     </button>
   )
 }

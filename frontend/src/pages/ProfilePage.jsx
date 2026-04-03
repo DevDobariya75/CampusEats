@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { CheckCircle, AlertCircle, User, Lock, Upload, Mail, LogOut, Eye, EyeOff, Camera, Phone, MapPin } from 'lucide-react'
+import { CheckCircle, AlertCircle, User, Upload, Mail, Camera, Phone } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { shopsApi } from '../api/services'
 import { PageTransition, LoadingSpinner } from '../components/ui/Button'
 import { AnimatedGradientBg } from '../components/ui/3DElements'
 import { getInitials, formatDate } from '../utils/helpers'
 
 export default function ProfilePage() {
-  const navigate = useNavigate()
-  const { user, refreshUser, logout, updateProfile, changePassword } = useAuth()
-  const [activeTab, setActiveTab] = useState('edit') // 'edit', 'password', 'security'
+  const { user, updateProfile } = useAuth()
+  const isShopkeeper = user?.role === 'shopkeeper'
   
   // Edit profile state
   const [name, setName] = useState(user?.name || '')
@@ -21,24 +20,72 @@ export default function ProfilePage() {
   const [imageUploading, setImageUploading] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-
-  // Password state
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPasswords, setShowPasswords] = useState({
-    current: false,
-    new: false,
-    confirm: false,
-  })
-  const [passwordLoading, setPasswordLoading] = useState(false)
-  const [passwordMessage, setPasswordMessage] = useState('')
-  const [passwordError, setPasswordError] = useState('')
+  const [shopId, setShopId] = useState('')
+  const [shopForm, setShopForm] = useState({ name: '', description: '' })
+  const [shopImage, setShopImage] = useState(null)
+  const [shopPreview, setShopPreview] = useState('')
+  const [shopLoading, setShopLoading] = useState(false)
+  const [shopSaving, setShopSaving] = useState(false)
+  const [shopMessage, setShopMessage] = useState('')
+  const [shopError, setShopError] = useState('')
 
   useEffect(() => {
     setName(user?.name || '')
     setPhone(user?.phone || '')
   }, [user?.name, user?.phone])
+
+  useEffect(() => {
+    if (!isShopkeeper) {
+      return
+    }
+
+    let mounted = true
+
+    const loadShop = async () => {
+      try {
+        setShopLoading(true)
+        setShopError('')
+        const response = await shopsApi.getMine()
+        const currentShop = response.data
+
+        if (!mounted) {
+          return
+        }
+
+        setShopId(currentShop?._id || '')
+        setShopForm({
+          name: currentShop?.name || '',
+          description: currentShop?.description || '',
+        })
+        setShopPreview(currentShop?.imageUrl || currentShop?.owner?.imageUrl || user?.imageUrl || '')
+        setShopImage(null)
+      } catch (err) {
+        if (!mounted) {
+          return
+        }
+
+        const errorText = String(err.message || '').toLowerCase()
+        if (errorText.includes('shop not found')) {
+          setShopId('')
+          setShopForm({ name: '', description: '' })
+          setShopPreview(user?.imageUrl || '')
+          return
+        }
+
+        setShopError(err.message || 'Failed to load shop profile')
+      } finally {
+        if (mounted) {
+          setShopLoading(false)
+        }
+      }
+    }
+
+    loadShop()
+
+    return () => {
+      mounted = false
+    }
+  }, [isShopkeeper, user?.imageUrl])
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -107,47 +154,54 @@ export default function ProfilePage() {
     }
   }
 
-  // Change password
-  const handleChangePassword = async (e) => {
-    e.preventDefault()
-    setPasswordError('')
-    setPasswordMessage('')
-
-    if (newPassword !== confirmPassword) {
-      setPasswordError('Passwords do not match')
+  const handleShopImageChange = (event) => {
+    const file = event.target.files?.[0]
+    if (!file) {
       return
     }
 
-    if (newPassword.length < 8) {
-      setPasswordError('Password must be at least 8 characters')
+    setShopImage(file)
+    setShopPreview(URL.createObjectURL(file))
+  }
+
+  const handleShopSave = async (event) => {
+    event.preventDefault()
+    setShopError('')
+    setShopMessage('')
+
+    if (!shopForm.name.trim()) {
+      setShopError('Shop name is required')
       return
     }
 
     try {
-      setPasswordLoading(true)
-      const result = await changePassword({
-        currentPassword,
-        newPassword,
-      })
-      if (result.success) {
-        setPasswordMessage('Password changed successfully!')
-        setCurrentPassword('')
-        setNewPassword('')
-        setConfirmPassword('')
-      } else {
-        setPasswordError(result.error || 'Failed to change password')
-      }
-    } catch (err) {
-      setPasswordError(err.message || 'An error occurred')
-    } finally {
-      setPasswordLoading(false)
-    }
-  }
+      setShopSaving(true)
 
-  // Handle logout
-  const handleLogout = async () => {
-    await logout()
-    navigate('/login')
+      const formData = new FormData()
+      formData.append('name', shopForm.name.trim())
+      formData.append('description', shopForm.description.trim())
+      if (shopImage) {
+        formData.append('image', shopImage)
+      }
+
+      const response = shopId
+        ? await shopsApi.update(shopId, formData)
+        : await shopsApi.create(formData)
+
+      const updatedShop = response.data
+      setShopId(updatedShop?._id || shopId)
+      setShopForm({
+        name: updatedShop?.name || shopForm.name,
+        description: updatedShop?.description || shopForm.description,
+      })
+      setShopPreview(updatedShop?.imageUrl || shopPreview)
+      setShopImage(null)
+      setShopMessage(shopId ? 'Shop profile updated successfully.' : 'Shop profile created successfully.')
+    } catch (err) {
+      setShopError(err.message || 'Failed to save shop profile')
+    } finally {
+      setShopSaving(false)
+    }
   }
 
   return (
@@ -157,7 +211,7 @@ export default function ProfilePage() {
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(249,115,22,0.15),transparent_38%),radial-gradient(circle_at_82%_66%,rgba(249,115,22,0.1),transparent_40%)] hidden dark:block" />
 
         <div className="relative py-12 px-4 md:px-8">
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             {/* Profile Header */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
@@ -194,39 +248,14 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              {/* Tabs */}
-              <div className="flex gap-2 border-b border-slate-200 dark:border-white/10">
-                {[
-                  { id: 'edit', label: 'Edit Profile', icon: User },
-                  { id: 'password', label: 'Change Password', icon: Lock },
-                  { id: 'security', label: 'Security', icon: MapPin },
-                ].map(({ id, label, icon: Icon }) => (
-                  <motion.button
-                    key={id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setActiveTab(id)}
-                    className={`px-4 py-3 font-bold transition-all flex items-center gap-2 uppercase tracking-widest text-xs border-b-2 ${
-                      activeTab === id
-                        ? 'text-orange-500 border-orange-500'
-                        : 'text-slate-500 border-transparent hover:text-slate-700 dark:hover:text-slate-300'
-                    }`}
-                  >
-                    <Icon className="w-4 h-4" />
-                    {label}
-                  </motion.button>
-                ))}
-              </div>
             </motion.div>
 
-            {/* Edit Profile Tab */}
-            {activeTab === 'edit' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8"
-              >
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8"
+            >
                 {message && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
@@ -356,161 +385,96 @@ export default function ProfilePage() {
                     )}
                   </motion.button>
                 </form>
-              </motion.div>
-            )}
+            </motion.div>
 
-            {/* Change Password Tab */}
-            {activeTab === 'password' && (
+            {isShopkeeper && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8"
+                transition={{ delay: 0.25 }}
+                className="mt-8 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8"
               >
-                {passwordMessage && (
+                <div className="mb-4">
+                  <p className="text-xs font-black tracking-widest uppercase text-slate-500 dark:text-slate-400">
+                    {shopId ? 'Shop Profile' : 'Create Your Shop'}
+                  </p>
+                </div>
+
+                {shopMessage && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg flex items-start gap-3"
                   >
                     <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-green-700">{passwordMessage}</p>
+                    <p className="text-sm text-green-700">{shopMessage}</p>
                   </motion.div>
                 )}
 
-                {passwordError && (
+                {shopError && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3"
                   >
                     <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-red-700">{passwordError}</p>
+                    <p className="text-sm text-red-700">{shopError}</p>
                   </motion.div>
                 )}
 
-                <form onSubmit={handleChangePassword} className="space-y-6">
-                  {/* Current Password */}
-                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }}>
-                    <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                      Current Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
-                      <input
-                        type={showPasswords.current ? 'text' : 'password'}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold tracking-widest"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPasswords({ ...showPasswords, current: !showPasswords.current })}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-orange-400"
-                      >
-                        {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </motion.div>
+                <form onSubmit={handleShopSave} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="w-32 h-32 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 bg-slate-100 dark:bg-white/10 shrink-0">
+                    <img
+                      src={shopPreview || 'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=600'}
+                      alt={shopForm.name || 'Shop'}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
 
-                  {/* New Password */}
-                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                    <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                      New Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
+                  <div className="md:col-span-1">
+                    <label className="block">
+                      <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Shop Name</span>
                       <input
-                        type={showPasswords.new ? 'text' : 'password'}
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold tracking-widest"
-                        required
+                        type="text"
+                        value={shopForm.name}
+                        onChange={(e) => setShopForm((prev) => ({ ...prev, name: e.target.value }))}
+                        className="mt-2 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-orange-500"
+                        placeholder="Enter your shop name"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPasswords({ ...showPasswords, new: !showPasswords.new })}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-orange-400"
-                      >
-                        {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </motion.div>
-
-                  {/* Confirm Password */}
-                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
-                    <label className="block text-sm font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                      Confirm Password
                     </label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-3.5 w-5 h-5 text-slate-500" />
-                      <input
-                        type={showPasswords.confirm ? 'text' : 'password'}
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="••••••••"
-                        className="w-full pl-12 pr-12 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold tracking-widest"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPasswords({ ...showPasswords, confirm: !showPasswords.confirm })}
-                        className="absolute right-4 top-3.5 text-slate-500 hover:text-orange-400"
-                      >
-                        {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </motion.div>
+                  </div>
 
-                  {/* Submit */}
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    type="submit"
-                    disabled={passwordLoading}
-                    className="w-full py-4 bg-green-500 text-white font-black rounded-2xl shadow-[0_0_15px_rgba(34,197,94,0.4)] hover:bg-green-600 hover:shadow-[0_0_25px_rgba(34,197,94,0.6)] transition-all flex items-center justify-center gap-2 uppercase tracking-widest text-sm"
-                  >
-                    {passwordLoading ? 'Updating...' : 'Update Password'}
-                  </motion.button>
+                  <label className="block md:col-span-1">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Shop Image</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleShopImageChange}
+                      className="mt-2 block w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-2 text-sm text-slate-700 dark:text-slate-200"
+                    />
+                  </label>
+
+                  <label className="block md:col-span-2">
+                    <span className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Description</span>
+                    <textarea
+                      rows="3"
+                      value={shopForm.description}
+                      onChange={(e) => setShopForm((prev) => ({ ...prev, description: e.target.value }))}
+                      className="mt-2 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-3 text-slate-900 dark:text-white outline-none focus:border-orange-500"
+                      placeholder="Tell customers about your shop"
+                    />
+                  </label>
+
+                  <div className="md:col-span-2 flex justify-end">
+                    <button
+                      type="submit"
+                      disabled={shopSaving || shopLoading}
+                      className="px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-60 text-white text-xs font-black uppercase tracking-widest transition-colors"
+                    >
+                      {shopSaving ? 'Saving...' : shopId ? 'Update Shop' : 'Create Shop'}
+                    </button>
+                  </div>
                 </form>
-              </motion.div>
-            )}
-
-            {/* Security Tab */}
-            {activeTab === 'security' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="space-y-4"
-              >
-                <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-widest">Manage Addresses</h3>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => navigate('/addresses')}
-                    className="px-8 py-4 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white font-bold rounded-2xl shadow-sm dark:shadow-[0_0_15px_rgba(255,255,255,0.1)] hover:bg-slate-200 dark:hover:bg-white/20 transition-all uppercase tracking-widest text-sm border border-slate-200 dark:border-transparent"
-                  >
-                    Go to Addresses
-                  </motion.button>
-                </div>
-
-                <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:shadow-none rounded-3xl p-8">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white mb-6 uppercase tracking-widest">Account Actions</h3>
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleLogout}
-                    className="px-8 py-4 bg-red-500/20 text-red-500 font-bold rounded-2xl shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:bg-red-500/30 transition-all flex items-center gap-2 uppercase tracking-widest text-sm border border-red-500/30"
-                  >
-                    <LogOut className="w-5 h-5" />
-                    Logout
-                  </motion.button>
-                </div>
               </motion.div>
             )}
           </div>
