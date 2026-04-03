@@ -264,6 +264,28 @@ export default function ShopDashboardPage() {
                             <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Address</span>
                             <p className="font-bold text-slate-900 dark:text-white text-sm mt-1">{order.deliveryAddress?.addressLine || '-'}</p>
                           </div>
+                          <div>
+                            <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Items Ordered</span>
+                            {Array.isArray(order.orderItems) && order.orderItems.length > 0 ? (
+                              <div className="mt-2 space-y-2">
+                                {order.orderItems.map((item) => (
+                                  <div
+                                    key={item._id}
+                                    className="flex items-center justify-between text-sm p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10"
+                                  >
+                                    <span className="font-semibold text-slate-900 dark:text-white pr-3">
+                                      {item.name || 'Item'} x{item.quantity || 0}
+                                    </span>
+                                    <span className="font-black text-orange-500 dark:text-orange-400 whitespace-nowrap">
+                                      Rs {Number(item.subTotal || 0)}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="font-semibold text-slate-500 dark:text-slate-400 text-sm mt-1">Item details not available</p>
+                            )}
+                          </div>
                           {order.specialNotes && (
                             <div>
                               <span className="text-orange-500 dark:text-orange-400 text-xs font-bold uppercase tracking-widest">Notes</span>

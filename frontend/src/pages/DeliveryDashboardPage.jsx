@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Truck, CheckCircle, MapPin, AlertCircle, TrendingUp, DollarSign } from 'lucide-react'
 import { deliveriesApi } from '../api/services'
@@ -9,13 +9,25 @@ export default function DeliveryDashboardPage() {
   const [stats, setStats] = useState(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [totalEarned, setTotalEarned] = useState(0)
   const [verificationCodes, setVerificationCodes] = useState({})
+  const requestInFlightRef = useRef(false)
 
-  const load = async () => {
+  const load = useCallback(async ({ silent = false, showError = !silent } = {}) => {
+    if (requestInFlightRef.current) {
+      return
+    }
+
+    requestInFlightRef.current = true
     try {
-      setError('')
-      setLoading(true)
+      if (!silent) {
+        setError('')
+        setLoading(true)
+      } else {
+        setIsRefreshing(true)
+      }
+
       const [deliveriesResponse, statsResponse] = await Promise.all([
         deliveriesApi.listMine(),
         deliveriesApi.stats(),
@@ -33,23 +45,27 @@ export default function DeliveryDashboardPage() {
         .reduce((sum, d) => sum + (Number(d.order?.totalAmount) || 0), 0)
       setTotalEarned(earned)
     } catch (err) {
-      setError(err.message)
+      if (showError) {
+        setError(err.message)
+      }
     } finally {
+      requestInFlightRef.current = false
+      setIsRefreshing(false)
       setLoading(false)
     }
-  }
+  }, [])
 
   useEffect(() => {
     load()
-  }, [])
+  }, [load])
 
   useEffect(() => {
     const intervalId = setInterval(() => {
-      load()
+      load({ silent: true, showError: false })
     }, 8000)
 
     return () => clearInterval(intervalId)
-  }, [])
+  }, [load])
 
   const advance = async (deliveryId, action) => {
     try {
@@ -69,7 +85,7 @@ export default function DeliveryDashboardPage() {
         await deliveriesApi.markDelivered(deliveryId, { verificationCode: code })
         setVerificationCodes((prev) => ({ ...prev, [deliveryId]: '' }))
       }
-      await load()
+      await load({ silent: true, showError: true })
     } catch (err) {
       const errMessage = err.message || ''
       if (/invalid delivery verification code|wrong code/i.test(errMessage)) {
@@ -85,6 +101,11 @@ export default function DeliveryDashboardPage() {
     { title: 'Picked Up', value: stats?.pickedUp ?? 0, icon: TrendingUp, color: 'from-orange-500 to-orange-600' },
     { title: 'Delivered', value: stats?.delivered ?? 0, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
   ]
+
+  const getFullDeliveryAddress = (address = {}) => {
+    const parts = [address.label, address.addressLine].filter(Boolean)
+    return parts.length ? parts : ['-']
+  }
 
   return (
     <section className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#060B13] dark:text-[#f8fafc] py-8 px-4 relative transition-colors duration-300">
@@ -127,7 +148,10 @@ export default function DeliveryDashboardPage() {
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
                 <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{stat.title}</p>
-                <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 font-display">{stat.value}</p>
+                <p className="text-3xl font-black text-slate-900 dark:text-white mt-1 font-display">
+                  {stat.value}
+                  {idx === 0 && isRefreshing ? <span className="ml-2 text-xs text-orange-500 align-middle">Updating...</span> : null}
+                </p>
               </motion.div>
             ))}
           </div>
@@ -186,32 +210,36 @@ export default function DeliveryDashboardPage() {
                     }`}>{delivery.status}</span>
                   </div>
 
-                  {delivery.status !== 'Assigned' && (
-                    <div className="space-y-4 mb-6">
-                      <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
-                        <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 mt-1">
-                          <MapPin className="w-4 h-4 text-orange-500 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <span className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">Pickup From</span>
-                          <p className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.shop?.name || '-'}</p>
-                        </div>
+                  <div className="space-y-4 mb-6">
+                    <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
+                      <div className="p-2 bg-slate-100 dark:bg-white/5 rounded-lg border border-slate-200 dark:border-white/10 mt-1">
+                        <MapPin className="w-4 h-4 text-orange-500 dark:text-orange-400" />
                       </div>
-                      <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
-                        <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/20 mt-1">
-                          <MapPin className="w-4 h-4 text-orange-500 dark:text-orange-400" />
-                        </div>
-                        <div>
-                          <span className="text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest">Delivery To</span>
-                          <p className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.deliveryAddress?.addressLine || '-'}</p>
-                        </div>
-                      </div>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">Customer</span>
-                        <span className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.customer?.name || '-'}</span>
+                      <div>
+                        <span className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">Pickup From</span>
+                        <p className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.shop?.name || '-'}</p>
                       </div>
                     </div>
-                  )}
+                    <div className="flex items-start gap-3 pb-3 border-b border-slate-200 dark:border-white/10">
+                      <div className="p-2 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-200 dark:border-orange-500/20 mt-1">
+                        <MapPin className="w-4 h-4 text-orange-500 dark:text-orange-400" />
+                      </div>
+                      <div>
+                        <span className="text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest">Delivery To</span>
+                        <div className="mt-1 space-y-1">
+                          {getFullDeliveryAddress(delivery.order?.deliveryAddress).map((line, lineIdx) => (
+                            <p key={`${delivery._id}-address-${lineIdx}`} className="font-bold text-slate-900 dark:text-white text-sm">
+                              {line}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">Customer</span>
+                      <span className="font-bold text-slate-900 dark:text-white text-sm">{delivery.order?.customer?.name || '-'}</span>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10 flex gap-3">

@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom'
 const initialForm = {
   label: '',
   addressLine: '',
-  pinCode: '',
   isDefault: false,
 }
 
@@ -130,15 +129,6 @@ export default function AddressesPage() {
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold resize-none h-24"
                     />
                   </div>
-                  <div>
-                    <input
-                      value={form.pinCode}
-                      onChange={(event) => setForm((prev) => ({ ...prev, pinCode: event.target.value }))}
-                      placeholder="Pin code"
-                      required
-                      className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-slate-900 dark:text-white outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all font-bold"
-                    />
-                  </div>
                   <label className="flex items-center gap-2 cursor-pointer pt-2">
                     <input
                       type="checkbox"
@@ -188,8 +178,7 @@ export default function AddressesPage() {
                           )}
                         </h3>
                       </div>
-                      <p className="text-slate-600 dark:text-slate-400 text-sm mb-1">{address.addressLine}</p>
-                      <p className="text-slate-500 dark:text-slate-500 text-sm font-bold mb-6">PIN: {address.pinCode}</p>
+                      <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">{address.addressLine}</p>
                       
                       <div className="flex items-center gap-3 pt-4 border-t border-slate-200 dark:border-white/10">
                         {!address.isDefault && (

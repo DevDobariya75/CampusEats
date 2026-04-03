@@ -13,10 +13,6 @@ const deliveryAddressSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    pinCode:{
-        type: String,
-        required: true
-    },
     isDeleted:{
         type: Boolean,
         default: false

@@ -4,6 +4,7 @@ import Shop from "../models/shops.model.js"
 import Payment from "../models/payment.model.js"
 import Cart from "../models/carts.model.js"
 import CartItem from "../models/cartItems.model.js"
+import OrderItem from "../models/orderItems.model.js"
 import Delivery from "../models/deliveries.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
@@ -18,6 +19,22 @@ import {
 } from "../services/inventoryReservation.service.js"
 
 const generateDeliveryVerificationCode = () => String(Math.floor(1000 + Math.random() * 9000))
+
+const buildOrderItemSnapshot = (cartItems = []) =>
+    cartItems.map((item) => {
+        const quantity = Number(item.quantity || 0)
+        const menuItem = item.menuItem || {}
+        const unitPrice = Number(menuItem.price || 0)
+
+        return {
+            menuItem: menuItem._id,
+            name: menuItem.name || 'Item',
+            price: unitPrice,
+            quantity,
+            subTotal: unitPrice * quantity,
+            imageUrl: menuItem.imageUrl || '',
+        }
+    })
 
 const safeNotify = async (payload) => {
     try {
@@ -189,6 +206,16 @@ const createOrder = asyncHandler(async (req, res) => {
         throw error
     }
 
+    const orderItemSnapshot = buildOrderItemSnapshot(cart.cartItems)
+    if (orderItemSnapshot.length) {
+        await OrderItem.insertMany(
+            orderItemSnapshot.map((item) => ({
+                ...item,
+                order: order._id
+            }))
+        )
+    }
+
     if (cart) {
         await CartItem.deleteMany({ cart: cart._id })
         cart.cartItems = []
@@ -203,10 +230,19 @@ const createOrder = asyncHandler(async (req, res) => {
         .populate('deliveryPartnerId', 'name email phone')
 
     const shortOrderId = order._id.toString().slice(-6)
+    const orderedItemsPreview = orderItemSnapshot
+        .slice(0, 3)
+        .map((item) => `${item.name} x${item.quantity}`)
+        .join(', ')
+    const remainingItemsCount = Math.max(orderItemSnapshot.length - 3, 0)
+    const orderedItemsSummary = orderItemSnapshot.length
+        ? `${orderedItemsPreview}${remainingItemsCount ? ` +${remainingItemsCount} more` : ''}`
+        : 'Items unavailable'
+
     await safeNotify({
         recipientId: shop.owner,
         title: 'You got a new order',
-        message: `${req.user?.name || 'A customer'} placed order #${shortOrderId} for Rs ${order.totalAmount}.`,
+        message: `${req.user?.name || 'A customer'} placed order #${shortOrderId} for Rs ${order.totalAmount}. Items: ${orderedItemsSummary}.`,
         type: 'Order Update',
         relatedOrder: order._id
     })
@@ -259,6 +295,21 @@ const getCustomerOrders = asyncHandler(async (req, res) => {
     const orders = await query
 
     const orderIds = orders.map((item) => item._id)
+    const orderItemRows = await OrderItem.find({
+        order: { $in: orderIds }
+    })
+        .select('order menuItem name price quantity subTotal imageUrl')
+        .sort({ createdAt: 1 })
+
+    const orderItemsMap = new Map()
+    orderItemRows.forEach((item) => {
+        const orderKey = item.order.toString()
+        if (!orderItemsMap.has(orderKey)) {
+            orderItemsMap.set(orderKey, [])
+        }
+        orderItemsMap.get(orderKey).push(item)
+    })
+
     const deliveryRows = await Delivery.find({
         order: { $in: orderIds },
         isDeleted: false
@@ -273,6 +324,7 @@ const getCustomerOrders = asyncHandler(async (req, res) => {
         const assignedPartner = plain.deliveryPartnerId || delivery?.deliveryPartner || null
         return {
             ...plain,
+            orderItems: orderItemsMap.get(item._id.toString()) || [],
             assignedPartner,
             deliveryStatus: delivery?.status || null,
             deliveryAcceptedAt: delivery?.acceptedAt || null,
@@ -337,6 +389,21 @@ const getShopOrders = asyncHandler(async (req, res) => {
     const orders = await query
 
     const orderIds = orders.map((item) => item._id)
+    const orderItemRows = await OrderItem.find({
+        order: { $in: orderIds }
+    })
+        .select('order menuItem name price quantity subTotal imageUrl')
+        .sort({ createdAt: 1 })
+
+    const orderItemsMap = new Map()
+    orderItemRows.forEach((item) => {
+        const orderKey = item.order.toString()
+        if (!orderItemsMap.has(orderKey)) {
+            orderItemsMap.set(orderKey, [])
+        }
+        orderItemsMap.get(orderKey).push(item)
+    })
+
     const deliveryRows = await Delivery.find({
         order: { $in: orderIds },
         isDeleted: false
@@ -354,6 +421,7 @@ const getShopOrders = asyncHandler(async (req, res) => {
         const assignedPartner = populatedPartner || delivery?.deliveryPartner || null
         return {
             ...plain,
+            orderItems: orderItemsMap.get(item._id.toString()) || [],
             assignedPartner,
             deliveryStatus: delivery?.status || null,
             deliveryAcceptedAt: delivery?.acceptedAt || null
@@ -403,6 +471,11 @@ const getOrderById = asyncHandler(async (req, res) => {
         .populate('deliveryPartner', 'name email phone')
 
     const plainOrder = order.toObject()
+    const orderItems = await OrderItem.find({ order: order._id })
+        .select('menuItem name price quantity subTotal imageUrl')
+        .sort({ createdAt: 1 })
+
+    plainOrder.orderItems = orderItems
     plainOrder.assignedPartner = plainOrder.deliveryPartnerId || delivery?.deliveryPartner || null
     plainOrder.deliveryStatus = delivery?.status || null
     plainOrder.deliveryAcceptedAt = delivery?.acceptedAt || null

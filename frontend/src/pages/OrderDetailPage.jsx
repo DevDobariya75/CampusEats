@@ -186,7 +186,6 @@ export default function OrderDetailPage() {
                         <MapPin className="w-4 h-4 text-orange-400" /> Delivery Address
                       </h3>
                       <p className="font-bold text-slate-900 dark:text-white text-sm">{order.deliveryAddress?.addressLine || '-'}</p>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">PIN: {order.deliveryAddress?.pinCode || '-'}</p>
                     </div>
                     <div>
                       <h3 className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-2">

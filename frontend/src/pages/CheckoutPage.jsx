@@ -11,7 +11,6 @@ import { formatPrice } from '../utils/helpers'
 const initialAddressForm = {
   label: '',
   addressLine: '',
-  pinCode: '',
   isDefault: false,
 }
 
@@ -319,7 +318,7 @@ export default function CheckoutPage() {
   const addAddressInline = async (event) => {
     event.preventDefault()
 
-    if (!addressForm.addressLine || !addressForm.pinCode) {
+    if (!addressForm.addressLine) {
       setError('Please fill in all address fields')
       return
     }
@@ -483,7 +482,6 @@ export default function CheckoutPage() {
                           <div className="flex-1 min-w-0">
                             <p className="font-bold text-slate-900 dark:text-white text-sm">{address.label || 'Address'}</p>
                             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 break-words">{address.addressLine}</p>
-                            <p className="text-xs text-slate-500 mt-0.5">Pin: {address.pinCode}</p>
                             {address.isDefault && (
                               <span className="inline-block mt-2 px-2 py-1 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 text-[10px] uppercase font-bold tracking-widest rounded-full">
                                 Default
@@ -528,14 +526,6 @@ export default function CheckoutPage() {
                         value={addressForm.addressLine}
                         onChange={(e) => setAddressForm((prev) => ({ ...prev, addressLine: e.target.value }))}
                         placeholder="Address line"
-                        required
-                        className="w-full px-4 py-2 border-2 border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500"
-                      />
-                      <input
-                        type="text"
-                        value={addressForm.pinCode}
-                        onChange={(e) => setAddressForm((prev) => ({ ...prev, pinCode: e.target.value }))}
-                        placeholder="Pin code"
                         required
                         className="w-full px-4 py-2 border-2 border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500"
                       />

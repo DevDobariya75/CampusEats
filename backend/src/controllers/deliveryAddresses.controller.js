@@ -5,7 +5,7 @@ import { asyncHandler } from "../utils/asyncHandler.js"
 
 // Add Delivery Address
 const addDeliveryAddress = asyncHandler(async (req, res) => {
-    const { label, addressLine, pinCode, isDefault } = req.body
+    const { label, addressLine, isDefault } = req.body
     const customerId = req.user?._id
 
     if (!customerId) {
@@ -17,20 +17,10 @@ const addDeliveryAddress = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Address line is required")
     }
 
-    if (!pinCode) {
-        throw new ApiError(400, "Pin code is required")
-    }
-
-    // Validate pin code format (5-6 digits)
-    if (!/^\d{5,6}$/.test(pinCode)) {
-        throw new ApiError(400, "Pin code must be 5-6 digits")
-    }
-
     // If this is set as default, unset other defaults
     let updateData = {
         customer: customerId,
         addressLine,
-        pinCode,
         isDeleted: false,
         isDefault: isDefault || false
     }
@@ -102,7 +92,7 @@ const getDeliveryAddressById = asyncHandler(async (req, res) => {
 // Update Delivery Address
 const updateDeliveryAddress = asyncHandler(async (req, res) => {
     const { addressId } = req.params
-    const { label, addressLine, pinCode, isDefault } = req.body
+    const { label, addressLine, isDefault } = req.body
     const customerId = req.user?._id
 
     if (!customerId) {
@@ -114,13 +104,8 @@ const updateDeliveryAddress = asyncHandler(async (req, res) => {
     }
 
     // Validation - at least one field is required
-    if (!label && !addressLine && !pinCode && isDefault === undefined) {
+    if (!label && !addressLine && isDefault === undefined) {
         throw new ApiError(400, "At least one field is required for update")
-    }
-
-    // Validate pin code if provided
-    if (pinCode && !/^\d{5,6}$/.test(pinCode)) {
-        throw new ApiError(400, "Pin code must be 5-6 digits")
     }
 
     // Check if address exists and belongs to user
@@ -143,10 +128,6 @@ const updateDeliveryAddress = asyncHandler(async (req, res) => {
 
     if (addressLine) {
         updateData.addressLine = addressLine
-    }
-
-    if (pinCode) {
-        updateData.pinCode = pinCode
     }
 
     if (isDefault === true) {

@@ -128,7 +128,7 @@ const getDeliveryByOrder = asyncHandler(async (req, res) => {
             select: 'totalAmount customer deliveryAddress shop specialNotes status',
             populate: [
                 { path: 'customer', select: 'name email phone' },
-                { path: 'deliveryAddress', select: 'addressLine city state pincode landmark phone' },
+                { path: 'deliveryAddress', select: 'label addressLine' },
                 { path: 'shop', select: 'name phone address' }
             ]
         })
@@ -174,7 +174,7 @@ const getPartnerDeliveries = asyncHandler(async (req, res) => {
             select: 'totalAmount customer deliveryAddress shop specialNotes status',
             populate: [
                 { path: 'customer', select: 'name email phone' },
-                { path: 'deliveryAddress', select: 'addressLine city state pincode landmark phone' },
+                { path: 'deliveryAddress', select: 'label addressLine' },
                 { path: 'shop', select: 'name phone address' }
             ]
         })
