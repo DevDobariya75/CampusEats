@@ -233,12 +233,16 @@ export function AuthProvider({ children }) {
 
   const verifyRegistrationOtp = useCallback(async ({ email, otp }) => {
     try {
+      console.log('🔐 Frontend: verifyRegistrationOtp called with:', { email, otp })
       setLoading(true)
       setError(null)
+      console.log('📡 Frontend: Calling API endpoint /users/register/confirm-otp')
       await userApi.confirmRegistration({ email, otp })
+      console.log('✅ Frontend: OTP verification successful')
       return { success: true }
     } catch (err) {
       const message = err.message || 'OTP verification failed'
+      console.log('❌ Frontend: OTP verification failed:', message)
       setError(message)
       return { success: false, error: message }
     } finally {

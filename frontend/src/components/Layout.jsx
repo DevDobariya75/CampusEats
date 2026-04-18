@@ -42,7 +42,7 @@ const getRoleLinks = (role) => {
 
 const guestTopLinks = [
   { to: '/#bento', label: 'Browse Food' },
-  { to: '/#how-it-works', label: 'How It Works' },
+  { to: '/how-it-works', label: 'How It Works' },
   { to: '/#campus-specials', label: 'Campus Specials' },
 ]
 
