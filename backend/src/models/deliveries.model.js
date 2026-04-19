@@ -28,6 +28,21 @@ const deliverySchema = new mongoose.Schema({
     isDeleted:{
         type: Boolean,
         default: false
+    },
+    earningsAmount:{
+        type: Number,
+        default: 5,
+        description: 'Delivery partner earnings from this delivery'
+    },
+    paymentStatus:{
+        type: String,
+        enum: ['Pending', 'Completed'],
+        default: 'Pending',
+        description: 'Whether payment to delivery partner has been processed'
+    },
+    paidAt:{
+        type: Date,
+        default: null
     }
 },{timestamps: true});
 

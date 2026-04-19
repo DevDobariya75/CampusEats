@@ -20,6 +20,7 @@ export const shopsApi = {
   create: (formData) => request('/shops', { method: 'POST', body: formData }),
   update: (shopId, formData) => request(`/shops/${shopId}`, { method: 'PATCH', body: formData }),
   toggle: (shopId) => request(`/shops/${shopId}/toggle`, { method: 'PATCH' }),
+  earnings: () => request('/shops/earnings'),
 }
 
 export const menuApi = {
@@ -74,6 +75,7 @@ export const deliveriesApi = {
   markPickedUp: (deliveryId) => request(`/deliveries/${deliveryId}/picked-up`, { method: 'PATCH' }),
   markDelivered: (deliveryId, body) => request(`/deliveries/${deliveryId}/delivered`, { method: 'PATCH', body }),
   stats: () => request('/deliveries/stats'),
+  earnings: () => request('/deliveries/partner/earnings'),
 }
 
 export const paymentsApi = {

@@ -167,9 +167,30 @@ const markOrderDeliveredWithoutTransaction = async (orderId) => {
 
   await Delivery.findOneAndUpdate(
     { order: orderId, isDeleted: false },
-    { $set: { status: 'Delivered', deliveredAt: new Date() } },
+    { 
+      $set: { 
+        status: 'Delivered', 
+        deliveredAt: new Date(),
+        earningsAmount: 5,  // Rs 5 for delivery partner
+        paymentStatus: 'Completed',
+        paidAt: new Date()
+      } 
+    },
     { returnDocument: 'after' },
   )
+
+  // Update delivery partner earnings in User model (without transaction fallback)
+  if (order.deliveryPartnerId) {
+    await User.findByIdAndUpdate(
+      order.deliveryPartnerId,
+      {
+        $inc: {
+          totalEarnings: 5,
+          totalDeliveryChargeEarnings: 5
+        }
+      }
+    )
+  }
 
   return {
     success: true,
@@ -282,11 +303,34 @@ export const markOrderDelivered = async (orderId) => {
       { session, returnDocument: 'after' },
     )
 
+    // Update delivery and add earnings amount
     await Delivery.findOneAndUpdate(
       { order: orderId, isDeleted: false },
-      { $set: { status: 'Delivered', deliveredAt: new Date() } },
+      { 
+        $set: { 
+          status: 'Delivered', 
+          deliveredAt: new Date(),
+          earningsAmount: 5,  // Rs 5 for delivery partner
+          paymentStatus: 'Completed',
+          paidAt: new Date()
+        } 
+      },
       { session, returnDocument: 'after' },
     )
+
+    // Update delivery partner earnings in User model
+    if (order.deliveryPartnerId) {
+      await User.findByIdAndUpdate(
+        order.deliveryPartnerId,
+        {
+          $inc: {
+            totalEarnings: 5,
+            totalDeliveryChargeEarnings: 5
+          }
+        },
+        { session }
+      )
+    }
 
     await session.commitTransaction()
 

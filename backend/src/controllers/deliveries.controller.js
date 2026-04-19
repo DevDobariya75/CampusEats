@@ -364,38 +364,34 @@ const markDelivered = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Order must be accepted or picked up before delivery")
     }
 
-    if (!verificationCode || !/^\d{4}$/.test(String(verificationCode).trim())) {
-        throw new ApiError(400, "Valid 4-digit delivery verification code is required")
+    // Verification code is optional - if provided validate it
+    if (verificationCode) {
+        if (!/^\d{4}$/.test(String(verificationCode).trim())) {
+            throw new ApiError(400, "Delivery verification code must be 4 digits")
+        }
+
+        const orderForVerification = await Order.findById(delivery.order)
+            .select('+deliveryVerificationCode')
+
+        if (orderForVerification && orderForVerification.deliveryVerificationCode) {
+            if (String(orderForVerification.deliveryVerificationCode) !== String(verificationCode).trim()) {
+                throw new ApiError(400, "Invalid delivery verification code")
+            }
+
+            orderForVerification.deliveryVerificationVerifiedAt = new Date()
+            await orderForVerification.save()
+        }
     }
-
-    const orderForVerification = await Order.findById(delivery.order)
-        .select('+deliveryVerificationCode +deliveryVerificationCodeGeneratedAt +deliveryVerificationVerifiedAt')
-
-    if (!orderForVerification) {
-        throw new ApiError(404, "Order not found")
-    }
-
-    if (!orderForVerification.deliveryVerificationCode) {
-        throw new ApiError(400, "Delivery verification code is not generated yet")
-    }
-
-    if (String(orderForVerification.deliveryVerificationCode) !== String(verificationCode).trim()) {
-        throw new ApiError(400, "Invalid delivery verification code")
-    }
-
-    orderForVerification.deliveryVerificationVerifiedAt = new Date()
-    await orderForVerification.save()
 
     try {
         await markOrderDelivered(delivery.order)
     } catch (error) {
-        // Final safety fallback: keep order/delivery status in sync even if service-level flow fails.
+        // Final safety fallback
         const latestOrder = await Order.findById(delivery.order)
         if (latestOrder && latestOrder.status !== 'Delivered') {
             if (latestOrder.deliveryPartnerId) {
                 await decrementPartnerLoad(latestOrder.deliveryPartnerId)
             }
-
             await Order.findByIdAndUpdate(latestOrder._id, { $set: { status: 'Delivered' } })
         }
 
@@ -403,19 +399,64 @@ const markDelivered = asyncHandler(async (req, res) => {
         if (latestDelivery && latestDelivery.status !== 'Delivered') {
             latestDelivery.status = 'Delivered'
             latestDelivery.deliveredAt = new Date()
+            latestDelivery.earningsAmount = 5  // Rs 5 for delivery partner
+            latestDelivery.paymentStatus = 'Completed'
+            latestDelivery.paidAt = new Date()
             await latestDelivery.save()
+
+            // Update delivery partner earnings in fallback case too
+            if (partnerId) {
+                await User.findByIdAndUpdate(
+                    partnerId,
+                    {
+                        $inc: {
+                            totalEarnings: 5,
+                            totalDeliveryChargeEarnings: 5
+                        }
+                    }
+                )
+            }
         }
     }
 
-    const updatedDelivery = await Delivery.findById(deliveryId)
+    // Update delivery status and earnings
+    const updatedDelivery = await Delivery.findByIdAndUpdate(
+        deliveryId,
+        {
+            $set: {
+                status: 'Delivered',
+                deliveredAt: new Date(),
+                earningsAmount: 5,  // Rs 5 for delivery partner (25% of Rs 20)
+                paymentStatus: 'Completed',
+                paidAt: new Date()
+            }
+        },
+        { new: true }
+    )
         .populate('deliveryPartner', 'name email phone')
         .populate('order', 'totalAmount customer')
+
+    // Update delivery partner earnings in User model
+    if (partnerId) {
+        await User.findByIdAndUpdate(
+            partnerId,
+            {
+                $inc: {
+                    totalEarnings: 5,
+                    totalDeliveryChargeEarnings: 5
+                }
+            },
+            { new: true }
+        )
+    }
 
     const deliveredOrder = await Order.findById(delivery.order)
         .populate('customer', 'name')
         .populate('shop', 'name owner')
 
     const shortDeliveredOrderId = delivery.order.toString().slice(-6)
+    
+    // Notify customer
     if (deliveredOrder?.customer?._id) {
         await safeNotify({
             recipientId: deliveredOrder.customer._id,
@@ -426,6 +467,7 @@ const markDelivered = asyncHandler(async (req, res) => {
         })
     }
 
+    // Notify shop owner
     if (deliveredOrder?.shop?.owner) {
         await safeNotify({
             recipientId: deliveredOrder.shop.owner,
@@ -435,6 +477,15 @@ const markDelivered = asyncHandler(async (req, res) => {
             relatedOrder: delivery.order
         })
     }
+
+    // Notify delivery partner about earnings
+    await safeNotify({
+        recipientId: partnerId,
+        title: 'Delivery completed',
+        message: `Order #${shortDeliveredOrderId} delivered! You earned Rs 5.`,
+        type: 'Earnings',
+        relatedOrder: delivery.order
+    })
 
     return res
         .status(200)
@@ -550,6 +601,40 @@ const getDeliveryStats = asyncHandler(async (req, res) => {
         }, "Delivery statistics fetched successfully"))
 })
 
+// Get Delivery Partner Earnings
+const getPartnerEarnings = asyncHandler(async (req, res) => {
+    const partnerId = req.user?._id
+    const userRole = req.user?.role
+
+    if (!partnerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (userRole !== 'delivery') {
+        throw new ApiError(403, "Only delivery partners can view earnings")
+    }
+
+    // Get completed deliveries count
+    const completedDeliveries = await Delivery.countDocuments({
+        deliveryPartner: partnerId,
+        status: 'Delivered',
+        isDeleted: false
+    })
+
+    // Calculate total earnings: Rs 5 per completed delivery
+    const totalDeliveryChargeEarnings = completedDeliveries * 5
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {
+            totalDeliveries: completedDeliveries,
+            totalEarnings: totalDeliveryChargeEarnings,
+            totalDeliveryChargeEarnings: totalDeliveryChargeEarnings,
+            earningsPerDelivery: 5,
+            message: `Total earnings: Rs${totalDeliveryChargeEarnings} from ${completedDeliveries} deliveries`
+        }, "Partner earnings fetched successfully"))
+})
+
 export {
     assignDelivery,
     getDeliveryByOrder,
@@ -558,5 +643,6 @@ export {
     markPickedUp,
     markDelivered,
     cancelDelivery,
-    getDeliveryStats
+    getDeliveryStats,
+    getPartnerEarnings
 }

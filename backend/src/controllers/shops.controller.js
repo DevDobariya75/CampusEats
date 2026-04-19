@@ -1,4 +1,5 @@
 import Shop from "../models/shops.model.js"
+import Order from "../models/order.model.js"
 import User from "../models/users.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
@@ -339,6 +340,52 @@ const activateShop = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, activatedShop, "Shop activated successfully"))
 })
 
+// Get Shop Earnings (Delivery Charge Share)
+const getShopEarnings = asyncHandler(async (req, res) => {
+    const ownerId = req.user?._id
+    const userRole = req.user?.role
+
+    if (!ownerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (userRole !== 'shopkeeper') {
+        throw new ApiError(403, "Only shop owners can view their earnings")
+    }
+
+    // Get shop data
+    const shop = await Shop.findOne({
+        owner: ownerId,
+        isDeleted: false
+    })
+
+    if (!shop) {
+        throw new ApiError(404, "Shop not found")
+    }
+
+    // Get completed orders count and calculate earnings
+    const completedOrdersCount = await Order.countDocuments({
+        shop: shop._id,
+        status: 'Delivered',
+        isDeleted: false
+    })
+
+    // Calculate total delivery charge earnings: Rs 10 per completed order
+    const totalDeliveryChargeEarnings = completedOrdersCount * 10
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {
+            shopId: shop._id,
+            shopName: shop.name,
+            totalOrders: completedOrdersCount,
+            totalDeliveryChargeEarnings: totalDeliveryChargeEarnings,
+            earningsPerOrder: 10,
+            totalEarnings: totalDeliveryChargeEarnings,
+            message: `Total delivery earnings: Rs${totalDeliveryChargeEarnings} from ${completedOrdersCount} orders`
+        }, "Shop earnings fetched successfully"))
+})
+
 export {
     createShop,
     getAllShops,
@@ -348,5 +395,6 @@ export {
     toggleShopStatus,
     deleteShop,
     deactivateShop,
-    activateShop
+    activateShop,
+    getShopEarnings
 }

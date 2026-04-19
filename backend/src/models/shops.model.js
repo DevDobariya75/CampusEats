@@ -31,6 +31,16 @@ const shopSchema = new mongoose.Schema({
     totalSales:{
         type: Number,
         default: 0
+    },
+    totalEarnings:{
+        type: Number,
+        default: 0,
+        description: 'Total earnings including delivery charge share'
+    },
+    totalDeliveryChargeEarnings:{
+        type: Number,
+        default: 0,
+        description: 'Total from 50% delivery charge share'
     }
 },{timestamps: true});
 

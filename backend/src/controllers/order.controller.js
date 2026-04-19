@@ -191,7 +191,14 @@ const createOrder = asyncHandler(async (req, res) => {
         status: 'Pending',  // Waiting for payment
         payment: null,      // Payment will be linked after successful payment
         inventoryReservation: reservationId,
-        isDeleted: false
+        isDeleted: false,
+        deliveryCharges: 20,  // Fixed delivery charge
+        chargeBreakdown: {
+            shopEarnings: 10,
+            deliveryPartnerEarnings: 5,
+            adminEarnings: 5
+        },
+        grandTotal: parseFloat(totalAmount) + 20  // Item total + delivery charges
     })
 
     try {

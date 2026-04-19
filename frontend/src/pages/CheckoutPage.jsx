@@ -60,6 +60,10 @@ export default function CheckoutPage() {
     return Number(total) > 0 ? Number(total) : calculatedSubTotal
   }, [summary, calculatedSubTotal])
 
+  // Delivery charge: Rs 20 per order
+  const DELIVERY_CHARGE = 20
+  const grandTotal = useMemo(() => totalAmount + DELIVERY_CHARGE, [totalAmount])
+
   const reservationTimerText = useMemo(() => {
     if (!reservationTimeLeft || reservationTimeLeft < 0) {
       return '00:00'
@@ -292,12 +296,12 @@ export default function CheckoutPage() {
           try {
             await processCashfreePayment(
               orderId,
-              totalAmount,
+              grandTotal,
               // onSuccess callback
               async (successData) => {
                 console.log('✅ Cashfree payment successful:', successData)
                 setLastPaymentData(successData)
-                setLastOrderData({ orderId, totalAmount })
+                setLastOrderData({ orderId, totalAmount: grandTotal })
                 setPaymentSuccess(true)
                 
                 // Show success screen for 2 seconds then navigate
@@ -309,7 +313,7 @@ export default function CheckoutPage() {
               (failureData) => {
                 console.error('❌ Cashfree payment failed:', failureData)
                 setPaymentError(failureData.error || 'Payment failed')
-                setLastOrderData({ orderId, totalAmount })
+                setLastOrderData({ orderId, totalAmount: grandTotal })
                 setPaymentFailure(true)
               }
             )
@@ -320,7 +324,7 @@ export default function CheckoutPage() {
           // Cash on delivery - just create payment record
           const paymentResponse = await paymentsApi.create({
             orderId,
-            amount: totalAmount,
+            amount: grandTotal,
             method: 'Cash',
           })
 
@@ -702,6 +706,14 @@ export default function CheckoutPage() {
                       <span className="text-slate-900 dark:text-white font-bold">{formatPrice(summary.deliveryFee)}</span>
                     </div>
                   )}
+                  {/* CampusEats Delivery Charge */}
+                  <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
+                    <span className="flex items-center gap-1">
+                      Delivery Charge
+                      <span className="text-xs px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full font-semibold">New</span>
+                    </span>
+                    <span className="text-slate-900 dark:text-white font-bold text-green-600 dark:text-green-400">₹{DELIVERY_CHARGE}</span>
+                  </div>
                   {summary?.tax > 0 && (
                     <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                       <span>Tax</span>
@@ -721,9 +733,10 @@ export default function CheckoutPage() {
                   <div className="flex justify-between items-center">
                     <span className="text-slate-600 dark:text-slate-300 font-black tracking-widest uppercase text-xs">Total Amount</span>
                     <span className="text-3xl font-black text-orange-500">
-                      {formatPrice(totalAmount)}
+                      {formatPrice(grandTotal)}
                     </span>
                   </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">(Includes ₹{DELIVERY_CHARGE} delivery charge)</p>
                 </div>
 
                 {/* Place Order Button */}

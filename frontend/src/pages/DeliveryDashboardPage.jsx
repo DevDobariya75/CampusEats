@@ -11,6 +11,7 @@ export default function DeliveryDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [totalEarned, setTotalEarned] = useState(0)
+  const [partnerEarnings, setPartnerEarnings] = useState(null)
   const [verificationCodes, setVerificationCodes] = useState({})
   const requestInFlightRef = useRef(false)
 
@@ -28,9 +29,10 @@ export default function DeliveryDashboardPage() {
         setIsRefreshing(true)
       }
 
-      const [deliveriesResponse, statsResponse] = await Promise.all([
+      const [deliveriesResponse, statsResponse, earningsResponse] = await Promise.all([
         deliveriesApi.listMine(),
         deliveriesApi.stats(),
+        deliveriesApi.earnings().catch(() => ({ data: null }))
       ])
       const deliveryList = Array.isArray(deliveriesResponse.data)
         ? deliveriesResponse.data
@@ -39,11 +41,17 @@ export default function DeliveryDashboardPage() {
       setDeliveries(deliveryList)
       setStats(statsResponse.data)
 
-      // Calculate total earned from delivered orders
-      const earned = deliveryList
-        .filter(d => d.status === 'Delivered')
-        .reduce((sum, d) => sum + (Number(d.order?.totalAmount) || 0), 0)
-      setTotalEarned(earned)
+      // Fetch and display real earnings data
+      if (earningsResponse?.data) {
+        setPartnerEarnings(earningsResponse.data)
+        setTotalEarned(earningsResponse.data.totalDeliveryChargeEarnings || 0)
+      } else {
+        // Fallback calculation if earnings endpoint fails
+        const earned = deliveryList
+          .filter(d => d.status === 'Delivered')
+          .reduce((sum) => sum + 5, 0) // Rs 5 per delivery
+        setTotalEarned(earned)
+      }
     } catch (err) {
       if (showError) {
         setError(err.message)

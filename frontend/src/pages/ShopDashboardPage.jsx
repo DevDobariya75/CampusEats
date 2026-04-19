@@ -10,6 +10,7 @@ export default function ShopDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [shopEarnings, setShopEarnings] = useState(null)
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalEarned: 0,
@@ -45,12 +46,22 @@ export default function ShopDashboardPage() {
       setShopId(currentShopId)
 
       if (currentShopId) {
-        const ordersResponse = await ordersApi.listForShop(currentShopId)
+        const [ordersResponse, earningsResponse] = await Promise.all([
+          ordersApi.listForShop(currentShopId),
+          shopsApi.earnings().catch(() => ({ data: null }))
+        ])
+        
         const ordersList = Array.isArray(ordersResponse.data) ? ordersResponse.data : ordersResponse.data?.orders || []
         setOrders(ordersList)
         setStats(calculateStats(ordersList))
+        
+        // Fetch and display earnings data
+        if (earningsResponse?.data) {
+          setShopEarnings(earningsResponse.data)
+        }
       } else {
         setOrders([])
+        setShopEarnings(null)
         setError('No shop found for this account.')
       }
     } catch (err) {
@@ -58,6 +69,7 @@ export default function ShopDashboardPage() {
       if (text.includes('shop not found')) {
         setShopId('')
         setOrders([])
+        setShopEarnings(null)
         setStats({
           totalOrders: 0,
           totalEarned: 0,
@@ -105,9 +117,24 @@ export default function ShopDashboardPage() {
       }
     }
 
+    const pollForEarnings = async () => {
+      try {
+        const earningsResponse = await shopsApi.earnings()
+        if (earningsResponse?.data) {
+          setShopEarnings(earningsResponse.data)
+        }
+      } catch {
+        // Silent earnings polling
+      }
+    }
+
     const intervalId = setInterval(() => {
       pollForNewOrders()
-    }, 8000)
+      pollForEarnings()
+    }, 5000)
+
+    // Initial earnings fetch
+    pollForEarnings()
 
     return () => clearInterval(intervalId)
   }, [shopId])
@@ -138,7 +165,7 @@ export default function ShopDashboardPage() {
 
   const statItems = [
     { title: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'from-orange-500 to-orange-600' },
-    { title: 'Total Earned', value: formatPrice(stats.totalEarned), icon: DollarSign, color: 'from-green-500 to-green-600' },
+    { title: 'Total Delivery Earnings', value: formatPrice(shopEarnings?.totalDeliveryChargeEarnings || 0), icon: DollarSign, color: 'from-green-500 to-green-600' },
     { title: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'from-orange-500 to-orange-600' },
     { title: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
   ]

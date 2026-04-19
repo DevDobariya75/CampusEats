@@ -63,6 +63,33 @@ const orderSchema = new mongoose.Schema({
     isDeleted:{
         type: Boolean,
         default: false
+    },
+    deliveryCharges:{
+        type: Number,
+        default: 20,
+        description: 'Total delivery charges in rupees'
+    },
+    chargeBreakdown:{
+        shopEarnings: {
+            type: Number,
+            default: 10,
+            description: '50% of delivery charges - goes to shop'
+        },
+        deliveryPartnerEarnings: {
+            type: Number,
+            default: 5,
+            description: '25% of delivery charges - goes to delivery partner'
+        },
+        adminEarnings: {
+            type: Number,
+            default: 5,
+            description: '25% of delivery charges - goes to admin'
+        }
+    },
+    grandTotal:{
+        type: Number,
+        required: true,
+        description: 'Total amount including delivery charges'
     }
 },{timestamps: true});
 

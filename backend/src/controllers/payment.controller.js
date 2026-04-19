@@ -1,5 +1,8 @@
 import Payment from "../models/payment.model.js"
 import Order from "../models/order.model.js"
+import Shop from "../models/shops.model.js"
+import Delivery from "../models/deliveries.model.js"
+import User from "../models/users.model.js"
 import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
@@ -42,18 +45,25 @@ const createPayment = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Order not found")
     }
 
-    // Security: Verify payment amount matches order total
-    if (parseFloat(amount) !== order.totalAmount) {
-        throw new ApiError(400, `Payment amount (${amount}) must match order total (${order.totalAmount})`)
+    // Security: Verify payment amount matches order GRAND TOTAL (items + delivery charges)
+    const grandTotal = order.grandTotal || (order.totalAmount + 20)
+    if (parseFloat(amount) !== grandTotal) {
+        throw new ApiError(400, `Payment amount (${amount}) must match grand total including delivery charges (${grandTotal})`)
     }
 
     const payment = await Payment.create({
         customer: customerId,
         order: orderId || null,
         amount: parseFloat(amount),
+        deliveryCharges: order.deliveryCharges || 20,
         method,
         upiVpa: method === 'UPI' ? upiVpa : null,
-        status: 'Pending'
+        status: 'Pending',
+        breakdownAmount: {
+            itemTotal: order.totalAmount,
+            deliveryCharges: order.deliveryCharges || 20,
+            grandTotal: grandTotal
+        }
     })
 
     const populatedPayment = await Payment.findById(payment._id)
@@ -183,16 +193,32 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
             updateData.upiTransactionId = upiTransactionId
         }
 
-        // Update order status to Confirmed when payment is successful (industry standard)
+        // Update order status to Confirmed when payment is successful
         if (payment.order) {
             const paidOrder = await Order.findByIdAndUpdate(
                 payment.order,
                 { $set: { status: 'Confirmed' } },
                 { returnDocument: 'after' }
-            )
+            ).populate('shop')
 
             if (paidOrder?.inventoryReservation) {
                 await completeReservation({ reservationId: paidOrder.inventoryReservation })
+            }
+
+            // Distribute earnings: Shop gets 50% of delivery charges (Rs 10)
+            if (paidOrder?.shop) {
+                const shopEarnings = paidOrder?.chargeBreakdown?.shopEarnings || 10
+                await Shop.findByIdAndUpdate(
+                    paidOrder.shop._id,
+                    {
+                        $inc: {
+                            totalEarnings: shopEarnings,
+                            totalDeliveryChargeEarnings: shopEarnings
+                        }
+                    },
+                    { new: true }
+                )
+                console.log(`💰 Shop earnings updated: +Rs${shopEarnings} for order ${payment.order}`)
             }
         }
     }
@@ -213,7 +239,7 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
         { new: true }
     )
         .populate('customer', 'name email phone')
-        .populate('order', 'totalAmount status')
+        .populate('order', 'totalAmount status chargeBreakdown')
 
     return res
         .status(200)
@@ -264,18 +290,31 @@ const verifyUPIPayment = asyncHandler(async (req, res) => {
         { new: true }
     )
         .populate('customer', 'name email phone')
-        .populate('order', 'totalAmount status')
+        .populate('order', 'totalAmount status chargeBreakdown')
 
-    // Update order status to Confirmed (industry standard)
+    // Update order status to Confirmed
     if (payment.order) {
         const paidOrder = await Order.findByIdAndUpdate(
             payment.order,
             { $set: { status: 'Confirmed' } },
             { new: true }
-        )
+        ).populate('shop')
 
         if (paidOrder?.inventoryReservation) {
             await completeReservation({ reservationId: paidOrder.inventoryReservation })
+        }
+
+        // Distribute earnings: Shop gets 50% of delivery charges
+        if (paidOrder?.shop) {
+            await Shop.findByIdAndUpdate(
+                paidOrder.shop._id,
+                {
+                    $inc: {
+                        totalEarnings: paidOrder.chargeBreakdown?.shopEarnings || 10,
+                        totalDeliveryChargeEarnings: paidOrder.chargeBreakdown?.shopEarnings || 10
+                    }
+                }
+            )
         }
     }
 
@@ -562,11 +601,24 @@ const verifyCashfreePaymentSignature = asyncHandler(async (req, res) => {
                 payment.order,
                 { $set: { status: 'Confirmed' } },
                 { new: true }
-            )
+            ).populate('shop')
 
             // Complete inventory reservation if exists
             if (paidOrder?.inventoryReservation) {
                 await completeReservation({ reservationId: paidOrder.inventoryReservation })
+            }
+
+            // Distribute earnings: Shop gets 50% of delivery charges
+            if (paidOrder?.shop) {
+                await Shop.findByIdAndUpdate(
+                    paidOrder.shop._id,
+                    {
+                        $inc: {
+                            totalEarnings: paidOrder.chargeBreakdown?.shopEarnings || 10,
+                            totalDeliveryChargeEarnings: paidOrder.chargeBreakdown?.shopEarnings || 10
+                        }
+                    }
+                )
             }
         } else if (finalStatus === 'Failed') {
             // Release inventory reservation if payment fails
@@ -582,7 +634,7 @@ const verifyCashfreePaymentSignature = asyncHandler(async (req, res) => {
 
     const updatedPayment = await Payment.findById(paymentId)
         .populate('customer', 'name email phone')
-        .populate('order', 'totalAmount status')
+        .populate('order', 'totalAmount status chargeBreakdown')
 
     return res
         .status(200)

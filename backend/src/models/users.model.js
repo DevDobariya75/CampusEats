@@ -38,6 +38,16 @@ const userSchema = new mongoose.Schema({
         default: 4,
         min: 1
     },
+    totalEarnings:{
+        type: Number,
+        default: 0,
+        description: 'Total earnings for delivery partners'
+    },
+    totalDeliveryChargeEarnings:{
+        type: Number,
+        default: 0,
+        description: 'Total delivery charge earnings (Rs 5 per delivery)'
+    },
     isActive:{
         type: Boolean,
         default: true

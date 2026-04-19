@@ -44,6 +44,28 @@ const paymentSchema = new mongoose.Schema({
     },
     paidAt:{
         type: Date,
+    },
+    deliveryCharges:{
+        type: Number,
+        default: 20,
+        description: 'Delivery charges included in this payment'
+    },
+    breakdownAmount:{
+        itemTotal: {
+            type: Number,
+            required: true,
+            description: 'Total for food items'
+        },
+        deliveryCharges: {
+            type: Number,
+            default: 20,
+            description: 'Delivery charges'
+        },
+        grandTotal: {
+            type: Number,
+            required: true,
+            description: 'Final total amount (items + delivery)'
+        }
     }
 },{timestamps: true});
 
