@@ -215,7 +215,7 @@ const updateMenuItem = asyncHandler(async (req, res) => {
     const updatedItem = await MenuItem.findByIdAndUpdate(
         itemId,
         { $set: updateData },
-        { new: true }
+        { returnDocument: 'after' }
     ).populate('shop', 'name')
 
     return res
@@ -302,7 +302,7 @@ const deleteMenuItem = asyncHandler(async (req, res) => {
     const deletedItem = await MenuItem.findByIdAndUpdate(
         itemId,
         { $set: { isDeleted: true } },
-        { new: true }
+        { returnDocument: 'after' }
     )
 
     return res
@@ -352,7 +352,7 @@ const updateStock = asyncHandler(async (req, res) => {
     const updatedItem = await MenuItem.findByIdAndUpdate(
         itemId,
         { $set: { stock: parseInt(stock) } },
-        { new: true }
+        { returnDocument: 'after' }
     ).populate('shop', 'name')
 
     return res

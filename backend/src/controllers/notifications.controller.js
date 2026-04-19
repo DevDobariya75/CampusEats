@@ -136,7 +136,7 @@ const markAsRead = asyncHandler(async (req, res) => {
     const updatedNotification = await Notification.findByIdAndUpdate(
         notificationId,
         { $set: { isRead: true } },
-        { new: true }
+        { returnDocument: 'after' }
     )
         .populate('recipient', 'name email')
         .populate('relatedOrder', '_id status')
@@ -194,7 +194,7 @@ const markAsUnread = asyncHandler(async (req, res) => {
     const updatedNotification = await Notification.findByIdAndUpdate(
         notificationId,
         { $set: { isRead: false } },
-        { new: true }
+        { returnDocument: 'after' }
     )
         .populate('recipient', 'name email')
         .populate('relatedOrder', '_id status')
@@ -230,7 +230,7 @@ const deleteNotification = asyncHandler(async (req, res) => {
     const deletedNotification = await Notification.findByIdAndUpdate(
         notificationId,
         { $set: { isDeleted: true } },
-        { new: true }
+        { returnDocument: 'after' }
     )
 
     return res

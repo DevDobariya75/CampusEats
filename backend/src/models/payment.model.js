@@ -29,6 +29,19 @@ const paymentSchema = new mongoose.Schema({
     upiVpa:{
         type: String,
     },
+    // Cashfree Integration Fields
+    cashfreeOrderId:{
+        type: String,
+    },
+    cashfreeSessionId:{
+        type: String,
+    },
+    cashfreePaymentId:{
+        type: String,
+    },
+    cashfreeSignature:{
+        type: String,
+    },
     paidAt:{
         type: Date,
     }

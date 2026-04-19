@@ -4,6 +4,7 @@ import { ApiError } from "../utils/ApiError.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
 import { asyncHandler } from "../utils/asyncHandler.js"
 import { completeReservation, releaseReservationById } from "../services/inventoryReservation.service.js"
+import { createCashfreeOrder, verifyCashfreeSignature, createCashfreePaymentLink as createPaymentLinkService } from "../services/cashfree-config.js"
 
 // Create Payment
 const createPayment = asyncHandler(async (req, res) => {
@@ -187,7 +188,7 @@ const updatePaymentStatus = asyncHandler(async (req, res) => {
             const paidOrder = await Order.findByIdAndUpdate(
                 payment.order,
                 { $set: { status: 'Confirmed' } },
-                { new: true }
+                { returnDocument: 'after' }
             )
 
             if (paidOrder?.inventoryReservation) {
@@ -323,6 +324,271 @@ const getPaymentStats = asyncHandler(async (req, res) => {
         }, "Payment statistics fetched successfully"))
 })
 
+/**
+ * Create Cashfree Payment Order
+ * 
+ * Initiates a Cashfree payment session in test mode.
+ * Supports multiple payment methods: UPI, Card, Net Banking, Wallet
+ */
+const createCashfreePaymentOrder = asyncHandler(async (req, res) => {
+    const { orderId, amount } = req.body
+    const customerId = req.user?._id
+
+    if (!customerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (!orderId) {
+        throw new ApiError(400, "Order ID is required")
+    }
+
+    if (!amount || amount <= 0) {
+        throw new ApiError(400, "Valid amount is required")
+    }
+
+    // Verify order exists and belongs to customer
+    const order = await Order.findOne({
+        _id: orderId,
+        customer: customerId
+    })
+        .populate('customer', 'name email phone')
+
+    if (!order) {
+        throw new ApiError(404, "Order not found")
+    }
+
+    try {
+        // Create Cashfree order
+        const cashfreeResponse = await createCashfreeOrder({
+            orderId: orderId.toString(),
+            amount: amount,
+            customerId: customerId.toString(),
+            customerEmail: order.customer.email,
+            customerPhone: order.customer.phone,
+            customerName: order.customer.name,
+            returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/${orderId}?paymentMethod=cashfree`,
+            notifyUrl: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/v1/payments/cashfree/webhook`
+        })
+
+        if (!cashfreeResponse.success) {
+            throw new ApiError(500, cashfreeResponse.error || "Failed to create Cashfree order")
+        }
+
+        // Create payment record in database
+        const payment = await Payment.create({
+            customer: customerId,
+            order: orderId,
+            amount: parseFloat(amount),
+            method: 'Cashfree',
+            status: 'Pending',
+            cashfreeOrderId: cashfreeResponse.cashfreeOrderId,
+            cashfreeSessionId: cashfreeResponse.sessionId
+        })
+
+        const populatedPayment = await Payment.findById(payment._id)
+            .populate('customer', 'name email phone')
+            .populate('order', 'totalAmount')
+
+        return res
+            .status(201)
+            .json(new ApiResponse(201, {
+                payment: populatedPayment,
+                sessionId: cashfreeResponse.sessionId,
+                orderId: cashfreeResponse.cashfreeOrderId
+            }, "Cashfree order created successfully"))
+    } catch (error) {
+        console.error("❌ Cashfree Order Creation Error:")
+        console.error("   Error Message:", error.message)
+        console.error("   Error Details:", error.response?.data || error)
+
+        throw error instanceof ApiError 
+            ? error 
+            : new ApiError(500, error.message || "Failed to create Cashfree order")
+    }
+})
+
+/**
+ * Create Cashfree Payment Link
+ * 
+ * RECOMMENDED APPROACH - No iframe whitelisting needed!
+ * Generates a payment link that user can click directly.
+ * No CORS issues, works on any domain instantly.
+ */
+const createCashfreePaymentLink = asyncHandler(async (req, res) => {
+    const { orderId, amount } = req.body
+    const customerId = req.user?._id
+
+    if (!customerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (!orderId) {
+        throw new ApiError(400, "Order ID is required")
+    }
+
+    if (!amount || amount <= 0) {
+        throw new ApiError(400, "Valid amount is required")
+    }
+
+    // Verify order exists and belongs to customer
+    const order = await Order.findOne({
+        _id: orderId,
+        customer: customerId
+    })
+        .populate('customer', 'name email phone')
+
+    if (!order) {
+        throw new ApiError(404, "Order not found")
+    }
+
+    try {
+        // Create Cashfree payment link
+        const cashfreeResponse = await createPaymentLinkService({
+            orderId: orderId.toString(),
+            amount: amount,
+            customerId: customerId.toString(),
+            customerEmail: order.customer.email,
+            customerPhone: order.customer.phone,
+            customerName: order.customer.name,
+            returnUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/${orderId}?method=cashfree&status=success`,
+            notifyUrl: `${process.env.BACKEND_URL || 'http://localhost:3000'}/api/v1/payments/cashfree/webhook`
+        })
+
+        if (!cashfreeResponse.success) {
+            throw new ApiError(500, cashfreeResponse.error || "Failed to create Cashfree payment link")
+        }
+
+        // Create payment record in database
+        const payment = await Payment.create({
+            customer: customerId,
+            order: orderId,
+            amount: parseFloat(amount),
+            method: 'Cashfree',
+            status: 'Pending',
+            cashfreeOrderId: cashfreeResponse.referenceId,
+            cashfreeSessionId: cashfreeResponse.linkId
+        })
+
+        const populatedPayment = await Payment.findById(payment._id)
+            .populate('customer', 'name email phone')
+            .populate('order', 'totalAmount')
+
+        return res
+            .status(201)
+            .json(new ApiResponse(201, {
+                payment: populatedPayment,
+                paymentUrl: cashfreeResponse.paymentUrl,
+                linkId: cashfreeResponse.linkId,
+                redirectUrl: cashfreeResponse.paymentUrl // Direct redirect URL
+            }, "Cashfree payment link created successfully - redirect user to paymentUrl"))
+    } catch (error) {
+        console.error("❌ Cashfree Payment Link Creation Error:")
+        console.error("   Error Message:", error.message)
+        console.error("   Error Details:", error.response?.data || error)
+
+        throw error instanceof ApiError 
+            ? error 
+            : new ApiError(500, error.message || "Failed to create Cashfree payment link")
+    }
+})
+
+/**
+ * Verify Cashfree Payment Signature
+ * 
+ * Verifies the payment signature returned from Cashfree after payment completion.
+ * Updates payment and order status on successful verification.
+ */
+const verifyCashfreePaymentSignature = asyncHandler(async (req, res) => {
+    const { paymentId, orderId, referenceId, signature, paymentStatus } = req.body
+    const customerId = req.user?._id
+
+    if (!customerId) {
+        throw new ApiError(401, "User not authenticated")
+    }
+
+    if (!paymentId || !orderId || !referenceId || !signature) {
+        throw new ApiError(400, "Payment verification details are required")
+    }
+
+    // Verify signature using Cashfree config
+    const isSignatureValid = verifyCashfreeSignature({
+        orderId,
+        orderAmount: req.body.orderAmount,
+        referenceId,
+        signature,
+        paymentStatus
+    })
+
+    if (!isSignatureValid) {
+        throw new ApiError(400, "Payment verification failed - Invalid signature")
+    }
+
+    // Find payment record
+    const payment = await Payment.findOne({
+        _id: paymentId,
+        customer: customerId
+    })
+
+    if (!payment) {
+        throw new ApiError(404, "Payment not found")
+    }
+
+    // Determine payment status based on cashfree response
+    let finalStatus = 'Pending'
+    if (paymentStatus === 'SUCCESS') {
+        finalStatus = 'Completed'
+    } else if (paymentStatus === 'FAILED' || paymentStatus === 'CANCELLED') {
+        finalStatus = 'Failed'
+    }
+
+    // Update payment record
+    const updateData = {
+        status: finalStatus,
+        cashfreePaymentId: referenceId,
+        cashfreeSignature: signature
+    }
+
+    if (finalStatus === 'Completed') {
+        updateData.paidAt = new Date()
+    }
+
+    await Payment.findByIdAndUpdate(paymentId, { $set: updateData })
+
+    // Handle order status update
+    if (payment.order) {
+        if (finalStatus === 'Completed') {
+            // Update order to Confirmed when payment succeeds
+            const paidOrder = await Order.findByIdAndUpdate(
+                payment.order,
+                { $set: { status: 'Confirmed' } },
+                { new: true }
+            )
+
+            // Complete inventory reservation if exists
+            if (paidOrder?.inventoryReservation) {
+                await completeReservation({ reservationId: paidOrder.inventoryReservation })
+            }
+        } else if (finalStatus === 'Failed') {
+            // Release inventory reservation if payment fails
+            const failedOrder = await Order.findById(payment.order)
+            if (failedOrder?.inventoryReservation) {
+                await releaseReservationById({
+                    reservationId: failedOrder.inventoryReservation,
+                    reason: 'payment_failed'
+                })
+            }
+        }
+    }
+
+    const updatedPayment = await Payment.findById(paymentId)
+        .populate('customer', 'name email phone')
+        .populate('order', 'totalAmount status')
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedPayment, "Cashfree payment verified successfully"))
+})
+
 export {
     createPayment,
     getPaymentById,
@@ -330,5 +596,8 @@ export {
     getCustomerPayments,
     updatePaymentStatus,
     verifyUPIPayment,
-    getPaymentStats
+    getPaymentStats,
+    createCashfreePaymentOrder,
+    createCashfreePaymentLink,
+    verifyCashfreePaymentSignature
 }

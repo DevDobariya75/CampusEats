@@ -17,6 +17,7 @@
   "dependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.925.0",
     "aws-jwt-verify": "^5.1.1",
+    "axios": "^1.6.5",
     "cloudinary": "^2.9.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",

@@ -136,7 +136,7 @@ export const markReservationPendingPayment = async ({ reservationId, customerId,
                 order: orderId
             }
         },
-        { new: true }
+        { returnDocument: 'after' }
     );
 
     if (!reservation) {

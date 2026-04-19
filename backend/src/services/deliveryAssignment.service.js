@@ -70,7 +70,7 @@ const decrementPartnerLoad = async (partnerId, session = null) => {
   }
 
   const nextCurrentOrders = Math.max((partner.currentOrders || 0) - 1, 0)
-  const updateOptions = session ? { session, new: true } : { new: true }
+  const updateOptions = session ? { session, returnDocument: 'after' } : { returnDocument: 'after' }
   await User.findByIdAndUpdate(partnerId, { $set: { currentOrders: nextCurrentOrders } }, updateOptions)
 }
 
@@ -99,7 +99,7 @@ const assignDeliveryPartnerWithoutTransaction = async (orderId) => {
     },
     { $inc: { currentOrders: 1 } },
     {
-      new: true,
+      returnDocument: 'after',
       sort: { currentOrders: 1, _id: 1 },
     },
   )
@@ -119,7 +119,7 @@ const assignDeliveryPartnerWithoutTransaction = async (orderId) => {
       $or: [{ deliveryPartnerId: null }, { deliveryPartnerId: { $exists: false } }],
     },
     { $set: { deliveryPartnerId: partner._id } },
-    { new: true },
+    { returnDocument: 'after' },
   )
 
   if (!assignedOrder) {
@@ -163,12 +163,12 @@ const markOrderDeliveredWithoutTransaction = async (orderId) => {
     await decrementPartnerLoad(order.deliveryPartnerId)
   }
 
-  await Order.findByIdAndUpdate(orderId, { $set: { status: 'Delivered' } }, { new: true })
+  await Order.findByIdAndUpdate(orderId, { $set: { status: 'Delivered' } }, { returnDocument: 'after' })
 
   await Delivery.findOneAndUpdate(
     { order: orderId, isDeleted: false },
     { $set: { status: 'Delivered', deliveredAt: new Date() } },
-    { new: true },
+    { returnDocument: 'after' },
   )
 
   return {
@@ -211,7 +211,7 @@ export const assignDeliveryPartner = async (orderId) => {
       },
       { $inc: { currentOrders: 1 } },
       {
-        new: true,
+        returnDocument: 'after',
         session,
         sort: { currentOrders: 1, _id: 1 },
       },
@@ -279,13 +279,13 @@ export const markOrderDelivered = async (orderId) => {
     await Order.findByIdAndUpdate(
       orderId,
       { $set: { status: 'Delivered' } },
-      { session, new: true },
+      { session, returnDocument: 'after' },
     )
 
     await Delivery.findOneAndUpdate(
       { order: orderId, isDeleted: false },
       { $set: { status: 'Delivered', deliveredAt: new Date() } },
-      { session, new: true },
+      { session, returnDocument: 'after' },
     )
 
     await session.commitTransaction()

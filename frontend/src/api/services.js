@@ -80,4 +80,7 @@ export const paymentsApi = {
   create: (body) => request('/payments', { method: 'POST', body }),
   updateStatus: (paymentId, body) => request(`/payments/${paymentId}/status`, { method: 'PATCH', body }),
   verifyUpi: (paymentId, body) => request(`/payments/${paymentId}/verify-upi`, { method: 'POST', body }),
+  createCashfreeOrder: (body) => request('/payments/cashfree/create-order', { method: 'POST', body }),
+  createCashfreeLink: (body) => request('/payments/cashfree/create-link', { method: 'POST', body }),
+  verifyCashfreePayment: (body) => request('/payments/cashfree/verify-payment', { method: 'POST', body }),
 }

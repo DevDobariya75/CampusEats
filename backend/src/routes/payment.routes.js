@@ -6,7 +6,10 @@ import {
     getCustomerPayments,
     updatePaymentStatus,
     verifyUPIPayment,
-    getPaymentStats
+    getPaymentStats,
+    createCashfreePaymentOrder,
+    createCashfreePaymentLink,
+    verifyCashfreePaymentSignature
 } from '../controllers/payment.controller.js'
 import { verifyJWT } from '../middlewares/auth.middleware.js'
 
@@ -23,6 +26,11 @@ router.post('/', createPayment)
 
 // Get all customer's payments
 router.get('/', getCustomerPayments)
+
+// Cashfree payment endpoints
+router.post('/cashfree/create-order', createCashfreePaymentOrder)
+router.post('/cashfree/create-link', createCashfreePaymentLink)  // NEW: Payment Link (RECOMMENDED)
+router.post('/cashfree/verify-payment', verifyCashfreePaymentSignature)
 
 // Get payments by order ID
 router.get('/order/:orderId', getPaymentsByOrder)

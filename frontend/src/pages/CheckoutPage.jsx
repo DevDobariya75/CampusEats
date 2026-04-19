@@ -2,11 +2,14 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
-import { MapPin, CreditCard, Wallet, DollarSign, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
-import { addressesApi, cartApi, ordersApi, shopsApi, paymentsApi } from '../api/services'
+import { MapPin, CreditCard, DollarSign, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react'
+import { addressesApi, cartApi, ordersApi, shopsApi, paymentsApi, userApi } from '../api/services'
 import { Button, LoadingSpinner } from '../components/ui/Button'
 import { AnimatedGradientBg, StaggerContainer, StaggerItem } from '../components/ui/3DElements'
 import { formatPrice } from '../utils/helpers'
+import PaymentSuccess from '../components/PaymentSuccess'
+import PaymentFailure from '../components/PaymentFailure'
+import { processCashfreePayment } from '../api/cashfree'
 
 const initialAddressForm = {
   label: '',
@@ -35,6 +38,11 @@ export default function CheckoutPage() {
   const [reservationTimeLeft, setReservationTimeLeft] = useState(0)
   const [reservingStock, setReservingStock] = useState(false)
   const [reservationBlocked, setReservationBlocked] = useState(false)
+  const [paymentSuccess, setPaymentSuccess] = useState(false)
+  const [paymentFailure, setPaymentFailure] = useState(false)
+  const [paymentError, setPaymentError] = useState('')
+  const [lastPaymentData, setLastPaymentData] = useState(null)
+  const [lastOrderData, setLastOrderData] = useState(null)
   const orderPlacedRef = useRef(false)
 
   const calculatedSubTotal = useMemo(
@@ -262,36 +270,66 @@ export default function CheckoutPage() {
       setSuccess('')
 
       // Create order
-      const response = await ordersApi.create({
+      const orderResponse = await ordersApi.create({
         shopId,
         deliveryAddressId: selectedAddress,
         totalAmount,
         specialNotes,
-        paymentMethod,
+        paymentMethod: toPaymentMethod(paymentMethod),
         reservationId: effectiveReservationId,
       })
 
+      const orderId = orderResponse.data?._id
+
       orderPlacedRef.current = true
 
-      // Create payment record
+      // Handle payment based on method
       try {
-        const paymentResponse = await paymentsApi.create({
-          orderId: response.data?._id,
-          amount: totalAmount,
-          method: toPaymentMethod(paymentMethod),
-        })
+        if (paymentMethod === 'cashfree') {
+          // Use Cashfree for online payments (TEST MODE)
+          console.log('💳 Processing Cashfree payment for order:', orderId)
+          
+          try {
+            await processCashfreePayment(
+              orderId,
+              totalAmount,
+              // onSuccess callback
+              async (successData) => {
+                console.log('✅ Cashfree payment successful:', successData)
+                setLastPaymentData(successData)
+                setLastOrderData({ orderId, totalAmount })
+                setPaymentSuccess(true)
+                
+                // Show success screen for 2 seconds then navigate
+                setTimeout(() => {
+                  navigate('/orders')
+                }, 2000)
+              },
+              // onFailure callback
+              (failureData) => {
+                console.error('❌ Cashfree payment failed:', failureData)
+                setPaymentError(failureData.error || 'Payment failed')
+                setLastOrderData({ orderId, totalAmount })
+                setPaymentFailure(true)
+              }
+            )
+          } catch (cashfreeErr) {
+            throw new Error(cashfreeErr.message || 'Cashfree payment failed')
+          }
+        } else if (paymentMethod === 'Cash') {
+          // Cash on delivery - just create payment record
+          const paymentResponse = await paymentsApi.create({
+            orderId,
+            amount: totalAmount,
+            method: 'Cash',
+          })
 
-        if (paymentResponse.data?._id) {
-          if (paymentMethod === 'upi') {
-            await paymentsApi.verifyUpi(paymentResponse.data._id, {
-              upiTransactionId: `UPI-${Date.now()}`,
-            })
-          } else {
+          if (paymentResponse.data?._id) {
             await paymentsApi.updateStatus(paymentResponse.data._id, { status: 'Completed' })
           }
         }
       } catch (paymentErr) {
-        await ordersApi.cancel(response.data?._id)
+        await ordersApi.cancel(orderId)
         orderPlacedRef.current = false
         throw new Error(paymentErr.message || 'Payment failed. Stock was restored. Please try again.')
       }
@@ -306,7 +344,7 @@ export default function CheckoutPage() {
 
       setSuccess('Order placed successfully!')
       setTimeout(() => {
-        navigate(`/orders/${response.data?._id || ''}`)
+        navigate(`/orders/${orderId || ''}`)
       }, 1500)
     } catch (err) {
       setError(err.message || 'Failed to place order')
@@ -574,8 +612,7 @@ export default function CheckoutPage() {
 
                   <div className="space-y-3">
                     {[
-                      { value: 'card', label: 'Credit/Debit Card', Icon: CreditCard },
-                      { value: 'upi', label: 'UPI', Icon: Wallet },
+                      { value: 'cashfree', label: 'Cashfree (Test Mode)', Icon: CreditCard },
                       { value: 'cash', label: 'Cash on Delivery', Icon: DollarSign },
                     ].map((method) => (
                       <motion.div
@@ -723,6 +760,39 @@ export default function CheckoutPage() {
             </StaggerItem>
           </div>
         </div>
+
+        {/* Payment Success Modal */}
+        {paymentSuccess && lastPaymentData && lastOrderData && (
+          <PaymentSuccess
+            orderId={lastOrderData.orderId}
+            paymentId={lastPaymentData._id}
+            amount={lastOrderData.totalAmount}
+            onContinue={() => {
+              setPaymentSuccess(false)
+              navigate('/orders')
+            }}
+          />
+        )}
+
+        {/* Payment Failure Modal */}
+        {paymentFailure && lastOrderData && (
+          <PaymentFailure
+            orderId={lastOrderData.orderId}
+            paymentId={lastOrderData.paymentId}
+            amount={lastOrderData.totalAmount}
+            error={paymentError}
+            onRetry={() => {
+              setPaymentFailure(false)
+              setPaymentError('')
+              // Retry payment with same order ID
+            }}
+            onBack={() => {
+              setPaymentFailure(false)
+              setPaymentError('')
+              navigate(`/cart/${shopId}`)
+            }}
+          />
+        )}
       </div>
     </motion.div>
   )
