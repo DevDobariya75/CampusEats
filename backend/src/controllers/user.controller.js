@@ -15,6 +15,7 @@ import {
   signUpCognitoUser,
   startForgotPassword,
 } from '../services/auth.js'
+import { sendWelcomeEmail } from '../services/email.service.js'
 
 const validRoles = ['customer', 'admin', 'shopkeeper', 'delivery']
 
@@ -222,6 +223,9 @@ const confirmRegistrationOtp = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, 'Local user profile not found. Register again first.')
   }
+
+  // Send welcome email to the newly registered user
+  await sendWelcomeEmail(user.email, user.name, user.role)
 
   return res
     .status(200)

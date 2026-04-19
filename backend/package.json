@@ -3,12 +3,11 @@
   "version": "1.0.0",
   "description": "Food Delivery System,",
   "license": "ISC",
-  "author": "Dev Dobariya",
+  "author": "Dev Dobariya || Manthan Dadhania",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js",
-    "cleanup:legacy-auth": "node src/scripts/cleanupLegacyAuthData.js"
+    "dev": "nodemon -r dotenv/config --experimental-json-modules src/index.js"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",
@@ -25,6 +24,7 @@
     "express": "^5.2.1",
     "mongoose": "^9.3.1",
     "multer": "^2.1.1",
-    "nodemailer": "^8.0.4"
+    "nodemailer": "^8.0.4",
+    "resend": "^3.0.0"
   }
 }
