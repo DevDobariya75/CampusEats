@@ -98,20 +98,28 @@ export default function VerifyOTPPage() {
     setMessage('')
 
     const otpCode = otp.join('')
+    console.log('🔑 VerifyOTP: handleSubmit called')
+    console.log('📧 VerifyOTP: Email:', email)
+    console.log('🔢 VerifyOTP: OTP Code:', otpCode)
+    
     if (!email) {
       setMessage('Email is missing. Please register again.')
+      console.log('❌ VerifyOTP: Email is missing')
       return
     }
 
     if (otpCode.length !== 6) {
       setMessage('Please enter all 6 OTP digits.')
+      console.log('❌ VerifyOTP: OTP length is not 6')
       return
     }
 
     setIsSubmitting(true)
+    console.log('⏳ VerifyOTP: Calling verifyRegistrationOtp...')
     const result = await verifyRegistrationOtp({ email, otp: otpCode })
     setIsSubmitting(false)
 
+    console.log('📊 VerifyOTP: Result:', result)
     if (result.success) {
       setMessage('Account verified successfully. Redirecting to login...')
       setTimeout(() => navigate('/login'), 1200)

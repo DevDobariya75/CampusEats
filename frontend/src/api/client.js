@@ -20,6 +20,8 @@ export function setUnauthorizedListener(listener) {
 }
 
 export async function request(path, options = {}) {
+  console.log(`📡 API Request: ${options.method || 'GET'} ${path}`, options.body)
+  
   const accessToken = localStorage.getItem(ACCESS_TOKEN_KEY) || localStorage.getItem(ID_TOKEN_KEY)
   const config = {
     method: options.method || 'GET',
@@ -38,6 +40,7 @@ export async function request(path, options = {}) {
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, config)
+  console.log(`📥 API Response: ${response.status} for ${path}`)
   const raw = await response.text()
   const payload = raw ? JSON.parse(raw) : {}
 

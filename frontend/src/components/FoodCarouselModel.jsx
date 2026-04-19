@@ -11,12 +11,6 @@ export const FOOD_SHOWCASE_ITEMS = [
     rotation: [0.04, 0.02, 0],
   },
   {
-    label: 'Cake Chocolate Slice',
-    path: '/animation/Cake Chocolate Slice.glb',
-    scaleBoost: 0.82,
-    rotation: [0.16, -0.76, 0.02],
-  },
-  {
     label: 'Burrito',
     path: '/animation/Burrito.glb',
     scaleBoost: 1.04,
@@ -33,12 +27,6 @@ export const FOOD_SHOWCASE_ITEMS = [
     path: '/animation/Cookie.glb',
     scaleBoost: 1.1,
     rotation: [0.86, 0.12, 0],
-  },
-  {
-    label: 'High Tea',
-    path: '/animation/High Tea.glb',
-    scaleBoost: 1,
-    rotation: [0.24, -0.58, 0],
   },
 ];
 
