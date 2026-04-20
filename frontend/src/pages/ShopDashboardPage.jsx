@@ -21,7 +21,12 @@ export default function ShopDashboardPage() {
 
   const calculateStats = (ordersList) => {
     const totalOrders = ordersList.length
-    const totalEarned = ordersList.reduce((sum, order) => sum + (Number(order.totalAmount) || 0), 0)
+    // Calculate total earned: item price + shop commission from delivery charges
+    const totalEarned = ordersList.reduce((sum, order) => {
+      const itemPrice = Number(order.totalAmount) || 0
+      const shopCommission = Number(order.chargeBreakdown?.shopEarnings) || 0
+      return sum + itemPrice + shopCommission
+    }, 0)
     const pendingOrders = ordersList.filter((o) => o.status === 'Pending').length
     const completedOrders = ordersList.filter((o) => o.status === 'Delivered').length
 
@@ -165,7 +170,7 @@ export default function ShopDashboardPage() {
 
   const statItems = [
     { title: 'Total Orders', value: stats.totalOrders, icon: Package, color: 'from-orange-500 to-orange-600' },
-    { title: 'Total Delivery Earnings', value: formatPrice(shopEarnings?.totalDeliveryChargeEarnings || 0), icon: DollarSign, color: 'from-green-500 to-green-600' },
+    { title: 'Total Amount', value: formatPrice(stats.totalEarned), icon: DollarSign, color: 'from-green-500 to-green-600' },
     { title: 'Pending Orders', value: stats.pendingOrders, icon: Clock, color: 'from-orange-500 to-orange-600' },
     { title: 'Completed Orders', value: stats.completedOrders, icon: CheckCircle, color: 'from-purple-500 to-purple-600' },
   ]
@@ -280,8 +285,16 @@ export default function ShopDashboardPage() {
 
                         <div className="space-y-4 mb-6">
                           <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-white/10">
-                            <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Amount</span>
+                            <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Item Price</span>
                             <span className="font-black text-orange-500 dark:text-orange-400 text-lg">Rs {order.totalAmount}</span>
+                          </div>
+                          <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-white/10">
+                            <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Commission</span>
+                            <span className="font-black text-green-500 dark:text-green-400 text-lg">Rs {order.chargeBreakdown?.shopEarnings || 0}</span>
+                          </div>
+                          <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-2 rounded-lg">
+                            <span className="text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest">Total Amount</span>
+                            <span className="font-black text-orange-600 dark:text-orange-300 text-lg">Rs {(Number(order.totalAmount) || 0) + (Number(order.chargeBreakdown?.shopEarnings) || 0)}</span>
                           </div>
                           <div className="flex justify-between items-center pb-2 border-b border-slate-200 dark:border-white/10">
                             <span className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">Customer</span>

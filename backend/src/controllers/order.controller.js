@@ -15,7 +15,8 @@ import {
     getReservationForCustomer,
     holdInventoryForCart,
     markReservationPendingPayment,
-    releaseReservationById
+    releaseReservationById,
+    completeReservation
 } from "../services/inventoryReservation.service.js"
 
 const generateDeliveryVerificationCode = () => String(Math.floor(1000 + Math.random() * 9000))
@@ -585,6 +586,18 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         .populate('deliveryAddress')
         .populate('payment')
         .populate('deliveryPartnerId', 'name email phone')
+
+    // Complete inventory reservation when order is delivered
+    if (status === 'Delivered' && order.inventoryReservation) {
+        try {
+            await completeReservation({
+                reservationId: order.inventoryReservation
+            })
+        } catch (error) {
+            // Completion failure should not block order delivery
+            console.error('Failed to complete reservation:', error)
+        }
+    }
 
     const shortOrderId = updatedOrder._id.toString().slice(-6)
     await safeNotify({
